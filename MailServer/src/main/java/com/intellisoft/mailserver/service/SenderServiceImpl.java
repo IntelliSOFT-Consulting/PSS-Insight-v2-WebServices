@@ -8,6 +8,8 @@ import java.util.Map;
 public class SenderServiceImpl implements SenderService {
     @Override
     public Response sendMail(List<String> to, String subject, String body, Map<String, Object> variables) {
+        //message variables must be in the format {variableName}
+        //and then in the map we do variableName = value
         return null;
     }
     private String constructMessage(String message, Map<String, Object> variables) {
