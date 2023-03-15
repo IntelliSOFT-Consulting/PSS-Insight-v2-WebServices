@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface SenderService {
-    Response sendMail(List<String> to, String subject, String body, Map<String, Object> variables);
+    Response sendMail(List<Map<String,String>> emailsAndNames, String subject,Long templateId, Map<String, Object> variables);
 }
