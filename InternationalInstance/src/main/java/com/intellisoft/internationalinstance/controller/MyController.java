@@ -3,14 +3,18 @@ package com.intellisoft.internationalinstance.controller;
 import com.intellisoft.internationalinstance.DbVersionData;
 import com.intellisoft.internationalinstance.FormatterClass;
 import com.intellisoft.internationalinstance.Results;
+import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.model.IndicatorForFrontEnd;
+import com.intellisoft.internationalinstance.model.Response;
+import com.intellisoft.internationalinstance.service_impl.NotificationService;
 import com.intellisoft.internationalinstance.service_impl.VersionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.websocket.server.PathParam;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +25,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MyController {
     private final VersionService versionService;
+    private final NotificationService notificationService;
     FormatterClass formatterClass = new FormatterClass();
 
     /**
@@ -33,6 +38,15 @@ public class MyController {
         Results results = versionService.getIndicators();
         return formatterClass.getResponse(results);
     }
+    @PostMapping("subscribe")
+    public Response subscribe(@RequestBody NotificationSubscription notificationSubscription)  {
+        return notificationService.subscribe(notificationSubscription);
+    }
+    @PutMapping("unsubscribe")
+    public Response unsubscribe(@RequestParam("email") String email)  {
+        return notificationService.unsubscribe(email);
+    }
+
 
     /**
      * Save versions to local and Datastore
