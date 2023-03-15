@@ -202,8 +202,6 @@ public class VersionServiceImpl implements VersionService {
 
                 JSONObject jsonObject = new JSONObject();
 
-                jsonObjectMetadataJson.remove("dataElements");
-
                 jsonObjectMetadataJson.put("dataElements",dataElementsArray);
 
                 jsonObjectMetadataJson.put("groups",jsonObjectGroups);
