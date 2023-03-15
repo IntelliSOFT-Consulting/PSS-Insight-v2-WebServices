@@ -55,6 +55,7 @@ public class SenderServiceImpl implements SenderService {
                 request.setMethod(Method.POST);
                 request.setEndpoint("mail/send");
                 request.setBody(mail.build());
+                // TODO: 15/03/2023  use executorService to execute the request
                 com.sendgrid.Response response = sg.api(request);
 
 
