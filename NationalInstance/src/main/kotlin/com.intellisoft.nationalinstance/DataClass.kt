@@ -272,3 +272,7 @@ data class DbDataElementsValueData(
     val name: String,
     val valueType:String
 )
+data class DbHistoricalData(
+    val nationalIndicators:Any?,
+    val internationalIndicators:Any?
+)

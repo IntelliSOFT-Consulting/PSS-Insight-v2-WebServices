@@ -395,16 +395,20 @@ public class VersionServiceImpl implements VersionService {
 
     @Override
     public Results getPublishedIndicators() throws URISyntaxException {
-        String versionNo = String.valueOf(getVersions(AppConstants.DATA_STORE_ENDPOINT));
-        String url = AppConstants.DATA_STORE_ENDPOINT+versionNo;
 
-        DbMetadataJson dbMetadataJson = getRawRemoteData(url);
+        DbMetadataJson dbMetadataJson = getPublishedData();
         Object publishedGroups=  dbMetadataJson.getMetadata().getPublishedGroups();
         if (publishedGroups != null){
             return new Results(200, publishedGroups);
         }else {
             return new Results(400, "No published indicators could be found.");
         }
+    }
+
+    private DbMetadataJson getPublishedData() throws URISyntaxException {
+        String versionNo = String.valueOf(getVersions(AppConstants.DATA_STORE_ENDPOINT));
+        String url = AppConstants.DATA_STORE_ENDPOINT+versionNo;
+        return getRawRemoteData(url);
     }
 
     @Override
@@ -488,14 +492,22 @@ public class VersionServiceImpl implements VersionService {
             e.printStackTrace();
         }
 
+        DbMetadataJson dbMetadataJson = getPublishedData();
+        Object publishedGroups=  dbMetadataJson.getMetadata().getPublishedGroups();
+
+
+
         List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
+        DbHistoricalData dbHistoricalData = new DbHistoricalData(
+                publishedGroups,
+                categoryIndicatorsList
+        );
 
+//        DbResults dbResults = new DbResults(
+//                categoryIndicatorsList.size(),
+//                categoryIndicatorsList);
 
-        DbResults dbResults = new DbResults(
-                categoryIndicatorsList.size(),
-                categoryIndicatorsList);
-
-        return new Results(200, dbResults);
+        return new Results(200, dbHistoricalData);
 
     }
 
