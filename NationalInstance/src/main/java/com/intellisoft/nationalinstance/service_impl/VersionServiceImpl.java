@@ -470,6 +470,8 @@ public class VersionServiceImpl implements VersionService {
         //get metadata object for national passing the nationalVersion No
         //get groups from national
 
+
+//        List<IndicatorForFrontEnd> indicatorForFrontEnds = new LinkedList<>();
         List<DbFrontendIndicators> indicatorForFrontEnds = new LinkedList<>();
 
         try{

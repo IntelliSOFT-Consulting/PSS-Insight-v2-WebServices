@@ -159,6 +159,9 @@ data class DbSurveyDetails(
 )
 data class DbResponse(
     val respondentId: String,
+    val responses: List<DbRespondentSurvey>
+)
+data class DbRespondentSurvey(
     val indicatorId: String,
     val answer: String,
     val comments: String?,
@@ -169,6 +172,11 @@ data class DbResponse(
 data class DbRequestLink(
     val respondentId: String,
     val comments: String?
+)
+
+data class DbFrontendCategoryIndicators(
+    val categoryName: String,
+    val indicators: List<DbFrontendIndicators>
 )
 data class DbFrontendIndicators(
     val code: String,
@@ -182,10 +190,20 @@ data class DbIndicators(
     val name: String,
     val id: String
 )
-data class DbFrontendCategoryIndicators(
+
+data class DbFrontendCategoryIndicatorsAnswers(
     val categoryName: String,
-    val indicators: List<DbFrontendIndicators>
+    val indicators: List<DbFrontendIndicatorAnswers>
 )
+data class DbFrontendIndicatorAnswers(
+    val code: String,
+    val indicatorId: String,
+    val categoryName: String,
+    val indicatorName: String,
+    val indicators: List<DbRespondentSurvey>
+)
+
+
 data class DbSurveyRespondentDetails(
     val surveyId: String,
     val surveyName: String,
@@ -275,4 +293,14 @@ data class DbDataElementsValueData(
 data class DbHistoricalData(
     val nationalIndicators:Any?,
     val internationalIndicators:Any?
+)
+data class DbSurveyRespondentsDetails(
+    val id: String,
+    val name: String,
+    val description: String,
+    val status: String,
+    val creatorId: String,
+    val createdAt: String,
+    val updatedAt: String,
+    val indicators: List<Any>,
 )

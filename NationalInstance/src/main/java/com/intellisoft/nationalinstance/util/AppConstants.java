@@ -3,6 +3,8 @@ package com.intellisoft.nationalinstance.util;
 public class AppConstants {
     public static final String APP_NAME = "International Instance";
     public static final String INTERNATIONAL_BASE_URL="http://pssinternational.intellisoftkenya.com/api/";
+    public static final String PUBLISHED_TEMPLATE="http://pssinternational.intellisoftkenya.com/api/";
+
     public static final String NATIONAL_BASE_URL="http://pssnational.intellisoftkenya.com/api/";
     public static  final  String METADATA_GROUPINGS =INTERNATIONAL_BASE_URL+"dataElementGroups.json?fields=id,name,dataElements[id,name,code]";
     public static  final  String METADATA_JSON_ENDPOINT=NATIONAL_BASE_URL+"programs/T4EBleGG9mU/metadata.json";

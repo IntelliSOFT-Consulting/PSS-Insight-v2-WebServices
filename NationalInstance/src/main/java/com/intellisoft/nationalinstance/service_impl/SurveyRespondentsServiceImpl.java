@@ -114,7 +114,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
             String hostname = InetAddress.getLocalHost().getHostAddress();
             System.out.println("===1"+hostname);
 
-            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
+//            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
+            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
             System.out.println("===2"+mailServerUrl);
 
             var response = GenericWebclient.postForSingleObjResponse(
@@ -203,6 +204,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             String passwordDb = surveyRespondents.getPassword();
             if (password.equals(passwordDb)){
+                //Return questions
+
                 return new Results(200, new DbDetails("Log in success."));
             }
         }
@@ -213,65 +216,150 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
     @Override
     public Results getAssignedSurvey(String id) {
 
+        List<DbFrontendCategoryIndicators> categoryIndicatorsList = getRespondentsQuestions(id);
+        DbResults dbResults = new DbResults(
+                categoryIndicatorsList.size(),
+                categoryIndicatorsList);
+        return new Results(200, dbResults);
+
+    }
+
+    private List<DbFrontendCategoryIndicators> getRespondentsQuestions(String id){
+
         List<DbFrontendIndicators> indicatorForFrontEnds = new LinkedList<>();
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(Long.valueOf(id));
+
         if (optionalSurveyRespondents.isPresent()) {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             String surveyId = surveyRespondents.getSurveyId();
 
-            Results results = surveysService.surveyDetails(surveyId);
-            if (results.getCode() == 200){
-                Surveys surveys = (Surveys) results.getDetails();
+            Surveys surveys  = surveysService.surveyDetailsInfo(surveyId);
+            if (surveys != null){
+                List<String> stringList = surveys.getIndicators();
 
-                if (surveys != null){
-                    List<String> stringList = surveys.getIndicators();
+                List<String> metaDataList = indicatorsRepo.findMetadataByIndicatorIds(stringList);
 
-                    List<String> metaDataList = indicatorsRepo.findMetadataByIndicatorIds(stringList);
+                try {
 
-                    try {
-
-                        for(int j = 0; j < metaDataList.size(); j++){
-                            String s = metaDataList.get(j);
-                            JSONObject jsonObject = new JSONObject(s);
-                            versionService.getIndicatorGroupings(indicatorForFrontEnds, jsonObject);
-                        }
-
-                    } catch (JSONException e) {
-                        System.out.println("*****1");
-                        e.printStackTrace();
+                    for(int j = 0; j < metaDataList.size(); j++){
+                        String s = metaDataList.get(j);
+                        JSONObject jsonObject = new JSONObject(s);
+                        versionService.getIndicatorGroupings(indicatorForFrontEnds, jsonObject);
                     }
-                    List<DbFrontendCategoryIndicators> categoryIndicatorsList = versionService.getCategorisedIndicators(indicatorForFrontEnds);
 
-
-                    DbResults dbResults = new DbResults(
-                            categoryIndicatorsList.size(),
-                            categoryIndicatorsList);
-                    return new Results(200, dbResults);
-
-
+                } catch (JSONException e) {
+                    System.out.println("*****1");
+                    e.printStackTrace();
                 }
 
+                // Create a map to group the indicators by category name
+                Map<String, List<DbFrontendIndicators>> groupedByCategory = new HashMap<>();
+                for (DbFrontendIndicators indicator : indicatorForFrontEnds) {
+                    String categoryName = indicator.getCategoryName();
+                    if (!groupedByCategory.containsKey(categoryName)) {
+                        groupedByCategory.put(categoryName, new LinkedList<>());
+                    }
+                    groupedByCategory.get(categoryName).add(indicator);
+                }
+
+                // Create a new list of DbFrontendCategoryIndicators
+                List<DbFrontendCategoryIndicators> categoryIndicatorsList = new LinkedList<>();
+                for (String categoryName : groupedByCategory.keySet()) {
+                    List<DbFrontendIndicators> categoryIndicators = groupedByCategory.get(categoryName);
+
+                    DbFrontendCategoryIndicators category = new DbFrontendCategoryIndicators(categoryName, categoryIndicators);
+                    categoryIndicatorsList.add(category);
+                }
+
+                return categoryIndicatorsList;
             }
         }
-        return new Results(400, "We could not find any indicators.");
+        return new ArrayList<>();
 
     }
 
     @Override
+    public Results getAssignedAnswers(String respondentId) {
+
+        List<DbFrontendCategoryIndicatorsAnswers> categoryIndicatorsAnswersList = new ArrayList<>();
+        List<DbFrontendCategoryIndicators> categoryIndicatorsList = getRespondentsQuestions(respondentId);
+        for (int i = 0; i < categoryIndicatorsList.size(); i++){
+
+            String catName = categoryIndicatorsList.get(i).getCategoryName();
+            List<DbFrontendIndicatorAnswers> dbFrontendIndicatorAnswersList = new ArrayList<>();
+
+            List<DbFrontendIndicators> indicatorlistData = categoryIndicatorsList.get(i).getIndicators();
+            for (int j = 0; j < indicatorlistData.size(); j++){
+
+                String code = indicatorlistData.get(j).getCode();
+                String indicatorCategoryId = indicatorlistData.get(j).getIndicatorId();
+                String categoryName = indicatorlistData.get(j).getCategoryName();
+                String indicatorName = indicatorlistData.get(j).getIndicatorName();
+                List<DbRespondentSurvey> dbRespondentSurveyList = new ArrayList<>();
+
+                List<DbIndicators> indicatorList = indicatorlistData.get(j).getIndicators();
+                for (int k = 0; k < indicatorList.size(); k++){
+
+                    String indicatorId = indicatorList.get(k).getId();
+                    Optional<RespondentAnswers> respondentAnswers = respondentAnswersRepo
+                            .findByIndicatorIdAndRespondentId(indicatorId, respondentId);
+                    if (respondentAnswers.isPresent()){
+
+                        RespondentAnswers respondentAnswersValue = respondentAnswers.get();
+                        String answer = String.valueOf(respondentAnswersValue.getAnswer());
+                        String comment = respondentAnswersValue.getComments();
+                        String upload = respondentAnswersValue.getAttachment();
+
+                        DbRespondentSurvey dbRespondentSurvey = new DbRespondentSurvey(
+                                indicatorId, answer, comment, upload);
+                        dbRespondentSurveyList.add(dbRespondentSurvey);
+                    }
+
+                }
+
+                DbFrontendIndicatorAnswers dbFrontendIndicatorAnswers = new DbFrontendIndicatorAnswers(
+                        code, indicatorCategoryId, categoryName, indicatorName, dbRespondentSurveyList);
+                dbFrontendIndicatorAnswersList.add(dbFrontendIndicatorAnswers);
+            }
+
+            DbFrontendCategoryIndicatorsAnswers dbFrontendCategoryIndicatorsAnswers = new DbFrontendCategoryIndicatorsAnswers(
+                    catName, dbFrontendIndicatorAnswersList
+            );
+            categoryIndicatorsAnswersList.add(dbFrontendCategoryIndicatorsAnswers);
+        }
+
+        DbResults dbResults = new DbResults(
+                categoryIndicatorsAnswersList.size(),
+                categoryIndicatorsAnswersList);
+        return new Results(200, dbResults);
+
+
+    }
+
+
+
+    @Override
     public Results saveResponse(DbResponse dbResponse) {
 
-        String respondentId = dbResponse.getRespondentId();
-        String indicatorId = dbResponse.getIndicatorId();
-        String answer = dbResponse.getAnswer();
-        String comments = dbResponse.getComments();
-        String attachment = dbResponse.getAttachment();
 
-        RespondentAnswers respondentAnswers = new RespondentAnswers(
-                respondentId, indicatorId, answer, comments, attachment);
-        respondentAnswersRepo.save(respondentAnswers);
-        return new Results(201, respondentAnswers);
+        List<RespondentAnswers> respondentAnswersList = new ArrayList<>();
+        String respondentId = dbResponse.getRespondentId();
+        List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
+        for(int i = 0; i < dbRespondentSurveyList.size(); i++){
+            String indicatorId = dbRespondentSurveyList.get(i).getIndicatorId();
+            String answer = dbRespondentSurveyList.get(i).getAnswer();
+            String comments = dbRespondentSurveyList.get(i).getComments();
+            String attachment = dbRespondentSurveyList.get(i).getAttachment();
+            RespondentAnswers respondentAnswers = new RespondentAnswers(
+                    respondentId, indicatorId, answer, comments, attachment);
+            respondentAnswersList.add(respondentAnswers);
+        }
+        //Update status on what was provided
+
+        respondentAnswersRepo.saveAll(respondentAnswersList);
+        return new Results(201, new DbDetails("Responses have been saved."));
     }
 
     @Override
