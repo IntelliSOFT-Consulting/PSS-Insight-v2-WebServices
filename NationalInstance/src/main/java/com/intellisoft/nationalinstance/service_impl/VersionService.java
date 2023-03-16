@@ -20,6 +20,8 @@ public interface VersionService {
       Results deleteTemplate(long deleteId);
       Results getVersion(String versionId);
 
+      Results getPublishedIndicators() throws URISyntaxException;
+
       Response syncVersion() throws URISyntaxException;
       List<IndicatorForFrontEnd> extractIndicators(List<Indicators> indicators);
 }

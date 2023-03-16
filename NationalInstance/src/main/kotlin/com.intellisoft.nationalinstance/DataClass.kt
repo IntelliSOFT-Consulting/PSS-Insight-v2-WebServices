@@ -242,6 +242,8 @@ data class DbPrograms(
     val groups: Any?,
     @JsonProperty("indicatorDescriptions")
     val indicatorDescriptions: Any?,
+    @JsonProperty("publishedGroups")
+    var publishedGroups: Any?,
 )
 data class DbDataValuesData(
     val code: String,
@@ -263,4 +265,10 @@ data class DbDataValuesData(
     val attributeValues: Any,
     val legendSets: Any,
     val aggregationLevels: Any
+)
+data class DbDataElementsValueData(
+    val code: String,
+    val id: String,
+    val name: String,
+    val valueType:String
 )

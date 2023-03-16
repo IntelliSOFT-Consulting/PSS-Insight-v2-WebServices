@@ -130,16 +130,18 @@ public class VersionServiceImpl implements VersionService {
             String internationalUrl = AppConstants.DATA_STORE_ENDPOINT_INT+(versionIntNum);
 
             List<String> metaDataList = indicatorsRepo.findByIndicatorIds(indicatorList);
-            System.out.println(metaDataList);
+
 
             if (!metaDataList.isEmpty()){
 
                 DbMetadataJson dbMetadataJson = getRawRemoteData(internationalUrl);
 //                JSONArray dataElementsArray = new JSONArray();
                 List<DbDataValuesData> dbDataValuesDataList = new ArrayList<>();
+                List<DbFrontendIndicators> indicatorForFrontEnds = new LinkedList<>();
 
                 for (String s : metaDataList){
                     JSONObject jsonObject = new JSONObject(s);
+
                     JSONArray dataElements = jsonObject.getJSONArray("dataElements");
                     dataElements.forEach(element->{
 
@@ -242,11 +244,14 @@ public class VersionServiceImpl implements VersionService {
                         }
 
                     });
+                    getIndicatorGroupings(indicatorForFrontEnds, jsonObject);
 
                 }
+                List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
 
                 DbPrograms dbPrograms = dbMetadataJson.getMetadata();
                 dbPrograms.setDataElements(dbDataValuesDataList);
+                dbPrograms.setPublishedGroups(categoryIndicatorsList);
 
 
 //
@@ -386,6 +391,20 @@ public class VersionServiceImpl implements VersionService {
             results = new Results(400, "Version could not be found.");
         }
         return results;
+    }
+
+    @Override
+    public Results getPublishedIndicators() throws URISyntaxException {
+        String versionNo = String.valueOf(getVersions(AppConstants.DATA_STORE_ENDPOINT));
+        String url = AppConstants.DATA_STORE_ENDPOINT+versionNo;
+
+        DbMetadataJson dbMetadataJson = getRawRemoteData(url);
+        Object publishedGroups=  dbMetadataJson.getMetadata().getPublishedGroups();
+        if (publishedGroups != null){
+            return new Results(200, publishedGroups);
+        }else {
+            return new Results(400, "No published indicators could be found.");
+        }
     }
 
     @Override
@@ -577,9 +596,6 @@ public class VersionServiceImpl implements VersionService {
     private DbMetadataJson getRawRemoteData(String url) throws URISyntaxException {
         //change to national url
         var  res =GenericWebclient.getForSingleObjResponse(url, DbMetadataJson.class);
-        System.out.println("*********");
-        System.out.println(res);
-        System.out.println("*********");
         return res;
     }
 }

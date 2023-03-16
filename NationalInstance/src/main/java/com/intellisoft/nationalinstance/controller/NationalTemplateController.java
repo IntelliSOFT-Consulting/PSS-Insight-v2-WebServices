@@ -64,6 +64,15 @@ public class NationalTemplateController {
         return formatterClass.getResponse(results);
 
     }
+    /**
+     * Get Published indicators
+     */
+    @GetMapping(value = "/published-indicators")
+    public ResponseEntity<?> getPublishedIndicators() throws URISyntaxException {
+        Results results = versionService.getPublishedIndicators();
+        return formatterClass.getResponse(results);
+
+    }
 
     /**
      * Get Data from local database
