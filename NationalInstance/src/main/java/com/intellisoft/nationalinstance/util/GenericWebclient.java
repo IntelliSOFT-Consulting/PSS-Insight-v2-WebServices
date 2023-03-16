@@ -4,10 +4,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.extern.log4j.Log4j2;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -44,6 +47,18 @@ public class GenericWebclient {
      * NOTE: Custom Exceptions must in order of 4xx to 5xx
      * E...  -> Array of custom exceptions
      */
+
+    public static ResponseEntity<JSONObject> testPost(String url, JSONObject jsonObject){
+        return myWebClient().post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(jsonObject))
+                .retrieve()
+                .toEntity(JSONObject.class)
+                .block();
+    }
+
+
 
     @SafeVarargs
     public  static<T ,V, E extends Exception> V postForSingleObjResponse(String url, T request, Class<T> requestClass, Class<V> responseClass, E... exceptions) throws URISyntaxException {

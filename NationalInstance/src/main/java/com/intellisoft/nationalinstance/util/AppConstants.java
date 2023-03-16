@@ -8,10 +8,10 @@ public class AppConstants {
     public static  final  String METADATA_JSON_ENDPOINT=NATIONAL_BASE_URL+"programs/T4EBleGG9mU/metadata.json";
     public static  final  String INDICATOR_DESCRIPTION_ENDPOINT=INTERNATIONAL_BASE_URL+"dataStore/Indicator_description/V1";
 
-    public static  final  String INTERNATIONAL_METADATA_ENDPOINT =NATIONAL_BASE_URL+"programs/T4EBleGG9mU/metadata.json";
+    public static  final  String INTERNATIONAL_METADATA_ENDPOINT =INTERNATIONAL_BASE_URL+"programs/T4EBleGG9mU/metadata.json";
     //Change to national url
-    public static final String DATA_STORE_ENDPOINT = NATIONAL_BASE_URL+"33/dataStore/master_indicator_templates/";
-    public static final String DATA_STORE_ENDPOINT_INT = INTERNATIONAL_BASE_URL+"33/dataStore/master_indicator_templates/";
+    public static final String DATA_STORE_ENDPOINT = NATIONAL_BASE_URL+"dataStore/master_indicator_templates/";
+    public static final String DATA_STORE_ENDPOINT_INT = INTERNATIONAL_BASE_URL+"dataStore/master_indicator_templates/";
 
     public static  final  String NATIONAL_INSTANCE_ENDPOINT ="NATIONAL_BASE_";
     public static final String EVENTS_ENDPOINT =NATIONAL_BASE_URL+"events";

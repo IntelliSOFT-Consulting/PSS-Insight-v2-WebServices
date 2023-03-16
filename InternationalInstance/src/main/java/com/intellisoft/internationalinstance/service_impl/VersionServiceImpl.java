@@ -197,6 +197,7 @@ public class VersionServiceImpl implements VersionService {
 
                 var groups = GenericWebclient.getForSingleObjResponse(AppConstants.METADATA_GROUPINGS, String.class);
                 var indicatorDescriptions = GenericWebclient.getForSingleObjResponse(AppConstants.INDICATOR_DESCRIPTIONS, String.class);
+
                 JSONArray jsonArray = new JSONArray(indicatorDescriptions);
                 JSONObject jsonObjectGroups = new JSONObject(groups);
 

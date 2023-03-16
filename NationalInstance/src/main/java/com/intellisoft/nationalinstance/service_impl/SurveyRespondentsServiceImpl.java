@@ -242,25 +242,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
                         System.out.println("*****1");
                         e.printStackTrace();
                     }
+                    List<DbFrontendCategoryIndicators> categoryIndicatorsList = versionService.getCategorisedIndicators(indicatorForFrontEnds);
 
-                    // Create a map to group the indicators by category name
-                    Map<String, List<DbFrontendIndicators>> groupedByCategory = new HashMap<>();
-                    for (DbFrontendIndicators indicator : indicatorForFrontEnds) {
-                        String categoryName = indicator.getCategoryName();
-                        if (!groupedByCategory.containsKey(categoryName)) {
-                            groupedByCategory.put(categoryName, new LinkedList<>());
-                        }
-                        groupedByCategory.get(categoryName).add(indicator);
-                    }
-
-                    // Create a new list of DbFrontendCategoryIndicators
-                    List<DbFrontendCategoryIndicators> categoryIndicatorsList = new LinkedList<>();
-                    for (String categoryName : groupedByCategory.keySet()) {
-                        List<DbFrontendIndicators> categoryIndicators = groupedByCategory.get(categoryName);
-
-                        DbFrontendCategoryIndicators category = new DbFrontendCategoryIndicators(categoryName, categoryIndicators);
-                        categoryIndicatorsList.add(category);
-                    }
 
                     DbResults dbResults = new DbResults(
                             categoryIndicatorsList.size(),

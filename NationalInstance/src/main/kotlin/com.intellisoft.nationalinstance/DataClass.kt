@@ -205,3 +205,62 @@ data class DbSurveyRespondentData(
     val customUrl: String,
     val password:String
 )
+data class DbIndicatorDescription(
+    val Description: String,
+    val Indicator_Code: String
+)
+data class DbMetadataJson(
+    @JsonProperty("version")
+    val version: String,
+    @JsonProperty("versionDescription")
+    val versionDescription: String,
+    @JsonProperty("metadata")
+    val metadata: DbPrograms
+)
+data class DbPrograms(
+    @JsonProperty("date")
+    val date: Any?,
+    @JsonProperty("dataElements")
+    var dataElements: Any?,
+    @JsonProperty("categoryOptionCombos")
+    val categoryOptionCombos: Any?,
+    @JsonProperty("categoryOptions")
+    val categoryOptions: Any?,
+    @JsonProperty("programIndicators")
+    val programIndicators: Any?,
+    @JsonProperty("categoryCombos")
+    val categoryCombos: Any?,
+    @JsonProperty("programStageDataElements")
+    val programStageDataElements: Any?,
+    @JsonProperty("programStages")
+    val programStages: Any?,
+    @JsonProperty("categories")
+    val categories: Any?,
+    @JsonProperty("programs")
+    val programs: Any?,
+    @JsonProperty("groups")
+    val groups: Any?,
+    @JsonProperty("indicatorDescriptions")
+    val indicatorDescriptions: Any?,
+)
+data class DbDataValuesData(
+    val code: String,
+    val lastUpdated: String,
+    val id: String,
+    val created: String,
+    val name: String,
+    val shortName: String,
+    val aggregationType: String,
+    val domainType: String,
+    val valueType: String,
+    val formName: String,
+    val zeroIsSignificant: Any,
+    val categoryCombo: Any,
+    val lastUpdatedBy: Any,
+    val sharing: Any,
+    val createdBy: Any,
+    val translations: Any,
+    val attributeValues: Any,
+    val legendSets: Any,
+    val aggregationLevels: Any
+)
