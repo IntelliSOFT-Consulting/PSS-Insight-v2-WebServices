@@ -500,9 +500,12 @@ public class VersionServiceImpl implements VersionService {
         DbMetadataJson dbMetadataJson = getPublishedData();
         Object publishedGroups=  dbMetadataJson.getMetadata().getPublishedGroups();
 
-
-
         List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
+        for (DbFrontendCategoryIndicators category : categoryIndicatorsList) {
+            Collections.sort(category.getIndicators(),
+                    Comparator.comparing(DbFrontendIndicators::getIndicatorName));
+        }
+
         DbHistoricalData dbHistoricalData = new DbHistoricalData(
                 publishedGroups,
                 categoryIndicatorsList
