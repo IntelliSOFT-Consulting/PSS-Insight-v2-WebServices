@@ -113,6 +113,8 @@ enum class PublishStatus {
     SUBMITTED,
     SENT,
 
+    PENDING,
+
     REQUESTED,
     REJECTED,
     ACCEPTED,
@@ -303,4 +305,8 @@ data class DbSurveyRespondentsDetails(
     val createdAt: String,
     val updatedAt: String,
     val indicators: List<Any>,
+)
+data class DbIndicator(
+    val description: String,
+    val indicatorCode: String
 )

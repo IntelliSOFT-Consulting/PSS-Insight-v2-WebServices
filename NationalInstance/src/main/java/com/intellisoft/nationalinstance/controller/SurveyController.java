@@ -37,17 +37,22 @@ public class SurveyController {
      */
     @GetMapping(value = "/admin-surveys/{creatorId}")
     public ResponseEntity<?> listAdminSurvey(
-            @PathVariable("creatorId") String creatorId){
+            @PathVariable("creatorId") String creatorId,
+            @RequestParam("status") String status
+
+    ){
         Results results = surveysService
-                .listAdminSurveys(creatorId);
+                .listAdminSurveys(creatorId,status);
         return formatterClass.getResponse(results);
 
     }
     @GetMapping(value = "/admin-respondents/{creatorId}")
     public ResponseEntity<?> listSurvey(
-            @PathVariable("creatorId") String creatorId){
+            @PathVariable("creatorId") String creatorId,
+            @RequestParam("status") String status
+    ){
         Results results = surveysService
-                .listRespondentsSurveys(creatorId);
+                .listRespondentsSurveys(creatorId, status);
         return formatterClass.getResponse(results);
 
     }

@@ -21,7 +21,6 @@ public class MetadataJsonServiceImpl implements MetadataJsonService{
 
     private final MetadataJsonRepo metadataJsonRepo;
 
-    @Async
     public void getMetadataData() throws URISyntaxException {
 
         List<MetadataJson> metadataJsonList = new ArrayList<>();

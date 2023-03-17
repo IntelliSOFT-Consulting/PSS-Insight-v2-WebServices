@@ -424,6 +424,9 @@ public class VersionServiceImpl implements VersionService {
         JsonObject jsonObj = gson.fromJson (publishedJson, JsonObject.class);
         JsonObject metadataJson = jsonObj.getAsJsonObject("metadata");
 
+        System.out.println("-------");
+        System.out.println(publishedJson);
+
         //get indicatorDescription object save using addIndicatorDescription in indicatorService
         JsonArray indicatorDescription = metadataJson.getAsJsonArray("indicatorDescriptions");
         indicatorDescriptionService.addIndicatorDescription(indicatorDescription);
