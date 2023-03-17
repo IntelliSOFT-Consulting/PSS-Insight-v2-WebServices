@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface VersionService {
  Results getIndicators() throws URISyntaxException;
- VersionEntity saveDraftOrPublish(DbVersionData version) throws URISyntaxException;
+ Results saveDraftOrPublish(DbVersionData version) throws URISyntaxException;
 
  Results getTemplates(int page, int size, String status);
 

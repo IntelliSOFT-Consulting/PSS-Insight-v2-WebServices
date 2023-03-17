@@ -45,9 +45,14 @@ public class SurveysServiceImpl implements SurveysService{
     }
 
     @Override
-    public Results listAdminSurveys(String creatorId) {
+    public Results listAdminSurveys(String creatorId, String status) {
+        List<Surveys> surveysList = new ArrayList<>();
+        if (status.equals("ALL")){
+            surveysList = surveysRepo.findAllByCreatorId(creatorId);
+        }else {
+            surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, status);
 
-        List<Surveys> surveysList = surveysRepo.findAllByCreatorId(creatorId);
+        }
         DbResults dbResults = new DbResults(
                 surveysList.size(),
                 surveysList);
@@ -56,9 +61,15 @@ public class SurveysServiceImpl implements SurveysService{
     }
 
     @Override
-    public Results listRespondentsSurveys(String creatorId) {
+    public Results listRespondentsSurveys(String creatorId, String status) {
         List<DbSurveyRespondentDetails> dbSurveyRespondentDetailsList = new ArrayList<>();
-        List<Surveys> surveysList = surveysRepo.findAllByCreatorId(creatorId);
+        List<Surveys> surveysList = new ArrayList<>();
+        if (status.equals("ALL")){
+            surveysList = surveysRepo.findAllByCreatorId(creatorId);
+        }else {
+            surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, status);
+
+        }
         for (int i = 0; i < surveysList.size(); i++){
 
             String surveyId = String.valueOf(surveysList.get(i).getId());

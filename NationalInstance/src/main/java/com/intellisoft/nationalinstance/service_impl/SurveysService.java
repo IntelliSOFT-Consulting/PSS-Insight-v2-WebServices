@@ -7,8 +7,8 @@ import com.intellisoft.nationalinstance.db.Surveys;
 public interface SurveysService {
 
     Results addSurvey(DbSurvey dbSurvey);
-    Results listAdminSurveys(String creatorId);
-    Results listRespondentsSurveys(String creatorId);
+    Results listAdminSurveys(String creatorId, String status);
+    Results listRespondentsSurveys(String creatorId, String status);
     Results surveyDetails(String id);
     Surveys surveyDetailsInfo(String id);
     Results deleteSurvey(Long id);

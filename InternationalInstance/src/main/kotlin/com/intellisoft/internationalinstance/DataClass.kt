@@ -13,10 +13,7 @@ data class DbResults(
 
 data class DbDetails(val details: Any?)
 
-data class DbMetadataJson(
-    @JsonProperty("programs")
-    val programs: List<DbPrograms>
-)
+
 
 data class DbProgramsList(
     @JsonProperty("programs")
@@ -86,4 +83,63 @@ data class DbIndicators(
 data class DbFrontendCategoryIndicators(
     val categoryName: String,
     val indicators: List<DbFrontendIndicators>
+)
+
+
+data class DbMetadataJson(
+    @JsonProperty("version")
+    val version: String?,
+    @JsonProperty("versionDescription")
+    val versionDescription: String?,
+    @JsonProperty("metadata")
+    val metadata: DbProgramsData
+)
+data class DbProgramsData(
+    @JsonProperty("date")
+    val date: Any?,
+    @JsonProperty("dataElements")
+    var dataElements: Any?,
+    @JsonProperty("categoryOptionCombos")
+    val categoryOptionCombos: Any?,
+    @JsonProperty("categoryOptions")
+    val categoryOptions: Any?,
+    @JsonProperty("programIndicators")
+    val programIndicators: Any?,
+    @JsonProperty("categoryCombos")
+    val categoryCombos: Any?,
+    @JsonProperty("programStageDataElements")
+    val programStageDataElements: Any?,
+    @JsonProperty("programStages")
+    val programStages: Any?,
+    @JsonProperty("categories")
+    val categories: Any?,
+    @JsonProperty("programs")
+    val programs: Any?,
+    @JsonProperty("groups")
+    var groups: Any?,
+    @JsonProperty("indicatorDescriptions")
+    var indicatorDescriptions: Any?,
+    @JsonProperty("publishedGroups")
+    var publishedGroups: Any?,
+)
+data class DbDataValuesData(
+    val code: String,
+    val lastUpdated: String,
+    val id: String,
+    val created: String,
+    val name: String,
+    val shortName: String,
+    val aggregationType: String,
+    val domainType: String,
+    val valueType: String,
+    val formName: String,
+    val zeroIsSignificant: Any,
+    val categoryCombo: Any,
+    val lastUpdatedBy: Any,
+    val sharing: Any,
+    val createdBy: Any,
+    val translations: Any,
+    val attributeValues: Any,
+    val legendSets: Any,
+    val aggregationLevels: Any
 )

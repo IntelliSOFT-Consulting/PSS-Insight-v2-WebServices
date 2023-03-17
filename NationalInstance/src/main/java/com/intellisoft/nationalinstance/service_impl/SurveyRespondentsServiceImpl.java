@@ -142,7 +142,6 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
     public Results listSurveyRespondent(String surveyId) {
 
         List<DbRespondentDetails> dbRespondentDetailsList = new ArrayList<>();
-
         List<SurveyRespondents> respondentsList =
                 respondentsRepo.findAllBySurveyId(surveyId);
 
@@ -338,8 +337,11 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
 
     }
 
+
+
     @Override
     public Results saveResponse(DbResponse dbResponse) {
+
 
         List<RespondentAnswers> respondentAnswersList = new ArrayList<>();
         String respondentId = dbResponse.getRespondentId();
@@ -354,6 +356,13 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
             respondentAnswersList.add(respondentAnswers);
         }
         //Update status on what was provided
+        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+        if (optionalSurveyRespondents.isPresent()){
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+            surveyRespondents.setStatus(PublishStatus.PENDING.name());
+            respondentsRepo.save(surveyRespondents);
+        }
+
 
         respondentAnswersRepo.saveAll(respondentAnswersList);
         return new Results(201, new DbDetails("Responses have been saved."));

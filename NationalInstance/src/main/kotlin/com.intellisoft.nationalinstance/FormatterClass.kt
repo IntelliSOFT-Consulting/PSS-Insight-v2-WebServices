@@ -5,11 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.http.*
-import org.springframework.mail.javamail.JavaMailSender
-import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.util.Base64Utils
 import org.springframework.web.client.RestTemplate
-import org.thymeleaf.TemplateEngine
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.time.Duration
@@ -17,22 +14,15 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.regex.Pattern
-import javax.mail.internet.MimeMessage
-import org.thymeleaf.context.Context
 
 class FormatterClass {
 
-    fun getNextVersion(list:List<Any>):Int{
+    fun getNextVersion(list:List<Any>):Int {
 
         val intList = list.map { it.toString().toIntOrNull() }
         val filteredList = intList.filterIsInstance<Int>()
-        val largestValue = filteredList.maxOrNull()
 
-        return if (largestValue != null){
-            largestValue + 1
-        }else{
-            1
-        }
+        return filteredList.maxOrNull() ?: 1
     }
 
     fun sendMail(emailAddress: String,

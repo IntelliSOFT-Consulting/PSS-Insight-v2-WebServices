@@ -1,6 +1,9 @@
 package com.intellisoft.nationalinstance.service_impl;
 
-import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.intellisoft.nationalinstance.*;
 import com.intellisoft.nationalinstance.DbVersionData;
 import com.intellisoft.nationalinstance.PublishStatus;
@@ -17,10 +20,14 @@ import com.intellisoft.nationalinstance.util.AppConstants;
 import com.intellisoft.nationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.URISyntaxException;
 import java.util.*;
@@ -78,7 +85,9 @@ public class VersionServiceImpl implements VersionService {
             status = PublishStatus.PUBLISHED.name();
         }
 
-        String versionNo = String.valueOf(getInternationalVersions());
+        int versionNum = getVersions(AppConstants.DATA_STORE_ENDPOINT);
+        String versionNo = String.valueOf(versionNum+1);
+
 
         //Generate versions
         if (dbVersionData.getVersionId() != null){
@@ -115,16 +124,24 @@ public class VersionServiceImpl implements VersionService {
              * From the indicator id, get the metadata json and push datapoint, comments and uploads
              * Use the code to get the comment and the uploads
              */
+            String url = AppConstants.DATA_STORE_ENDPOINT+Integer.parseInt(versionNumber);
+
+            int versionIntNum = getVersions(AppConstants.DATA_STORE_ENDPOINT_INT);
+            String internationalUrl = AppConstants.DATA_STORE_ENDPOINT_INT+(versionIntNum);
 
             List<String> metaDataList = indicatorsRepo.findByIndicatorIds(indicatorList);
 
+
             if (!metaDataList.isEmpty()){
 
-                JSONObject jsonObjectMetadataJson = getRawRemoteData();
-                JSONArray dataElementsArray = new JSONArray();
+                DbMetadataJson dbMetadataJson = getRawRemoteData(internationalUrl);
+//                JSONArray dataElementsArray = new JSONArray();
+                List<DbDataValuesData> dbDataValuesDataList = new ArrayList<>();
+                List<DbFrontendIndicators> indicatorForFrontEnds = new LinkedList<>();
 
                 for (String s : metaDataList){
                     JSONObject jsonObject = new JSONObject(s);
+
                     JSONArray dataElements = jsonObject.getJSONArray("dataElements");
                     dataElements.forEach(element->{
 
@@ -143,34 +160,118 @@ public class VersionServiceImpl implements VersionService {
                                 if (metadataJsonComment != null){
                                     String metadataDataComment = metadataJsonComment.getMetadata();
                                     JSONObject jsonObjectMetadata = new JSONObject(metadataDataComment);
-                                    dataElementsArray.put(jsonObjectMetadata);
+                                    DbDataValuesData dbDataValuesData = new DbDataValuesData(
+                                            jsonObjectMetadata.getString("code"),
+                                            jsonObjectMetadata.getString("lastUpdated"),
+                                            jsonObjectMetadata.getString("id"),
+                                            jsonObjectMetadata.getString("created"),
+                                            jsonObjectMetadata.getString("name"),
+                                            jsonObjectMetadata.getString("shortName"),
+                                            jsonObjectMetadata.getString("aggregationType"),
+                                            jsonObjectMetadata.getString("domainType"),
+                                            jsonObjectMetadata.getString("valueType"),
+                                            jsonObjectMetadata.getString("formName"),
+                                            jsonObjectMetadata.getBoolean("zeroIsSignificant"),
+                                            jsonObjectMetadata.getJSONObject("categoryCombo"),
+                                            jsonObjectMetadata.getJSONObject("lastUpdatedBy"),
+                                            jsonObjectMetadata.getJSONObject("sharing"),
+                                            jsonObjectMetadata.getJSONObject("createdBy"),
+                                            jsonObjectMetadata.getJSONArray("translations"),
+                                            jsonObjectMetadata.getJSONArray("attributeValues"),
+                                            jsonObjectMetadata.getJSONArray("legendSets"),
+                                            jsonObjectMetadata.getJSONArray("aggregationLevels")
+
+                                    );
+                                    dbDataValuesDataList.add(dbDataValuesData);
+//                                    dataElementsArray.put(jsonObjectMetadata);
                                 }
                                 MetadataJson metadataJsonUploads = metadataJsonService.getMetadataJsonByCode(codeUploads);
                                 if (metadataJsonUploads != null){
                                     String metadataDataUpload = metadataJsonUploads.getMetadata();
                                     JSONObject jsonObjectMetadata = new JSONObject(metadataDataUpload);
-                                    dataElementsArray.put(jsonObjectMetadata);
+                                    DbDataValuesData dbDataValuesData = new DbDataValuesData(
+                                            jsonObjectMetadata.getString("code"),
+                                            jsonObjectMetadata.getString("lastUpdated"),
+                                            jsonObjectMetadata.getString("id"),
+                                            jsonObjectMetadata.getString("created"),
+                                            jsonObjectMetadata.getString("name"),
+                                            jsonObjectMetadata.getString("shortName"),
+                                            jsonObjectMetadata.getString("aggregationType"),
+                                            jsonObjectMetadata.getString("domainType"),
+                                            jsonObjectMetadata.getString("valueType"),
+                                            jsonObjectMetadata.getString("formName"),
+                                            jsonObjectMetadata.getBoolean("zeroIsSignificant"),
+                                            jsonObjectMetadata.getJSONObject("categoryCombo"),
+                                            jsonObjectMetadata.getJSONObject("lastUpdatedBy"),
+                                            jsonObjectMetadata.getJSONObject("sharing"),
+                                            jsonObjectMetadata.getJSONObject("createdBy"),
+                                            jsonObjectMetadata.getJSONArray("translations"),
+                                            jsonObjectMetadata.getJSONArray("attributeValues"),
+                                            jsonObjectMetadata.getJSONArray("legendSets"),
+                                            jsonObjectMetadata.getJSONArray("aggregationLevels")
+
+                                    );
+                                    dbDataValuesDataList.add(dbDataValuesData);
+//                                    dataElementsArray.put(jsonObjectMetadata);
                                 }
                                 JSONObject jsonObjectMetadata = new JSONObject(metadataDataPoint);
-                                dataElementsArray.put(jsonObjectMetadata);
+                                DbDataValuesData dbDataValuesData = new DbDataValuesData(
+                                        jsonObjectMetadata.getString("code"),
+                                        jsonObjectMetadata.getString("lastUpdated"),
+                                        jsonObjectMetadata.getString("id"),
+                                        jsonObjectMetadata.getString("created"),
+                                        jsonObjectMetadata.getString("name"),
+                                        jsonObjectMetadata.getString("shortName"),
+                                        jsonObjectMetadata.getString("aggregationType"),
+                                        jsonObjectMetadata.getString("domainType"),
+                                        jsonObjectMetadata.getString("valueType"),
+                                        jsonObjectMetadata.getString("formName"),
+                                        jsonObjectMetadata.getBoolean("zeroIsSignificant"),
+                                        jsonObjectMetadata.getJSONObject("categoryCombo"),
+                                        jsonObjectMetadata.getJSONObject("lastUpdatedBy"),
+                                        jsonObjectMetadata.getJSONObject("sharing"),
+                                        jsonObjectMetadata.getJSONObject("createdBy"),
+                                        jsonObjectMetadata.getJSONArray("translations"),
+                                        jsonObjectMetadata.getJSONArray("attributeValues"),
+                                        jsonObjectMetadata.getJSONArray("legendSets"),
+                                        jsonObjectMetadata.getJSONArray("aggregationLevels")
+
+                                );
+                                dbDataValuesDataList.add(dbDataValuesData);
+//                                dataElementsArray.put(jsonObjectMetadata);
 
                             }
                         }
 
                     });
+                    getIndicatorGroupings(indicatorForFrontEnds, jsonObject);
 
                 }
+                List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
 
-                jsonObjectMetadataJson.put("dataElements", new JSONArray(dataElementsArray));
-                jsonObjectMetadataJson.put("version", versionNumber);
-                jsonObjectMetadataJson.put("versionDescription", versionDescription);
+                DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+                dbPrograms.setDataElements(dbDataValuesDataList);
+                dbPrograms.setPublishedGroups(categoryIndicatorsList);
+
+
+//
+                DbMetadataJson dbMetadataJson1 = new DbMetadataJson(
+                        versionNumber,
+                        versionDescription,
+                        dbPrograms
+                );
+
+//                jsonObject.put("metadata",  jsonObjectMetadataJson);
+//                jsonObject.put("version", versionNumber);
+//                jsonObject.put("versionDescription", versionDescription);
 
 
                 var response = GenericWebclient.postForSingleObjResponse(
-                        AppConstants.DATA_STORE_ENDPOINT+versionNumber,
-                        jsonObjectMetadataJson,
-                        JSONObject.class,
+                        url,
+                        dbMetadataJson1,
+                        DbMetadataJson.class,
                         Response.class);
+
                 log.info("RESPONSE FROM REMOTE: {}",response.toString());
                 if (response.getHttpStatusCode() < 200) {
                     throw new CustomException("Unable to create/update record on data store"+response);
@@ -194,10 +295,10 @@ public class VersionServiceImpl implements VersionService {
 
     }
 
-    private int getInternationalVersions() throws URISyntaxException {
+    private int getVersions(String url) throws URISyntaxException {
 
         var response = GenericWebclient.getForSingleObjResponse(
-                AppConstants.DATA_STORE_ENDPOINT,
+                url,
                 List.class);
 
         if (!response.isEmpty()){
@@ -275,25 +376,7 @@ public class VersionServiceImpl implements VersionService {
                 e.printStackTrace();
             }
 
-            // Create a map to group the indicators by category name
-            Map<String, List<DbFrontendIndicators>> groupedByCategory = new HashMap<>();
-            for (DbFrontendIndicators indicator : indicatorForFrontEnds) {
-                String categoryName = indicator.getCategoryName();
-                if (!groupedByCategory.containsKey(categoryName)) {
-                    groupedByCategory.put(categoryName, new LinkedList<>());
-                }
-                groupedByCategory.get(categoryName).add(indicator);
-            }
-
-            // Create a new list of DbFrontendCategoryIndicators
-            List<DbFrontendCategoryIndicators> categoryIndicatorsList = new LinkedList<>();
-            for (String categoryName : groupedByCategory.keySet()) {
-                List<DbFrontendIndicators> categoryIndicators = groupedByCategory.get(categoryName);
-
-                DbFrontendCategoryIndicators category = new DbFrontendCategoryIndicators(categoryName, categoryIndicators);
-                categoryIndicatorsList.add(category);
-            }
-
+            List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
 
             DbIndicatorValues dbIndicatorValues = new DbIndicatorValues(
                     versionEntity.getVersionName(),
@@ -311,17 +394,90 @@ public class VersionServiceImpl implements VersionService {
     }
 
     @Override
+    public Results getPublishedIndicators() throws URISyntaxException {
+
+        DbMetadataJson dbMetadataJson = getPublishedData();
+        Object publishedGroups=  dbMetadataJson.getMetadata().getPublishedGroups();
+        if (publishedGroups != null){
+            return new Results(200, publishedGroups);
+        }else {
+            return new Results(400, "No published indicators could be found.");
+        }
+    }
+
+    private DbMetadataJson getPublishedData() throws URISyntaxException {
+        String versionNo = String.valueOf(getVersions(AppConstants.DATA_STORE_ENDPOINT));
+        String url = AppConstants.DATA_STORE_ENDPOINT+versionNo;
+        return getRawRemoteData(url);
+    }
+
+    @Override
     public Results getIndicators() throws URISyntaxException {
 
+        //Get versionNumber
+        String versionNo = String.valueOf(getVersions(AppConstants.DATA_STORE_ENDPOINT_INT));
+        String url = AppConstants.DATA_STORE_ENDPOINT_INT+versionNo;
+
+        String publishedJson = GenericWebclient.getForSingleObjResponse(
+                url, String.class);
+        Gson gson = new Gson();
+        JsonObject jsonObj = gson.fromJson (publishedJson, JsonObject.class);
+        JsonObject metadataJson = jsonObj.getAsJsonObject("metadata");
+
+        System.out.println("-------");
+        System.out.println(publishedJson);
+
+        //get indicatorDescription object save using addIndicatorDescription in indicatorService
+        JsonArray indicatorDescription = metadataJson.getAsJsonArray("indicatorDescriptions");
+        indicatorDescriptionService.addIndicatorDescription(indicatorDescription);
+
+        //get metadata dataelements and save using saveMetadataJson metadATaJsonService
+        JsonArray dataElements = metadataJson.getAsJsonArray("dataElements");
+        List<MetadataJson> metadataJsonList = new ArrayList<>();
+        for (int i = 0; i < dataElements.size(); i++){
+            JsonElement element = dataElements.get(i);
+            String code = element.getAsJsonObject().get("code").getAsString();
+            String id = element.getAsJsonObject().get("id").getAsString();
+
+            MetadataJson metadataJsonDataElements = new MetadataJson();
+            metadataJsonDataElements.setCode(code);
+            metadataJsonDataElements.setId(id);
+            metadataJsonDataElements.setMetadata(String.valueOf(element));
+            metadataJsonList.add(metadataJsonDataElements);
+        }
+        metadataJsonService.saveMetadataJson(metadataJsonList);
+
+        //get metadata groups and save using getMetadataFromRemote in this same class
+        JsonArray groups = metadataJson.getAsJsonObject("groups").getAsJsonArray("dataElementGroups");
+        for (int i = 0; i < groups.size(); i++){
+
+            JsonElement element = groups.get(i);
+            String indicatorId = element.getAsJsonObject().get("id").getAsString();
+            String dataElementsValue = element.getAsJsonObject().toString();
+            Indicators indicatorsData = new Indicators();
+            indicatorsData.setIndicatorId(indicatorId);
+            indicatorsData.setMetadata(dataElementsValue);
+
+            Optional<Indicators> optionalIndicators = indicatorsRepo.findByIndicatorId(indicatorId);
+            if (optionalIndicators.isPresent()){
+                Indicators updateIndicator = optionalIndicators.get();
+                updateIndicator.setMetadata(dataElementsValue);
+                indicatorsRepo.save(updateIndicator);
+            }else {
+                indicatorsRepo.save(indicatorsData);
+            }
+        }
+
+        //create a method to : will return json object
+        //get versionNo for national
+        //get metadata object for national passing the nationalVersion No
+        //get groups from national
 
 
 //        List<IndicatorForFrontEnd> indicatorForFrontEnds = new LinkedList<>();
         List<DbFrontendIndicators> indicatorForFrontEnds = new LinkedList<>();
 
         try{
-            indicatorDescriptionService.getIndicatorDescription();
-            metadataJsonService.getMetadataData();
-            getDataFromRemote();
             List<Indicators> indicators = indicatorsRepo.findAll();
 
             indicators.forEach(indicator -> {
@@ -329,12 +485,6 @@ public class VersionServiceImpl implements VersionService {
                 try {
                     getIndicatorGroupings(indicatorForFrontEnds, jsonObject);
 
-//                    String code = jsonObject.getString("code");
-//                    String formName = jsonObject.getString("formName");
-//                    if (!formName.equals("Comments") && !formName.equals("Uploads")){
-//                        indicatorForFrontEnds.add(new IndicatorForFrontEnd(id, code, formName));
-//
-//                    }
                 } catch (JSONException e) {
                     System.out.println("*****1");
                     log.info(e.getMessage());
@@ -347,6 +497,26 @@ public class VersionServiceImpl implements VersionService {
             e.printStackTrace();
         }
 
+        DbMetadataJson dbMetadataJson = getPublishedData();
+        Object publishedGroups=  dbMetadataJson.getMetadata().getPublishedGroups();
+
+
+
+        List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
+        DbHistoricalData dbHistoricalData = new DbHistoricalData(
+                publishedGroups,
+                categoryIndicatorsList
+        );
+
+//        DbResults dbResults = new DbResults(
+//                categoryIndicatorsList.size(),
+//                categoryIndicatorsList);
+
+        return new Results(200, dbHistoricalData);
+
+    }
+
+    public List<DbFrontendCategoryIndicators> getCategorisedIndicators(List<DbFrontendIndicators> indicatorForFrontEnds){
         // Create a map to group the indicators by category name
         Map<String, List<DbFrontendIndicators>> groupedByCategory = new HashMap<>();
         for (DbFrontendIndicators indicator : indicatorForFrontEnds) {
@@ -365,14 +535,7 @@ public class VersionServiceImpl implements VersionService {
             DbFrontendCategoryIndicators category = new DbFrontendCategoryIndicators(categoryName, categoryIndicators);
             categoryIndicatorsList.add(category);
         }
-
-
-        DbResults dbResults = new DbResults(
-                categoryIndicatorsList.size(),
-                categoryIndicatorsList);
-
-        return new Results(200, dbResults);
-
+        return categoryIndicatorsList;
     }
 
     public void getIndicatorGroupings(List<DbFrontendIndicators> indicatorForFrontEnds, JSONObject jsonObject) {
@@ -447,49 +610,9 @@ public class VersionServiceImpl implements VersionService {
 
     }
 
-    private void getDataFromRemote() throws URISyntaxException {
-
-        List<Indicators> indicators = new LinkedList<>();
-
-        var  res = GenericWebclient.getForSingleObjResponse(
-                AppConstants.METADATA_ENDPOINT, String.class);
-
-        JSONObject jsObject = new JSONObject(res);
-        JSONArray dataElements = jsObject.getJSONArray("dataElementGroups");
-        dataElements.forEach(element->{
-            String  indicatorId = ((JSONObject)element).getString("id");
-
-            Indicators indicator = new Indicators();
-            indicator.setIndicatorId(indicatorId);
-            indicator.setMetadata(element.toString());
-            indicators.add(indicator);
-
-
-        });
-
-        for (int i = 0; i < indicators.size(); i++){
-
-            String indicatorId = indicators.get(i).getIndicatorId();
-            String metadata = indicators.get(i).getMetadata();
-            Indicators indicatorsData = new Indicators();
-            indicatorsData.setIndicatorId(indicatorId);
-            indicatorsData.setMetadata(metadata);
-
-            Optional<Indicators> optionalIndicators = indicatorsRepo.findByIndicatorId(indicatorId);
-            if (optionalIndicators.isPresent()){
-                Indicators updateIndicator = optionalIndicators.get();
-                updateIndicator.setMetadata(metadata);
-                indicatorsRepo.save(updateIndicator);
-            }else {
-                indicatorsRepo.save(indicatorsData);
-            }
-
-        }
-
-    }
-    private JSONObject getRawRemoteData() throws URISyntaxException {
+    private DbMetadataJson getRawRemoteData(String url) throws URISyntaxException {
         //change to national url
-        var  res =GenericWebclient.getForSingleObjResponse(AppConstants.INTERNATIONAL_METADATA_ENDPOINT, String.class);
-        return new  JSONObject(res);
+        var  res =GenericWebclient.getForSingleObjResponse(url, DbMetadataJson.class);
+        return res;
     }
 }

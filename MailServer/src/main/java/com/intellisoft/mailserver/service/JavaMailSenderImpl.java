@@ -90,7 +90,9 @@ public class JavaMailSenderImpl implements JavaMailSender{
 
         try{
             List<DbSurveyRespondent> surveyRespondentList = dbRespondents.getRespondents();
-            sendEmailBackground(surveyRespondentList);
+            // TODO: 15/03/2023 implement background task in other class 
+            sendEmailBackground(surveyRespondentList);//take note that Asycn does not work for methods in the same class.
+            //this is because async needs a proxy class to be created.
             return new Results(200, new DbDetails("Email will be sent"));
         }catch (Exception e){
             e.printStackTrace();
