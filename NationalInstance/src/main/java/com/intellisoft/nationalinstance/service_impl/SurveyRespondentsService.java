@@ -61,4 +61,5 @@ public interface SurveyRespondentsService {
      * Request new link with comment
      */
     Results requestLink(DbRequestLink dbRequestLink);
+
 }

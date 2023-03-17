@@ -342,7 +342,6 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService{
     @Override
     public Results saveResponse(DbResponse dbResponse) {
 
-
         List<RespondentAnswers> respondentAnswersList = new ArrayList<>();
         String respondentId = dbResponse.getRespondentId();
         List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
