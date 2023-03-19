@@ -319,6 +319,7 @@ public class VersionServiceImpl implements VersionService {
                 //then in the variables field below use it as shown below. This will ensure that the variable is replaced with the desired value when sent to
                 // the mail service
 
+
                 var model =SendMailModel.builder().subject("VERSION CREATED")
                                 .emailsAndNames(recipients)
                                         .templateId(1L)
