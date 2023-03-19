@@ -15,9 +15,9 @@ public class MailTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(unique = true)
     private String name;
     @Lob
-    @Column(unique = true)
     private String templateContent;
     private Boolean isActive= Boolean.TRUE;
 }

@@ -4,11 +4,14 @@ import com.google.common.collect.Lists;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.Indicators;
 import com.intellisoft.internationalinstance.db.MetadataJson;
+import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.db.repso.IndicatorsRepo;
+import com.intellisoft.internationalinstance.db.repso.NotificationSubscriptionRepo;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
 import com.intellisoft.internationalinstance.exception.CustomException;
 import com.intellisoft.internationalinstance.model.Response;
+import com.intellisoft.internationalinstance.model.SendMailModel;
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,8 @@ import reactor.core.publisher.Flux;
 
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Log4j2
@@ -34,6 +39,8 @@ public class VersionServiceImpl implements VersionService {
     private final VersionRepos versionRepos;
     private final FormatterClass formatterClass = new FormatterClass();
     private final MetadataJsonService metadataJsonService;
+    private  final NotificationService notificationService;
+    private final NotificationSubscriptionRepo notificationSubscriptionRepo;
 
     @Override
     public Results getIndicators() throws URISyntaxException {
@@ -218,6 +225,21 @@ public class VersionServiceImpl implements VersionService {
                         JSONObject.class,
                         Response.class);
                 log.info("RESPONSE FROM REMOTE: {}",response.toString());
+                ExecutorService executorService = Executors.newSingleThreadExecutor();
+                var subscriptions = notificationSubscriptionRepo.findAllByIsActive(true);
+                List<Map<String,String>> recipients = new ArrayList<Map<String,String>>();
+                for (NotificationSubscription subscription : subscriptions) {
+                    recipients.add(Map.of(subscription.getEmail(), subscription.getFirstName()+" " + subscription.getLastName()));
+                }
+                //insert the correct templateID here
+                //and the required variables in the notification
+                var model =SendMailModel.builder().subject("VERSION CREATED")
+                                .emailsAndNames(recipients)
+                                        .templateId(1L)
+                                                .variables(new HashMap<>())
+                                                        .build();
+
+                executorService.submit(()->notificationService.sendMail(model));
                 if (response.getHttpStatusCode() < 200) {
                     results=new Results(400, "Unable to create/update record on data store"+response);
 

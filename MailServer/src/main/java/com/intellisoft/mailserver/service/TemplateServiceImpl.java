@@ -12,11 +12,11 @@ public class TemplateServiceImpl implements TemplateService {
     private final MailTemplateRepo mailTemplateRepo;
     @Override
     public Response saveTemplate(String templateName, String templateContent) {
-        mailTemplateRepo.save(MailTemplate.builder()
+       var saved = mailTemplateRepo.save(MailTemplate.builder()
                         .templateContent(templateContent)
                         .name(templateName)
                 .build());
-        return Response.builder().status("200").message("Template saved successfully").build();
+        return Response.builder().status("200").message("Template saved successfully.ID: "+saved.getId()).build();
     }
 
     @Override

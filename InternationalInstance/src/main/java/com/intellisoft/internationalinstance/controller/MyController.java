@@ -7,6 +7,7 @@ import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.model.IndicatorForFrontEnd;
 import com.intellisoft.internationalinstance.model.Response;
+import com.intellisoft.internationalinstance.model.SendMailModel;
 import com.intellisoft.internationalinstance.service_impl.NotificationService;
 import com.intellisoft.internationalinstance.service_impl.VersionService;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +29,6 @@ public class MyController {
     private final NotificationService notificationService;
     FormatterClass formatterClass = new FormatterClass();
 
-    /**
-     * Pull all the indicators from the international data store and display to frontend
-     * @return
-     * @throws URISyntaxException
-     */
     @GetMapping("/indicators")
     public ResponseEntity<?> getIndicatorForFrontEnd() throws URISyntaxException {
         Results results = versionService.getIndicators();
@@ -45,6 +41,10 @@ public class MyController {
     @PutMapping("unsubscribe")
     public Response unsubscribe(@RequestParam("email") String email)  {
         return notificationService.unsubscribe(email);
+    }
+    @PostMapping("sendmail")
+    public Response sendmail(@RequestBody SendMailModel sendMailModel) throws URISyntaxException {
+        return notificationService.sendMail(sendMailModel);
     }
 
 
