@@ -309,10 +309,20 @@ public class VersionServiceImpl implements VersionService {
                 }
                 //insert the correct templateID here
                 //and the required variables in the notification
+                // TODO: 19/03/2023 please create a template string in the mail database . To do this checkout\n"
+                //  "how the mail service works especialy the template controller. Sample templateContent:
+                /*
+                 * We would like to infor you that a new version of the DHIS surveys has been created :
+                 * The reference number is {versionId}
+                 *
+                 */
+                //then in the variables field below use it as shown below. This will ensure that the variable is replaced with the desired value when sent to
+                // the mail service
+
                 var model =SendMailModel.builder().subject("VERSION CREATED")
                                 .emailsAndNames(recipients)
                                         .templateId(1L)
-                                                .variables(new HashMap<>())
+                                                .variables(Map.of("{versionId",version.getId()))
                                                         .build();
 
                 executorService.submit(()->notificationService.sendMail(model));
