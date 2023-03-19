@@ -113,6 +113,8 @@ enum class PublishStatus {
     SUBMITTED,
     SENT,
 
+    PENDING,
+
     REQUESTED,
     REJECTED,
     ACCEPTED,
@@ -159,6 +161,9 @@ data class DbSurveyDetails(
 )
 data class DbResponse(
     val respondentId: String,
+    val responses: List<DbRespondentSurvey>
+)
+data class DbRespondentSurvey(
     val indicatorId: String,
     val answer: String,
     val comments: String?,
@@ -169,6 +174,11 @@ data class DbResponse(
 data class DbRequestLink(
     val respondentId: String,
     val comments: String?
+)
+
+data class DbFrontendCategoryIndicators(
+    val categoryName: String,
+    val indicators: List<DbFrontendIndicators>
 )
 data class DbFrontendIndicators(
     val code: String,
@@ -182,10 +192,20 @@ data class DbIndicators(
     val name: String,
     val id: String
 )
-data class DbFrontendCategoryIndicators(
+
+data class DbFrontendCategoryIndicatorsAnswers(
     val categoryName: String,
-    val indicators: List<DbFrontendIndicators>
+    val indicators: List<DbFrontendIndicatorAnswers>
 )
+data class DbFrontendIndicatorAnswers(
+    val code: String,
+    val indicatorId: String,
+    val categoryName: String,
+    val indicatorName: String,
+    val indicators: List<DbRespondentSurvey>
+)
+
+
 data class DbSurveyRespondentDetails(
     val surveyId: String,
     val surveyName: String,
@@ -204,4 +224,89 @@ data class DbSurveyRespondentData(
     val expiryDate:String,
     val customUrl: String,
     val password:String
+)
+data class DbIndicatorDescription(
+    val Description: String,
+    val Indicator_Code: String
+)
+data class DbMetadataJson(
+    @JsonProperty("version")
+    val version: String,
+    @JsonProperty("versionDescription")
+    val versionDescription: String,
+    @JsonProperty("metadata")
+    val metadata: DbPrograms
+)
+data class DbPrograms(
+    @JsonProperty("date")
+    val date: Any?,
+    @JsonProperty("dataElements")
+    var dataElements: Any?,
+    @JsonProperty("categoryOptionCombos")
+    val categoryOptionCombos: Any?,
+    @JsonProperty("categoryOptions")
+    val categoryOptions: Any?,
+    @JsonProperty("programIndicators")
+    val programIndicators: Any?,
+    @JsonProperty("categoryCombos")
+    val categoryCombos: Any?,
+    @JsonProperty("programStageDataElements")
+    val programStageDataElements: Any?,
+    @JsonProperty("programStages")
+    val programStages: Any?,
+    @JsonProperty("categories")
+    val categories: Any?,
+    @JsonProperty("programs")
+    val programs: Any?,
+    @JsonProperty("groups")
+    val groups: Any?,
+    @JsonProperty("indicatorDescriptions")
+    val indicatorDescriptions: Any?,
+    @JsonProperty("publishedGroups")
+    var publishedGroups: Any?,
+)
+data class DbDataValuesData(
+    val code: String,
+    val lastUpdated: String,
+    val id: String,
+    val created: String,
+    val name: String,
+    val shortName: String,
+    val aggregationType: String,
+    val domainType: String,
+    val valueType: String,
+    val formName: String,
+    val zeroIsSignificant: Any,
+    val categoryCombo: Any,
+    val lastUpdatedBy: Any,
+    val sharing: Any,
+    val createdBy: Any,
+    val translations: Any,
+    val attributeValues: Any,
+    val legendSets: Any,
+    val aggregationLevels: Any
+)
+data class DbDataElementsValueData(
+    val code: String,
+    val id: String,
+    val name: String,
+    val valueType:String
+)
+data class DbHistoricalData(
+    val nationalIndicators:Any?,
+    val internationalIndicators:Any?
+)
+data class DbSurveyRespondentsDetails(
+    val id: String,
+    val name: String,
+    val description: String,
+    val status: String,
+    val creatorId: String,
+    val createdAt: String,
+    val updatedAt: String,
+    val indicators: List<Any>,
+)
+data class DbIndicator(
+    val description: String,
+    val indicatorCode: String
 )

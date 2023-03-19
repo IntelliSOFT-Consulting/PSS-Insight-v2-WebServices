@@ -56,9 +56,9 @@ jobs:
       - name: Build & push International Docker image
         run: |
           cd InternationalInstance
-          docker build -t ${{ env.IMAGE_NAME_INTERNATIONAL }} .
           docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
-          docker push ${{ env.IMAGE_NAME_INTERNATIONAL }}
+          docker buildx create --use --name workflowBuilder
+          docker buildx build --platform=linux/amd64,linux/arm64 -t ${{ env.IMAGE_NAME_INTERNATIONAL }} --push .
           docker logout
 
       - name: Setup SSH keys
@@ -114,9 +114,9 @@ jobs:
       - name: Build & push National Docker image
         run: |
           cd NationalInstance
-          docker build -t ${{ env.IMAGE_NAME_NATIONAL }} .
           docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
-          docker push ${{ env.IMAGE_NAME_NATIONAL }}
+          docker buildx create --use --name workflowBuilder
+          docker buildx build --platform=linux/amd64,linux/arm64 -t ${{ env.IMAGE_NAME_NATIONAL }} --push .
           docker logout
 
       - name: Setup SSH keys
@@ -169,9 +169,9 @@ jobs:
       - name: Build & push File Service Docker image
         run: |
           cd FileService
-          docker build -t ${{ env.IMAGE_NAME_FILE }} .
           docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
-          docker push ${{ env.IMAGE_NAME_FILE }}
+          docker buildx create --use --name workflowBuilder
+          docker buildx build --platform=linux/amd64,linux/arm64 -t ${{ env.IMAGE_NAME_FILE }} --push .
           docker logout
 
       - name: Setup SSH keys
@@ -223,9 +223,9 @@ jobs:
       - name: Build & push Email Service Docker image
         run: |
           cd MailServer
-          docker build -t ${{ env.IMAGE_NAME_MAIL }} .
           docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}
-          docker push ${{ env.IMAGE_NAME_MAIL }}
+          docker buildx create --use --name workflowBuilder
+          docker buildx build --platform=linux/amd64,linux/arm64 -t ${{ env.IMAGE_NAME_MAIL }} --push .
           docker logout
 
       - name: Setup SSH keys

@@ -21,32 +21,6 @@ public class MetadataJsonServiceImpl implements MetadataJsonService{
 
     private final MetadataJsonRepo metadataJsonRepo;
 
-    @Async
-    public void getMetadataData() throws URISyntaxException {
-
-        List<MetadataJson> metadataJsonList = new ArrayList<>();
-        var  jsObject = GenericWebclient.getForSingleObjResponse(
-                AppConstants.METADATA_JSON_ENDPOINT, JSONObject.class);
-        JSONArray dataElements = jsObject.getJSONArray("dataElements");
-        dataElements.forEach(element -> {
-
-            if (((JSONObject)element).has("code") &&
-                    ((JSONObject)element).has("id")){
-                String  indicatorId = ((JSONObject)element).getString("id");
-                String  code = ((JSONObject)element).getString("code");
-                MetadataJson metadataJson = new MetadataJson();
-                metadataJson.setId(indicatorId);
-                metadataJson.setCode(code);
-                metadataJson.setMetadata(element.toString());
-                metadataJsonList.add(metadataJson);
-            }
-
-        });
-
-        saveMetadataJson(metadataJsonList);
-
-    }
-
     @Override
     public void saveMetadataJson(List<MetadataJson> metadataJsonList) {
 
@@ -56,11 +30,23 @@ public class MetadataJsonServiceImpl implements MetadataJsonService{
             String code = metadataJsonList.get(i).getCode();
             String metadata = metadataJsonList.get(i).getMetadata();
 
-            MetadataJson metadataJson = new MetadataJson();
-            metadataJson.setId(id);
-            metadataJson.setCode(code);
-            metadataJson.setMetadata(metadata);
-            updateMetadataJson(id, metadataJson);
+            if (id != null){
+                MetadataJson metadataJson = new MetadataJson();
+                metadataJson.setId(id);
+                metadataJson.setCode(code);
+                metadataJson.setMetadata(metadata);
+
+                Optional<MetadataJson> optionalMetadataJson =
+                        metadataJsonRepo.findById(id);
+                if (optionalMetadataJson.isPresent()){
+                    MetadataJson metadataJsonUpdate = optionalMetadataJson.get();
+                    metadataJsonUpdate.setCode(metadataJson.getCode());
+                    metadataJsonUpdate.setMetadata(metadataJson.getMetadata());
+                    metadataJsonRepo.save(metadataJsonUpdate);
+                }else {
+                    metadataJsonRepo.save(metadataJson);
+                }
+            }
         }
     }
 
@@ -85,22 +71,6 @@ public class MetadataJsonServiceImpl implements MetadataJsonService{
         return optionalMetadataJson.orElse(null);
     }
 
-    @Override
-    public MetadataJson updateMetadataJson(String id, MetadataJson metadataJson) {
-        Optional<MetadataJson> optionalMetadataJson =
-                metadataJsonRepo.findById(id);
-        if (optionalMetadataJson.isPresent()){
-
-            MetadataJson metadataJsonUpdate = optionalMetadataJson.get();
-
-            metadataJsonUpdate.setCode(metadataJson.getCode());
-            metadataJsonUpdate.setMetadata(metadataJson.getMetadata());
-
-            return metadataJsonRepo.save(metadataJsonUpdate);
-        }
-        metadataJson.setId(id);
-        return metadataJsonRepo.save(metadataJson);
-    }
 
     @Override
     public void deleteMetadataJson(String id) {

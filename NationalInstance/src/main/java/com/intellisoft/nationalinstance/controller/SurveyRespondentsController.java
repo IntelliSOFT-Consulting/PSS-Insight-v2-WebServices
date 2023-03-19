@@ -83,6 +83,14 @@ public class SurveyRespondentsController {
                 .requestLink(dbRequestLink);
         return formatterClass.getResponse(results);
     }
+    @GetMapping(value = "/answers/{respondentId}")
+    public ResponseEntity<?> getAnswers(
+            @PathVariable("respondentId") String respondentId){
+        Results results = surveyRespondentsService
+                .getAssignedAnswers(respondentId);
+        return formatterClass.getResponse(results);
+
+    }
 
 //    @PutMapping(value = "/{surveyId}")
 //    public VersionEntity updateVersions(

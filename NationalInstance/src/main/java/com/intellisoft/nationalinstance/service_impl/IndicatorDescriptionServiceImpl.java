@@ -1,5 +1,8 @@
 package com.intellisoft.nationalinstance.service_impl;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.intellisoft.nationalinstance.DbIndicatorDescription;
 import com.intellisoft.nationalinstance.db.IndicatorDescription;
 import com.intellisoft.nationalinstance.db.repso.IndicatorDescriptionRepo;
 import com.intellisoft.nationalinstance.util.AppConstants;
@@ -13,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,19 +27,31 @@ public class IndicatorDescriptionServiceImpl implements IndicatorDescriptionServ
     private final IndicatorDescriptionRepo indicatorDescriptionRepo;
 
 
+    @Async
     @Override
-    public IndicatorDescription addIndicatorDescription(IndicatorDescription indicatorDescription) {
+    public void addIndicatorDescription(JsonArray jsonArray) {
 
-        String code = indicatorDescription.getCode();
-        Optional<IndicatorDescription> optionalIndicatorDescription =
-                indicatorDescriptionRepo.findByCode(code);
-        if (optionalIndicatorDescription.isPresent()){
-            IndicatorDescription indicatorDescriptionUpdate = optionalIndicatorDescription.get();
-            indicatorDescriptionUpdate.setDescription(indicatorDescription.getDescription());
-            return indicatorDescriptionRepo.save(indicatorDescriptionUpdate);
-        }else {
-            return indicatorDescriptionRepo.save(indicatorDescription);
+        for (int i = 0; i < jsonArray.size(); i++){
+
+            JsonElement element = jsonArray.get(i);
+            String code = element.getAsJsonObject().get("Indicator_Code").getAsString();
+            String description = element.getAsJsonObject().get("Description").getAsString();
+            Optional<IndicatorDescription> optionalIndicatorDescription =
+                    indicatorDescriptionRepo.findByCode(code);
+
+            if (optionalIndicatorDescription.isPresent()){
+                IndicatorDescription indicatorDescriptionUpdate = optionalIndicatorDescription.get();
+                indicatorDescriptionUpdate.setDescription(description);
+                indicatorDescriptionRepo.save(indicatorDescriptionUpdate);
+            }else {
+                IndicatorDescription indicatorDescription = new IndicatorDescription();
+                indicatorDescription.setCode(code);
+                indicatorDescription.setDescription(description);
+                indicatorDescriptionRepo.save(indicatorDescription);
+            }
+
         }
+
 
     }
 
@@ -46,33 +63,21 @@ public class IndicatorDescriptionServiceImpl implements IndicatorDescriptionServ
         return optionalIndicatorDescription.orElse(null);
     }
 
-    @Async
     @Override
-    public void getIndicatorDescription() throws URISyntaxException {
+    public List<DbIndicatorDescription> findAll() {
 
-        var  res = GenericWebclient.getForSingleObjResponse(
-                AppConstants.INDICATOR_DESCRIPTION_ENDPOINT, String.class);
-        System.out.println("-------");
-        System.out.println(res);
+        List<DbIndicatorDescription> dbIndicatorDescriptionList = new ArrayList<>();
+        List<IndicatorDescription> indicatorList = indicatorDescriptionRepo.findAll();
+        for (int i = 0; i < indicatorList.size(); i++){
 
-        JSONArray jsonArray = new JSONArray(res);
-        System.out.println("******");
-        System.out.println(jsonArray);
+            String description = indicatorList.get(i).getDescription();
+            String indicator = indicatorList.get(i).getCode();
 
-        jsonArray.forEach(element->{
-            if (((JSONObject)element).has("Description") &&
-                    ((JSONObject)element).has("Indicator_Code")){
-                System.out.println("+++++++");
-                String  Description = ((JSONObject)element).getString("Description");
-                String  Indicator_Code = ((JSONObject)element).getString("Indicator_Code");
-                System.out.println(Indicator_Code);
+            DbIndicatorDescription dbIndicatorDescription = new DbIndicatorDescription(description, indicator);
+            dbIndicatorDescriptionList.add(dbIndicatorDescription);
+        }
 
-                IndicatorDescription indicatorDescription = new IndicatorDescription();
-                indicatorDescription.setDescription(Description);
-                indicatorDescription.setCode(Indicator_Code);
-                addIndicatorDescription(indicatorDescription);
-            }
-        });
-
+        return dbIndicatorDescriptionList;
     }
+
 }

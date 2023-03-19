@@ -45,6 +45,13 @@ public interface SurveyRespondentsService {
      */
     Results getAssignedSurvey(String respondentId);
 
+
+    /**
+     * This gets all the answers for the respondent
+     */
+    Results getAssignedAnswers(String respondentId);
+
+
     /**
      * Save Respondents survey responses
      */
@@ -54,4 +61,5 @@ public interface SurveyRespondentsService {
      * Request new link with comment
      */
     Results requestLink(DbRequestLink dbRequestLink);
+
 }
