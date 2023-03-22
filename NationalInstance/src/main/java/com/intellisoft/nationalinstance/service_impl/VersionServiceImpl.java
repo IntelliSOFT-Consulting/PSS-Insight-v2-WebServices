@@ -376,7 +376,8 @@ public class VersionServiceImpl implements VersionService {
                 e.printStackTrace();
             }
 
-            List<DbFrontendCategoryIndicators> categoryIndicatorsList = getCategorisedIndicators(indicatorForFrontEnds);
+            List<DbFrontendCategoryIndicators> categoryIndicatorsList =
+                    getCategorisedIndicators(indicatorForFrontEnds);
 
             DbIndicatorValues dbIndicatorValues = new DbIndicatorValues(
                     versionEntity.getVersionName(),

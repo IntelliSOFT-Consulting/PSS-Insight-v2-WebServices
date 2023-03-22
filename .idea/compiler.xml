@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="PssNationalInstance" />
         <module name="MailServer" />
         <module name="FileService" />
         <module name="NationalInstance" />
@@ -18,6 +19,7 @@
       <module name="InternationalInstance" target="11" />
       <module name="MailServer" target="11" />
       <module name="NationalInstance" target="11" />
+      <module name="PssNationalInstance" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -26,6 +28,7 @@
       <module name="InternationalInstance" options="-parameters" />
       <module name="MailServer" options="-parameters" />
       <module name="NationalInstance" options="-parameters" />
+      <module name="PssNationalInstance" options="-parameters" />
     </option>
   </component>
 </project>
