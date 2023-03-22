@@ -1,8 +1,10 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
 import com.intellisoft.pssnationalinstance.repository.VersionEntityRepository;
+import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
@@ -26,6 +28,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
     private final InternationalTemplateService internationalTemplateService;
     private final VersionEntityRepository versionEntityRepository;
+    private final IndicatorEditsService indicatorEditsService;
 
     @Override
     public Results getNationalPublishedVersion() {
@@ -110,7 +113,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     }
 
     @Async
-    public void savePublishedVersion(String versionId, List<DbVersionDate> indicatorList){
+    public void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList){
         try{
 
             String nationalPublishedUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
@@ -172,6 +175,38 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     }
 
                 }
+
+                //Get updates from db and include them
+                List<IndicatorEdits> indicatorEditsList =
+                        indicatorEditsService.getIndicatorEditsCreator(createdBy);
+                for (IndicatorEdits indicatorEdits: indicatorEditsList){
+
+                    String categoryId = indicatorEdits.getCategoryId();
+                    String indicatorId = indicatorEdits.getIndicatorId();
+                    String edits = indicatorEdits.getEdit();
+
+                    for (DbIndicators dbIndicators: indicatorsList){
+                        List<DbIndicatorValues> indicators = dbIndicators.getIndicators();
+                        for (DbIndicatorValues dbIndicatorValues: indicators){
+                            String dbCategoryId = (String) dbIndicatorValues.getCategoryId();
+                            List<DbIndicatorDataValues> indicatorDataValueList = dbIndicatorValues.getIndicatorDataValue();
+                            if (categoryId.equals(dbCategoryId)){
+                                if (categoryId.equals(indicatorId)){
+                                    dbIndicatorValues.setIndicatorName(edits);
+                                }else {
+                                    for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValueList){
+                                        String dbIndicatorId = (String) dbIndicatorDataValues.getId();
+                                        if (indicatorId.equals(dbIndicatorId)){
+                                            dbIndicatorDataValues.setName(edits);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                indicatorEditsService.deleteEditByCategoryId(createdBy);
 
                 //Set new values
                 DbPublishedVersion dbPublishedVersion = new DbPublishedVersion(

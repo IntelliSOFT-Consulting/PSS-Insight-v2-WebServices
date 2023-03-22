@@ -11,7 +11,7 @@ public interface NationalTemplateService {
 
     Results getNationalPublishedVersion();
     Results getIndicatorDescription(String pssCode);
-    void savePublishedVersion(String versionId, List<DbVersionDate> indicatorList);
+    void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList);
     DbPublishedVersion nationalPublishedIndicators();
     List<DbIndicators> getSelectedIndicators(List<DbIndicators> details,
                                              List<String> selectedIndicators);

@@ -62,6 +62,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
         if (isPublished){
             nationalTemplateService.savePublishedVersion(
+                    createdBy,
                     String.valueOf(savedVersionEntity.getId()),
                     dbVersionsIndicators);
         }
@@ -173,6 +174,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             if (isPublished){
                 versionEntity.setStatus(PublishStatus.PUBLISHED.name());
                 nationalTemplateService.savePublishedVersion(
+                        versionEntity.getCreatedBy(),
                         id,
                         dbVersionsIndicators);
             }

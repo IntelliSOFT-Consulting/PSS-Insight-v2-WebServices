@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -48,8 +50,22 @@ public class IndicatorEditsServiceImpl implements IndicatorEditsService {
         return new Results(200, new DbDetails("Indicator edit saved successfully."));
     }
 
+    @Transactional
     @Override
-    public void deleteEditByCategoryId(String categoryId) {
-        indicatorEditsRepository.deleteAllByCreatorId(categoryId);
+    public void deleteEditByCategoryId(String creatorId) {
+        indicatorEditsRepository.deleteAllByCreatorId(creatorId);
     }
+
+    @Override
+    public List<IndicatorEdits> getIndicatorEditsCategoryCreator(String categoryId, String creatorId) {
+        return null;
+    }
+
+    @Override
+    public List<IndicatorEdits> getIndicatorEditsCreator(String creatorId) {
+
+        return indicatorEditsRepository.findByCreatorId(creatorId);
+    }
+
+
 }
