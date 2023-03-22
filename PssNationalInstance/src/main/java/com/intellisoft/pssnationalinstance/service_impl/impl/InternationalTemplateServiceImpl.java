@@ -2,6 +2,7 @@ package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
+import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
@@ -18,16 +19,42 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
     private final FormatterClass formatterClass = new FormatterClass();
 
+
     @Override
     public Results getInternationalIndicators() {
 
         try{
 
-            DbPublishedVersion publishedVersionValues = interNationalPublishedIndicators();
-            if (publishedVersionValues != null){
-                return new Results(200, publishedVersionValues);
+            DbTemplates dbTemplates = new DbTemplates();
+
+            DbPublishedVersion interNationalPublishedIndicators =
+                    interNationalPublishedIndicators();
+            if (interNationalPublishedIndicators != null){
+                String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+
+                int versionNo = getVersions(publishedBaseUrl);
+                DbTemplateDetails dbTemplateDetails =
+                        new DbTemplateDetails(versionNo, interNationalPublishedIndicators);
+                dbTemplates.setInterNationalTemplate(dbTemplateDetails);
             }
 
+            String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+            DbMetadataJson dbMetadataJson = getPublishedData(publishedBaseUrl);
+            if (dbMetadataJson != null){
+                DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+                if (dbPrograms != null){
+                    DbPublishedVersion nationalPublishedIndicators =
+                            dbPrograms.getPublishedVersion();
+                    if (nationalPublishedIndicators != null){
+                        int versionNo = getVersions(publishedBaseUrl);
+                        DbTemplateDetails dbTemplateDetails =
+                                new DbTemplateDetails(versionNo, interNationalPublishedIndicators);
+                        dbTemplates.setNationalTemplate(dbTemplateDetails);
+                    }
+                }
+            }
+
+            return new Results(200, dbTemplates);
 
         } catch (Exception syntaxException){
             syntaxException.printStackTrace();

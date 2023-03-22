@@ -1,14 +1,8 @@
 package com.intellisoft.pssnationalinstance.controller;
 
 
-import com.intellisoft.pssnationalinstance.DbIndicatorEdit;
-import com.intellisoft.pssnationalinstance.DbVersions;
-import com.intellisoft.pssnationalinstance.FormatterClass;
-import com.intellisoft.pssnationalinstance.Results;
-import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
-import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
-import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
-import com.intellisoft.pssnationalinstance.service_impl.service.VersionEntityService;
+import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -30,6 +24,7 @@ public class NationalTemplateController {
     private final FormatterClass formatterClass = new FormatterClass();
     private final IndicatorEditsService indicatorEditsService;
     private final VersionEntityService versionEntityService;
+    private final PeriodConfigurationService periodConfigurationService;
 
 
     /**
@@ -78,12 +73,7 @@ public class NationalTemplateController {
         Results results = indicatorEditsService.addEdit(dbIndicatorEdit);
         return formatterClass.getResponse(results);
     }
-    @PostMapping("add-version")
-    public ResponseEntity<?> addVersion(
-            @RequestBody DbVersions dbVersions){
-        Results results = versionEntityService.addVersion(dbVersions);
-        return formatterClass.getResponse(results);
-    }
+
 
     @GetMapping(value = "list-versions")
     public ResponseEntity<?> listVersions(
@@ -115,7 +105,12 @@ public class NationalTemplateController {
         Results results = versionEntityService
                 .updateVersion(id, dbVersionData);
         return formatterClass.getResponse(results);
-
+    }
+    @PostMapping("add-version")
+    public ResponseEntity<?> addVersion(
+            @RequestBody DbVersions dbVersions){
+        Results results = versionEntityService.addVersion(dbVersions);
+        return formatterClass.getResponse(results);
     }
 
 

@@ -32,7 +32,8 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
         try{
 
-            DbPublishedVersion publishedVersionValues = nationalPublishedIndicators();
+            DbPublishedVersion publishedVersionValues =
+                    nationalPublishedIndicators();
             if (publishedVersionValues != null){
                 return new Results(200, publishedVersionValues);
             }

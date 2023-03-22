@@ -28,9 +28,6 @@ public class InternationalTemplateController {
     private final FormatterClass formatterClass = new FormatterClass();
 
 
-    /**
-     * TODO: Pull the international template and add WITH the national template
-     */
 
     /**
      * Update the national instance with the international data from the international data
@@ -51,29 +48,6 @@ public class InternationalTemplateController {
         Results results = internationalService.getInternationalIndicators();
         return formatterClass.getResponse(results);
     }
-
-
-
-
-
-//    /**
-//     * Pull the saved national template and have both international template and locally saved template
-//     * @return
-//     * @throws URISyntaxException
-//     */
-//    @Operation(
-//            summary = "Pull the international template and update the national template",
-//            description = "This api is used for pulling the national template.")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
-//            @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-//                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
-//            @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-//                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
-//    @GetMapping("sync")
-//    public Response getMasterTemplate() throws URISyntaxException {
-//        return versionService.syncVersion();
-//    }
 
 
 

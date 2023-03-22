@@ -128,3 +128,16 @@ data class DbResultsData(
     val count: Int,
     val details: Any?
 )
+data class DbTemplates(
+    var nationalTemplate: DbTemplateDetails? = null,
+    var interNationalTemplate: DbTemplateDetails? = null
+)
+data class DbTemplateDetails(
+    val version:Int?,
+    val indicators: Any?
+)
+data class DbPeriodConfiguration(
+    val period: String,
+    val isCompleted:Boolean,
+    val closedBy: String
+)
