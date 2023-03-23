@@ -13,4 +13,6 @@ public interface NationalTemplateService {
     List<DbIndicators> getSelectedIndicators(List<DbIndicators> details,
                                              List<String> selectedIndicators);
     DbMetadataJson getPublishedMetadataJson();
+
+
 }

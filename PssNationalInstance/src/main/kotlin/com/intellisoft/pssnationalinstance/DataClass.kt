@@ -128,6 +128,18 @@ enum class PublishStatus {
     PUBLISHED,
     COMPLETED
 }
+enum class SurveySubmissionStatus {
+    DRAFT, //Respondent has not sent responses
+    PENDING, // Respondent has sent responses
+    VERIFIED, // Admin has confirmed
+    CANCELLED, // Admin has cancelled respondents survey
+    EXPIRED // Respondent's survey has expired
+}
+enum class SurveyStatus {
+    SAVED,
+    SENT,
+    COMPLETED
+}
 data class DbPublishVersionResponse(
     @JsonProperty("httpStatus")
     val httpStatus:String,
@@ -216,4 +228,41 @@ data class DbDataEntryResponse(
     val dataEntryDate: String,
     val createdAt: Any,
     val responses: Any,
+)
+data class DbSurvey(
+    val surveyName: String,
+    val surveyDescription: String,
+    val isSaved: Boolean,
+    val creatorId: String,
+    val indicators : List<String>
+)
+data class DbSurveyRespondent(
+    val emailAddressList: List<String>,
+    val expiryDateTime: String,
+    val surveyId: String,
+    val customAppUrl: String
+)
+data class DbRespondents(
+    val respondents: List<DbSurveyRespondentData>
+)
+data class DbSurveyRespondentData(
+    val emailAddress:String,
+    val expiryDate:String,
+    val customUrl: String,
+    val password:String
+)
+data class DbSurveyDetails(
+    val surveyId:String,
+    val surveyName: String,
+    val surveyStatus: String,
+    val respondentList:List<DbRespondent>
+)
+data class DbRespondent(
+    val respondentId:String,
+    val emailAddress: String,
+    val createdAt: String
+)
+data class DbVerifySurvey(
+    val respondentId: String,
+    val password: String
 )
