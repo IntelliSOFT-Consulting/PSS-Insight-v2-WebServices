@@ -1,9 +1,6 @@
 package com.intellisoft.pssnationalinstance.service_impl.service;
 
-import com.intellisoft.pssnationalinstance.DbIndicators;
-import com.intellisoft.pssnationalinstance.DbPublishedVersion;
-import com.intellisoft.pssnationalinstance.DbVersionDate;
-import com.intellisoft.pssnationalinstance.Results;
+import com.intellisoft.pssnationalinstance.*;
 
 import java.util.List;
 
@@ -15,4 +12,5 @@ public interface NationalTemplateService {
     DbPublishedVersion nationalPublishedIndicators();
     List<DbIndicators> getSelectedIndicators(List<DbIndicators> details,
                                              List<String> selectedIndicators);
+    DbMetadataJson getPublishedMetadataJson();
 }

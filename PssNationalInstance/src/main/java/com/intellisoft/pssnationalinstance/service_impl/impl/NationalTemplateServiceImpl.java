@@ -274,4 +274,10 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return dbIndicatorsList;
     }
 
+    @Override
+    public DbMetadataJson getPublishedMetadataJson() {
+        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+        return internationalTemplateService.getPublishedData(publishedBaseUrl);
+    }
+
 }

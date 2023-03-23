@@ -40,11 +40,33 @@ data class DbPrograms(
     @JsonProperty("programs")
     val programs: Any?,
     @JsonProperty("groups")
-    val groups: Any?,
+    val groups: DbGroups?,
     @JsonProperty("indicatorDescriptions")
     val indicatorDescriptions: List<DbIndicatorDescription>,
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
+)
+data class DbGroups(
+    @JsonProperty("pager")
+    val pager:Any?,
+    @JsonProperty("dataElementGroups")
+    val dataElementGroups:List<DbDataElementGroups>
+)
+data class DbDataElementGroups(
+    @JsonProperty("name")
+    val name: String?,
+    @JsonProperty("id")
+    val id:String?,
+    @JsonProperty("dataElements")
+    val dataElements:List<DbDataElements>
+)
+data class DbDataElements(
+    @JsonProperty("code")
+    val code: String?,
+    @JsonProperty("name")
+    val name: String?,
+    @JsonProperty("id")
+    val id: String?
 )
 data class DbPublishedVersion(
     @JsonProperty("count")
@@ -103,7 +125,8 @@ data class DbVersionDate(
 )
 enum class PublishStatus {
     DRAFT,
-    PUBLISHED
+    PUBLISHED,
+    COMPLETED
 }
 data class DbPublishVersionResponse(
     @JsonProperty("httpStatus")
@@ -140,4 +163,48 @@ data class DbPeriodConfiguration(
     val period: String,
     val isCompleted:Boolean,
     val closedBy: String
+)
+data class DbDataEntryData(
+    val orgUnit: String,
+    val selectedPeriod: String?,
+    val isPublished: Boolean,
+    val dataEntryPersonId: String,
+    val dataEntryDate: String?,
+    val responses: List<DbDataEntryResponses>,
+)
+data class DbDataEntryResponses(
+    val indicator: String,
+    val response: String?,
+    val comment: String?,
+    val attachment: String?
+
+)
+data class DbDataEntry(
+    val program: String,
+    val orgUnit: String,
+    val eventDate: String,
+    val status: String,
+    val storedBy: String,
+    val dataValues: List<DbDataValues>
+)
+data class DbDataValues(
+    val dataElement: String,
+    val value: String
+)
+data class DbFileResources(
+    @JsonProperty("httpStatus")
+    val httpStatus:String,
+    @JsonProperty("httpStatusCode")
+    val httpStatusCode:String,
+    @JsonProperty("response")
+    val response:DbResponseFileResource?,
+)
+
+data class DbResponseFileResource(
+    @JsonProperty("fileResource")
+    val fileResource:DbResFileRes?
+)
+data class DbResFileRes(
+    @JsonProperty("id")
+    val id:String?
 )

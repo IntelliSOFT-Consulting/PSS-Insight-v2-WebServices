@@ -6,23 +6,24 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder
 @Entity
-@Table(name = "period_configuration")
+@Table(name = "data_entry")
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class PeriodConfiguration {
+public class DataEntry {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
-    private String period;
-    private boolean isCompleted;
-    private String completedBy;
+
+    private String selectedPeriod;
+    private String status; // DRAFT / SUBMITTED
+    private String dataEntryPersonId; //The person
+    private String dataEntryDate; // The format is yyyymmdd
     @CreationTimestamp
     private Date createdAt;
     @UpdateTimestamp
