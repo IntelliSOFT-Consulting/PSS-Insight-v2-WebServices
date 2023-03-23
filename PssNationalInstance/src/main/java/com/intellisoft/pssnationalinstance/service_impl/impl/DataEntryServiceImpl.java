@@ -13,6 +13,10 @@ import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +82,6 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         return new Results(201, new DbDetails("Data submitted successfully."));
     }
-
     @Async
     void saveEventData(DbDataEntryData dbDataEntryData){
 
@@ -192,7 +195,6 @@ public class DataEntryServiceImpl implements DataEntryService {
         }
 
     }
-
     private String getCommentsUploads(String codeComments, List<DbDataElements> dataElementsList) {
 
         String id = "";
@@ -206,4 +208,62 @@ public class DataEntryServiceImpl implements DataEntryService {
         return id;
     }
 
+    @Override
+    public Results listDataEntry(int no, int size, String status, String dataEntryPersonId) {
+
+        List<DataEntry> dataEntryList =
+                getPagedDataEntryData(
+                        no,
+                        size,
+                        "",
+                        "",
+                        status,
+                        dataEntryPersonId);
+
+        List<DbDataEntryResponse> responseList = new ArrayList<>();
+        for (DataEntry dataEntry : dataEntryList){
+
+            List<DataEntryResponses> dataEntryResponseList =
+                    dataEntryResponsesRepository.findByDataEntry(dataEntry);
+
+            DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(
+                    dataEntry.getId(),
+                    dataEntry.getSelectedPeriod(),
+                    dataEntry.getStatus(),
+                    dataEntry.getDataEntryPersonId(),
+                    dataEntry.getDataEntryDate(),
+                    dataEntry.getCreatedAt(),
+                    dataEntryResponseList);
+            responseList.add(dbDataEntryResponse);
+        }
+
+        DbResults dbResults = new DbResults(
+                responseList.size(),
+                responseList);
+
+        return new Results(200, dbResults);
+    }
+
+    private List<DataEntry> getPagedDataEntryData(
+            int pageNo,
+            int pageSize,
+            String sortField,
+            String sortDirection,
+            String status,
+            String userId) {
+        String sortPageField = "";
+        String sortPageDirection = "";
+
+        if (sortField.equals("")){sortPageField = "createdAt"; }else {sortPageField = sortField;}
+        if (sortDirection.equals("")){sortPageDirection = "DESC"; }else {sortPageDirection = sortField;}
+
+        Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
+        Page<DataEntry> page =
+                dataEntryRepository.findAllByStatusAndDataEntryPersonId(
+                        status, userId, pageable);
+
+        return page.getContent();
+    }
 }

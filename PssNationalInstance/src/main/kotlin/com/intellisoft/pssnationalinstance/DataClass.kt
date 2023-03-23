@@ -208,3 +208,12 @@ data class DbResFileRes(
     @JsonProperty("id")
     val id:String?
 )
+data class DbDataEntryResponse(
+    val id: Long,
+    val selectedPeriod: String,
+    val status: String,
+    val dataEntryPersonId: String,
+    val dataEntryDate: String,
+    val createdAt: Any,
+    val responses: Any,
+)

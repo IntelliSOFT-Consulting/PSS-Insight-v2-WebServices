@@ -26,7 +26,8 @@ public class FileController {
     private final FormatterClass formatterClass = new FormatterClass();
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadFile(
+            @RequestParam("file") MultipartFile file) {
 
         try{
             RestTemplate restTemplate = new RestTemplate();
@@ -61,8 +62,6 @@ public class FileController {
                     }
                 }
             }
-
-
 
         }catch (Exception e){
             e.printStackTrace();
