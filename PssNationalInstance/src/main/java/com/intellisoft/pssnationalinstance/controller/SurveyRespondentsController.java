@@ -100,14 +100,14 @@ public class SurveyRespondentsController {
                 .resendSurvey(respondentId,resendSurvey);
         return formatterClass.getResponse(results);
     }
-    @PostMapping("/resend-survey/{respondentId}")
-    public ResponseEntity<?> resendSurvey(
-            @PathVariable("respondentId") String respondentId,
-            @RequestBody DbConfirmSurvey dbConfirmSurvey){
-        Results results = surveyRespondentsService
-                .confirmSurvey(respondentId,dbConfirmSurvey);
-        return formatterClass.getResponse(results);
-    }
+//    @PostMapping("/resend-survey/{respondentId}")
+//    public ResponseEntity<?> resendSurvey(
+//            @PathVariable("respondentId") String respondentId,
+//            @RequestBody DbConfirmSurvey dbConfirmSurvey){
+//        Results results = surveyRespondentsService
+//                .confirmSurvey(respondentId,dbConfirmSurvey);
+//        return formatterClass.getResponse(results);
+//    }
 
 
     @PostMapping("/request-link/{respondentId}")

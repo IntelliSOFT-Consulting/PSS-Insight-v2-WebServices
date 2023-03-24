@@ -4,10 +4,24 @@ import org.springframework.http.ResponseEntity
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.*
 
 class FormatterClass {
 
+    fun isDateFormatValid(dateString: String): Boolean {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        try {
+            formatter.parse(dateString)
+        } catch (e: DateTimeParseException) {
+            return false
+        }
+        return true
+    }
+    fun isEmailValid(email: String): Boolean {
+        val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}$"
+        return email.matches(emailRegex.toRegex())
+    }
     fun isPastToday(dateString: String): Boolean {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val dateTime = LocalDateTime.parse(dateString, formatter)
