@@ -20,6 +20,7 @@ public class SurveysServiceImpl implements SurveysService {
 
     private final SurveysRepo surveysRepo;
     private final SurveyRespondentsService surveyRespondentsService;
+    private final FormatterClass formatterClass = new FormatterClass();
 
     @Override
     public Results addSurvey(DbSurvey dbSurvey) {
@@ -47,10 +48,6 @@ public class SurveysServiceImpl implements SurveysService {
     @Override
     public Results listAdminSurveys(String creatorId, String status) {
 
-        /**
-         * TODO: Check if status is expired and add more parameters
-         */
-
         List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
         String surveyStatus = SurveyStatus.SENT.name();
         List<Surveys> surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, surveyStatus);
@@ -68,7 +65,21 @@ public class SurveysServiceImpl implements SurveysService {
                 String respId = String.valueOf(surveyRespondents.getId());
                 String emailAddress = surveyRespondents.getEmailAddress();
                 String date = String.valueOf(surveyRespondents.getCreatedAt());
-                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date);
+                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
+                        null, null);
+
+                if (status.equals(SurveySubmissionStatus.EXPIRED.name())){
+                    String expiryDate = surveyRespondents.getExpiryTime();
+                    String respondentStatus = surveyRespondents.getRespondentsStatus();
+                    boolean isExpired = formatterClass.isPastToday(expiryDate);
+                    if (isExpired){
+                        //Link has expired
+                        dbRespondent.setDateExpired(expiryDate);
+                        dbRespondent.setNewLinkRequested(
+                                respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                    }
+                }
+
                 dbRespondentList.add(dbRespondent);
             }
 

@@ -132,8 +132,13 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
     @Override
     public List<SurveyRespondents> getSurveyRespondents(String surveyId, String status){
-        List<SurveyRespondents> surveyRespondentsList =
-                respondentsRepo.findBySurveyIdAndRespondentsStatus(surveyId, status);
+
+        List<SurveyRespondents> surveyRespondentsList = new ArrayList<>();
+        if (status.equals(SurveySubmissionStatus.EXPIRED.name())){
+            surveyRespondentsList = respondentsRepo.findAllBySurveyId(surveyId);
+        }else {
+            surveyRespondentsList = respondentsRepo.findBySurveyIdAndRespondentsStatus(surveyId, status);
+        }
         return surveyRespondentsList;
     }
 
@@ -187,7 +192,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             }
 
             String surveyId = surveyRespondents.getSurveyId();
-            DbResponseDetails dbPublishedVersion = getRespondentsQuestions(surveyId, respondentId);
+            DbResponseDetails dbPublishedVersion = getRespondentsQuestions(surveyId,
+                    respondentId);
 
 
             return new Results(200, dbPublishedVersion);
@@ -257,7 +263,10 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             }
 
             DbResponseDetails dbResponseDetailsValues =
-                    new DbResponseDetails(null, null, null);
+                    new DbResponseDetails(
+                            null,
+                            null,
+                            null);
 
             if (respondentDetails != null){
                 DbRespondentsDetails dbRespondentsDetails =
@@ -371,6 +380,24 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         dataEntryService.saveEventData(dbDataEntryData);
 
         return new Results(200, new DbDetails("We are processing the request."));
+    }
+
+    @Override
+    public Results requestLink(String respondentId, DbRequestLink dbRequestLink) {
+
+        String resendComment = dbRequestLink.getComment();
+
+        Optional<SurveyRespondents> optionalSurveyRespondents =
+                respondentsRepo.findById(Long.valueOf(respondentId));
+        if (optionalSurveyRespondents.isPresent()){
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+            surveyRespondents.setRespondentsStatus(SurveyRespondentStatus.RESEND_REQUEST.name());
+            respondentsRepo.save(surveyRespondents);
+
+            return new Results(200, new DbDetails("Request has been sent."));
+        }
+
+        return new Results(400, "There was an issue processing the request.");
     }
 
     private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId){

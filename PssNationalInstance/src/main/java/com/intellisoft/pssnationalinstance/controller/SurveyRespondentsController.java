@@ -110,13 +110,14 @@ public class SurveyRespondentsController {
     }
 
 
-//    @PostMapping("/response/request-link")
-//    public ResponseEntity<?> requestLink(
-//            @RequestBody DbRequestLink dbRequestLink){
-//        Results results = surveyRespondentsService
-//                .requestLink(dbRequestLink);
-//        return formatterClass.getResponse(results);
-//    }
+    @PostMapping("/request-link/{respondentId}")
+    public ResponseEntity<?> requestLink(
+            @PathVariable("respondentId") String respondentId,
+            @RequestBody DbRequestLink dbRequestLink){
+        Results results = surveyRespondentsService
+                .requestLink(respondentId,dbRequestLink);
+        return formatterClass.getResponse(results);
+    }
 //    @GetMapping(value = "/answers/{respondentId}")
 //    public ResponseEntity<?> getAnswers(
 //            @PathVariable("respondentId") String respondentId){

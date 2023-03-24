@@ -67,9 +67,9 @@ public interface SurveyRespondentsService {
     Results resendSurvey(String respondentId, DbResendSurvey dbResendSurvey);
     Results confirmSurvey(String respondentId, DbConfirmSurvey dbConfirmSurvey);
 
-//    /**
-//     * Request new link with comment
-//     */
-//    Results requestLink(DbRequestLink dbRequestLink);
+    /**
+     * Request new link with comment
+     */
+    Results requestLink(String respondentId, DbRequestLink dbRequestLink);
 
 }

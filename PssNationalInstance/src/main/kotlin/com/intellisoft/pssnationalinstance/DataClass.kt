@@ -141,8 +141,6 @@ enum class SurveySubmissionStatus {
     VERIFIED, // Admin has confirmed
     CANCELLED, // Admin has cancelled respondents survey
     EXPIRED, // Respondent's survey has expired
-
-    REQUEST_RESEND // Respondent has requested for a resend
 }
 enum class SurveyStatus {
     SAVED,
@@ -152,6 +150,7 @@ enum class SurveyStatus {
 enum class SurveyRespondentStatus {
     VERIFIED,
     PENDING,
+    RESEND_REQUEST
 }
 data class DbPublishVersionResponse(
     @JsonProperty("httpStatus")
@@ -259,7 +258,10 @@ data class DbSurveyDetails(
 data class DbRespondent(
     val respondentId:String,
     val emailAddress: String,
-    val createdAt: String
+    val createdAt: String,
+
+    var dateExpired: String?,
+    var newLinkRequested: Boolean?
 )
 data class DbVerifySurvey(
     val respondentId: String,
@@ -313,5 +315,7 @@ data class DbDataEntryResponses(
     val response: String?,
     val comment: String?,
     val attachment: String?
-
+)
+data class DbRequestLink(
+    val comment: String
 )
