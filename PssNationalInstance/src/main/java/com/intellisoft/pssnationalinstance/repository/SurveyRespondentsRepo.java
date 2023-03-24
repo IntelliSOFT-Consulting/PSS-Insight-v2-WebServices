@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface SurveyRespondentsRepo extends JpaRepository<SurveyRespondents, Long> {
 
-    List<SurveyRespondents> findBySurveyIdAndStatus(String surveyId, String status);
+    List<SurveyRespondents> findBySurveyIdAndRespondentsStatus(String surveyId, String status);
     List<SurveyRespondents> findAllBySurveyId(String surveyId);
     void deleteAllBySurveyId(String surveyId);
     Optional<SurveyRespondents> findByEmailAddressAndSurveyId(String emailAddress, String surveyId);

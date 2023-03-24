@@ -24,7 +24,8 @@ public class SurveyRespondents {
     private String expiryTime; // yyyy-MM-dd HH:mm:ss
     private String surveyId;
     private String password;
-    private String status;
+    private String submissionStatus;
+    private String respondentsStatus;
     private String customUrl;
     @CreationTimestamp
     private Date createdAt;

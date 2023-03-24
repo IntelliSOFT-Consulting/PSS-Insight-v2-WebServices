@@ -10,6 +10,6 @@ public interface DataEntryService {
 
     Results addDataEntry(DbDataEntryData dbDataEntryData);
     Results listDataEntry(int no, int size, String status, String dataEntryPersonId);
-
+    void saveEventData(DbDataEntryData dbDataEntryData);
 
 }

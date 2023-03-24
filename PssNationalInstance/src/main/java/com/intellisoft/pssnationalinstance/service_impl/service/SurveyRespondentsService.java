@@ -1,8 +1,6 @@
 package com.intellisoft.pssnationalinstance.service_impl.service;
 
-import com.intellisoft.pssnationalinstance.DbSurveyRespondent;
-import com.intellisoft.pssnationalinstance.DbVerifySurvey;
-import com.intellisoft.pssnationalinstance.Results;
+import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.SurveyRespondents;
 import com.intellisoft.pssnationalinstance.db.Surveys;
 
@@ -48,24 +46,27 @@ public interface SurveyRespondentsService {
      */
     Results verifyPassword(DbVerifySurvey dbVerifySurvey);
 
-//
-//    /**
-//     * This gets all the assigned questions for the person
-//     */
-//    Results getAssignedSurvey(String respondentId);
-//
-//
-//    /**
-//     * This gets all the answers for the respondent
-//     */
-//    Results getAssignedAnswers(String respondentId);
-//
-//
-//    /**
-//     * Save Respondents survey responses
-//     */
-//    Results saveResponse(DbResponse dbResponse);
-//
+
+    /**
+     * This gets all the assigned questions for the person
+     */
+    Results getAssignedSurvey(String respondentId);
+
+
+    /**
+     * Save Respondents survey responses
+     */
+    Results saveResponse(DbResponse dbResponse);
+
+    Results getRespondentDetails(
+            String respondentId,
+            String questions,
+            String responses,
+            String respondentDetails);
+
+    Results resendSurvey(String respondentId, DbResendSurvey dbResendSurvey);
+    Results confirmSurvey(String respondentId, DbConfirmSurvey dbConfirmSurvey);
+
 //    /**
 //     * Request new link with comment
 //     */

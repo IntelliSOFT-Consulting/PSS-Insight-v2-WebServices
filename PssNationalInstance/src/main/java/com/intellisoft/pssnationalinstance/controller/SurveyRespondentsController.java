@@ -59,22 +59,57 @@ public class SurveyRespondentsController {
                 .verifyPassword(dbVerifySurvey);
         return formatterClass.getResponse(results);
     }
-//
-//    @GetMapping(value = "/questions/{respondentId}")
-//    public ResponseEntity<?> getAssignedSurvey(
-//            @PathVariable("respondentId") String respondentId){
-//        Results results = surveyRespondentsService
-//                .getAssignedSurvey(respondentId);
-//        return formatterClass.getResponse(results);
-//
-//    }
-//    @PostMapping("/response/save")
-//    public ResponseEntity<?> saveResponse(
-//            @RequestBody DbResponse dbResponse){
-//        Results results = surveyRespondentsService
-//                .saveResponse(dbResponse);
-//        return formatterClass.getResponse(results);
-//    }
+
+    @GetMapping(value = "/questions/{respondentId}")
+    public ResponseEntity<?> getAssignedSurvey(
+            @PathVariable("respondentId") String respondentId){
+        Results results = surveyRespondentsService
+                .getAssignedSurvey(respondentId);
+        return formatterClass.getResponse(results);
+
+    }
+    @PostMapping("/response/save")
+    public ResponseEntity<?> saveResponse(
+            @RequestBody DbResponse dbResponse){
+        Results results = surveyRespondentsService
+                .saveResponse(dbResponse);
+        return formatterClass.getResponse(results);
+    }
+
+    @GetMapping(value = "/details/{respondentId}")
+    public ResponseEntity<?> getRespondentDetails(
+            @PathVariable("respondentId") String respondentId,
+            @RequestParam(value = "questions", required = false) String questions,
+            @RequestParam(value = "responses", required = false) String responses,
+            @RequestParam(value = "respondentDetails", required = false) String respondentDetails
+    ){
+        Results results = surveyRespondentsService
+                .getRespondentDetails(
+                        respondentId,
+                        questions,
+                        responses,
+                        respondentDetails);
+        return formatterClass.getResponse(results);
+
+    }
+    @PostMapping("/resend-survey/{respondentId}")
+    public ResponseEntity<?> resendSurvey(
+            @PathVariable("respondentId") String respondentId,
+            @RequestBody DbResendSurvey resendSurvey){
+        Results results = surveyRespondentsService
+                .resendSurvey(respondentId,resendSurvey);
+        return formatterClass.getResponse(results);
+    }
+    @PostMapping("/resend-survey/{respondentId}")
+    public ResponseEntity<?> resendSurvey(
+            @PathVariable("respondentId") String respondentId,
+            @RequestBody DbConfirmSurvey dbConfirmSurvey){
+        Results results = surveyRespondentsService
+                .confirmSurvey(respondentId,dbConfirmSurvey);
+        return formatterClass.getResponse(results);
+    }
+
+
 //    @PostMapping("/response/request-link")
 //    public ResponseEntity<?> requestLink(
 //            @RequestBody DbRequestLink dbRequestLink){

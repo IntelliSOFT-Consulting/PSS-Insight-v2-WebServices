@@ -34,12 +34,17 @@ public class SurveyController {
      * List saved surveys by a particular user
      * @return
      */
-    @GetMapping(value = "/admin-surveys/{creatorId}")
+    @GetMapping(value = "/list/{creatorId}")
     public ResponseEntity<?> listAdminSurvey(
             @PathVariable("creatorId") String creatorId,
-            @RequestParam("status") String status
+            @RequestParam(value = "status", required = false) String status
 
     ){
+
+        if (status == null || status.equals("")){
+            status = "ALL";
+        }
+
         Results results = surveysService
                 .listAdminSurveys(creatorId,status);
         return formatterClass.getResponse(results);

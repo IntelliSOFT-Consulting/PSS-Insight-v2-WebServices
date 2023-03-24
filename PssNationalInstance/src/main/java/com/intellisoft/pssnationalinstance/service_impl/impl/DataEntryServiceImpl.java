@@ -83,7 +83,7 @@ public class DataEntryServiceImpl implements DataEntryService {
         return new Results(201, new DbDetails("Data submitted successfully."));
     }
     @Async
-    void saveEventData(DbDataEntryData dbDataEntryData){
+    public void saveEventData(DbDataEntryData dbDataEntryData){
 
 
         String selectedPeriod = dbDataEntryData.getSelectedPeriod();

@@ -106,6 +106,13 @@ data class DbIndicatorDescription(
     @JsonProperty("Indicator_Code")
     val Indicator_Code: String?
 )
+data class DbIndicatorDataResponses(
+    var id: Any?,
+    var code: Any?,
+    var name: Any?,
+    var valueType: Any?,
+    var response: DbDataEntryResponses?
+)
 data class DbIndicatorEdit(
     val categoryId: String,
     val indicatorId:String,
@@ -133,12 +140,18 @@ enum class SurveySubmissionStatus {
     PENDING, // Respondent has sent responses
     VERIFIED, // Admin has confirmed
     CANCELLED, // Admin has cancelled respondents survey
-    EXPIRED // Respondent's survey has expired
+    EXPIRED, // Respondent's survey has expired
+
+    REQUEST_RESEND // Respondent has requested for a resend
 }
 enum class SurveyStatus {
     SAVED,
     SENT,
     COMPLETED
+}
+enum class SurveyRespondentStatus {
+    VERIFIED,
+    PENDING,
 }
 data class DbPublishVersionResponse(
     @JsonProperty("httpStatus")
@@ -176,21 +189,7 @@ data class DbPeriodConfiguration(
     val isCompleted:Boolean,
     val closedBy: String
 )
-data class DbDataEntryData(
-    val orgUnit: String,
-    val selectedPeriod: String?,
-    val isPublished: Boolean,
-    val dataEntryPersonId: String,
-    val dataEntryDate: String?,
-    val responses: List<DbDataEntryResponses>,
-)
-data class DbDataEntryResponses(
-    val indicator: String,
-    val response: String?,
-    val comment: String?,
-    val attachment: String?
 
-)
 data class DbDataEntry(
     val program: String,
     val orgUnit: String,
@@ -265,4 +264,54 @@ data class DbRespondent(
 data class DbVerifySurvey(
     val respondentId: String,
     val password: String
+)
+data class DbRespondentsDetails(
+    val id: Long,
+    val emailAddress: String,
+    val expiresAt:String,
+    val status:String?,
+    val surveyName:String?,
+    val surveyDescription: String?,
+    val referenceSheet:String?
+)
+data class DbResponse(
+    val isSubmit: Boolean?,
+    val respondentId: String,
+    val responses: List<DbRespondentSurvey>
+)
+data class DbRespondentSurvey(
+    val indicatorId: String,
+    val answer: String,
+    val comments: String?,
+    val attachment: String?
+)
+data class DbResponseDetails(
+    var questions: Any? = null,
+    var responses: Any? = null,
+    var respondentDetails: Any? = null
+)
+data class DbResendSurvey(
+    val indicators : List<String>,
+    val expiryDateTime: String
+)
+data class DbConfirmSurvey(
+    val orgUnit: String,
+    val selectedPeriod: String?,
+    val dataEntryPersonId: String,
+    val indicators : List<String>,
+)
+data class DbDataEntryData(
+    val orgUnit: String,
+    val selectedPeriod: String?,
+    val isPublished: Boolean,
+    val dataEntryPersonId: String,
+    val dataEntryDate: String?,
+    val responses: List<DbDataEntryResponses>,
+)
+data class DbDataEntryResponses(
+    val indicator: String,
+    val response: String?,
+    val comment: String?,
+    val attachment: String?
+
 )
