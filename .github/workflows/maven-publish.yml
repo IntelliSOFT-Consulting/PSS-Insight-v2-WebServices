@@ -108,7 +108,7 @@ jobs:
 
       - name: Build National Instance
         run: |
-          cd NationalInstance
+          cd PssNationalInstance
           mvn clean install
 
       - name: Build & push National Docker image
