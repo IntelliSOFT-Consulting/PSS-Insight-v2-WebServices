@@ -98,8 +98,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private String getIndicatorDescription(String code,
                                            List<DbIndicatorDescription> dbIndicatorDescriptionList){
 
-        System.out.println(dbIndicatorDescriptionList);
-
         String description = "";
         for (DbIndicatorDescription indicatorDescription : dbIndicatorDescriptionList){
             if (indicatorDescription.getIndicator_Code().equals(code)){
@@ -142,7 +140,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }else {
                     nationalIndicators.add(id);
                 }
-
             }
 
             /**
@@ -237,12 +234,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }
 
             }
-
-            System.out.println("************");
-            System.out.println(response);
-            System.out.println("************");
-
-
 
         }catch (Exception e){
             e.printStackTrace();
