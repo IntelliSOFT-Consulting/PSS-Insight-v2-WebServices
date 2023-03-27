@@ -14,11 +14,7 @@ class FormatterClass {
         val filteredList = intList.filterIsInstance<Int>()
         val largestValue = filteredList.maxOrNull()
 
-        return if (largestValue != null){
-            largestValue + 1
-        }else{
-            1
-        }
+        return largestValue ?: 1
     }
 
     fun getIndicatorName(indicatorName: String): String{

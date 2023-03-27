@@ -7,6 +7,7 @@ import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.model.IndicatorForFrontEnd;
 import com.intellisoft.internationalinstance.model.Response;
+import com.intellisoft.internationalinstance.service_impl.InternationalService;
 import com.intellisoft.internationalinstance.service_impl.NotificationService;
 import com.intellisoft.internationalinstance.service_impl.VersionService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class MyController {
     private final VersionService versionService;
     private final NotificationService notificationService;
     FormatterClass formatterClass = new FormatterClass();
+    private final InternationalService internationalService;
 
     /**
      * Pull all the indicators from the international data store and display to frontend
@@ -34,8 +36,8 @@ public class MyController {
      * @throws URISyntaxException
      */
     @GetMapping("/indicators")
-    public ResponseEntity<?> getIndicatorForFrontEnd() throws URISyntaxException {
-        Results results = versionService.getIndicators();
+    public ResponseEntity<?> getIndicatorForFrontEnd() {
+        Results results = internationalService.getIndicators();
         return formatterClass.getResponse(results);
     }
     @PostMapping("subscribe")
@@ -56,8 +58,8 @@ public class MyController {
      */
     @PostMapping("/version")
     public ResponseEntity<?> createVersion(
-            @RequestBody DbVersionData dbVersionData) throws URISyntaxException {
-        Results results = versionService.saveDraftOrPublish(dbVersionData);
+            @RequestBody DbVersionData dbVersionData) {
+        Results results = internationalService.saveUpdate(dbVersionData);
         return formatterClass.getResponse(results);
     }
 
@@ -67,11 +69,11 @@ public class MyController {
     @PutMapping(value = "/version/{versionId}")
     public ResponseEntity<?> updateVersions(
             @RequestBody DbVersionData dbVersionData,
-            @Param("versionId") Long versionId)throws URISyntaxException{
+            @Param("versionId") Long versionId){
 
         dbVersionData.setVersionId(versionId);
 
-        Results results = versionService.saveDraftOrPublish(dbVersionData);
+        Results results = internationalService.saveUpdate(dbVersionData);
         return formatterClass.getResponse(results);
 
 

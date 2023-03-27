@@ -21,11 +21,11 @@ public class DhisController {
 
     private final InternationalService internationalService;
 
-    @GetMapping("/indicators")
-    public ResponseEntity<?> getIndicatorForFrontEnd() {
-        Results results = internationalService.getIndicators();
-        return formatterClass.getResponse(results);
-    }
+//    @GetMapping("/indicators")
+//    public ResponseEntity<?> getIndicatorForFrontEnd() {
+//        Results results = internationalService.getIndicators();
+//        return formatterClass.getResponse(results);
+//    }
 
 }
 

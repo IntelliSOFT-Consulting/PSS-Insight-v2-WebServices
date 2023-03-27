@@ -51,6 +51,14 @@ data class DbDataGrouping(
     val id: String?,
     val valueType: String?,
 )
+data class DbMetadataValue(
+    @JsonProperty("version")
+    val version: String?,
+    @JsonProperty("versionDescription")
+    val versionDescription: String?,
+    @JsonProperty("metadata")
+    val metadata: DbMetadataJsonData
+)
 
 data class DbMetadataJsonData(
     @JsonProperty("date")
@@ -74,7 +82,14 @@ data class DbMetadataJsonData(
     @JsonProperty("categories")
     val categories: Any?,
     @JsonProperty("programs")
-    val programs: Any?
+    val programs: Any?,
+
+    @JsonProperty("groups")
+    var groups: Any?,
+    @JsonProperty("indicatorDescriptions")
+    var indicatorDescriptions: Any?,
+    @JsonProperty("publishedVersion")
+    var publishedVersion: Any?
 )
 data class DbDataElements(
     @JsonProperty("code")

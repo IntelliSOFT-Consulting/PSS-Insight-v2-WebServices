@@ -112,7 +112,7 @@ public class VersionServiceImpl implements VersionService {
             status = PublishStatus.PUBLISHED.name();
         }
 
-        String versionNo = String.valueOf(getInternationalVersions());
+        String versionNo = String.valueOf(getInternationalVersions() + 1);
 
         //Generate versions
         if (dbVersionData.getVersionId() != null){
