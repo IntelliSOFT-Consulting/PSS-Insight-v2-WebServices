@@ -98,6 +98,8 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private String getIndicatorDescription(String code,
                                            List<DbIndicatorDescription> dbIndicatorDescriptionList){
 
+        System.out.println(dbIndicatorDescriptionList);
+
         String description = "";
         for (DbIndicatorDescription indicatorDescription : dbIndicatorDescriptionList){
             if (indicatorDescription.getIndicator_Code().equals(code)){
