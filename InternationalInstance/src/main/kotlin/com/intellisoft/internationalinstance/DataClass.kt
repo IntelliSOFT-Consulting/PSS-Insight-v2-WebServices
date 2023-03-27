@@ -13,6 +13,91 @@ data class DbResults(
 
 data class DbDetails(val details: Any?)
 
+data class DbGroupsData(
+    @JsonProperty("pager")
+    val pager: Any?,
+    @JsonProperty("dataElementGroups")
+    val dataElementGroups: List<DbGroupings>,
+)
+data class DbGroupings(
+    @JsonProperty("name")
+    val name: String?,
+    @JsonProperty("id")
+    val id: String?,
+    @JsonProperty("dataElements")
+    val dataElements: List<DbDataElementsData>,
+)
+data class DbDataElementsData(
+    @JsonProperty("code")
+    val code: String?,
+    @JsonProperty("name")
+    val name: String?,
+    @JsonProperty("id")
+    val id: String?,
+)
+data class DbIndicatorsValue(
+    var categoryName: Any?,
+    var indicators: List<DbIndicatorDataValues?>,
+)
+data class DbIndicatorDataValues(
+    var categoryId: Any?,
+    var categoryName: Any?,
+    var indicatorName: Any?,
+    var indicatorDataValue: List<DbDataGrouping>,
+)
+data class DbDataGrouping(
+    val code: String?,
+    val name: String?,
+    val id: String?,
+    val valueType: String?,
+)
+data class DbMetadataValue(
+    @JsonProperty("version")
+    val version: String?,
+    @JsonProperty("versionDescription")
+    val versionDescription: String?,
+    @JsonProperty("metadata")
+    val metadata: DbMetadataJsonData
+)
+
+data class DbMetadataJsonData(
+    @JsonProperty("date")
+    val date: Any?,
+    @JsonProperty("dataElements")
+    var dataElements: List<DbDataElements>,
+    @JsonProperty("categoryOptionCombos")
+    val categoryOptionCombos: Any?,
+    @JsonProperty("categoryOptions")
+    val categoryOptions: Any?,
+    @JsonProperty("categoryCombos")
+    val categoryCombos: Any?,
+    @JsonProperty("programIndicators")
+    val programIndicators: Any?,
+    @JsonProperty("programRuleVariables")
+    val programRuleVariables: Any?,
+    @JsonProperty("programStageDataElements")
+    val programStageDataElements: Any?,
+    @JsonProperty("programStages")
+    val programStages: Any?,
+    @JsonProperty("categories")
+    val categories: Any?,
+    @JsonProperty("programs")
+    val programs: Any?,
+
+    @JsonProperty("groups")
+    var groups: Any?,
+    @JsonProperty("indicatorDescriptions")
+    var indicatorDescriptions: Any?,
+    @JsonProperty("publishedVersion")
+    var publishedVersion: Any?
+)
+data class DbDataElements(
+    @JsonProperty("code")
+    val code: String?,
+    @JsonProperty("valueType")
+    val valueType: String?
+
+)
 
 
 data class DbProgramsList(

@@ -78,7 +78,7 @@ data class DbIndicators(
     @JsonProperty("categoryName")
     var categoryName: Any?,
     @JsonProperty("indicators")
-    var indicators: List<DbIndicatorValues>,
+    var indicators: List<DbIndicatorValues?>,
 )
 data class DbIndicatorValues(
     @JsonProperty("categoryId")
@@ -101,9 +101,9 @@ data class DbIndicatorDataValues(
     var valueType: Any?,
 )
 data class DbIndicatorDescription(
-    @JsonProperty("Description")
+    @JsonProperty("description")
     val Description: String?,
-    @JsonProperty("Indicator_Code")
+    @JsonProperty("indicator_Code")
     val Indicator_Code: String?
 )
 data class DbIndicatorDataResponses(

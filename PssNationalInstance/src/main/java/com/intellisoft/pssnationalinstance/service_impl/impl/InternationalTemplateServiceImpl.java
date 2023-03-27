@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,36 +26,23 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
         try{
 
-            DbTemplates dbTemplates = new DbTemplates();
+            List<DbTemplateDetails> dbTemplateDetailsList = new ArrayList<>();
+            String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
 
             DbPublishedVersion interNationalPublishedIndicators =
                     interNationalPublishedIndicators();
             if (interNationalPublishedIndicators != null){
-                String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
 
                 int versionNo = getVersions(publishedBaseUrl);
                 DbTemplateDetails dbTemplateDetails =
                         new DbTemplateDetails(versionNo, interNationalPublishedIndicators);
-                dbTemplates.setInterNationalTemplate(dbTemplateDetails);
+                dbTemplateDetailsList.add(dbTemplateDetails);
             }
 
-            String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
-            DbMetadataJson dbMetadataJson = getPublishedData(publishedBaseUrl);
-            if (dbMetadataJson != null){
-                DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-                if (dbPrograms != null){
-                    DbPublishedVersion nationalPublishedIndicators =
-                            dbPrograms.getPublishedVersion();
-                    if (nationalPublishedIndicators != null){
-                        int versionNo = getVersions(publishedBaseUrl);
-                        DbTemplateDetails dbTemplateDetails =
-                                new DbTemplateDetails(versionNo, interNationalPublishedIndicators);
-                        dbTemplates.setNationalTemplate(dbTemplateDetails);
-                    }
-                }
-            }
+            DbTemplateDetails dbTemplateDetails = getRecentPublishedData(publishedBaseUrl);
+            dbTemplateDetailsList.add(dbTemplateDetails);
 
-            return new Results(200, dbTemplates);
+            return new Results(200, dbTemplateDetailsList);
 
         } catch (Exception syntaxException){
             syntaxException.printStackTrace();
@@ -85,6 +73,31 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         }else {
             return 1;
         }
+    }
+
+    public DbTemplateDetails getRecentPublishedData(String url){
+        try {
+            //Get latest international version
+            int publishedVersionNo = getVersions(url);
+            if (publishedVersionNo > 1){
+                //Get the dataStore values from the international
+                int recentVersionNo = publishedVersionNo - 1;
+
+                DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
+                        url+recentVersionNo, DbMetadataJson.class);
+                if (dbMetadataJson.getMetadata() != null){
+
+                    DbPublishedVersion indicators = dbMetadataJson.getMetadata().getPublishedVersion();
+                    return new DbTemplateDetails(
+                            recentVersionNo,
+                            indicators);
+                }
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public DbMetadataJson getPublishedData(String url) {

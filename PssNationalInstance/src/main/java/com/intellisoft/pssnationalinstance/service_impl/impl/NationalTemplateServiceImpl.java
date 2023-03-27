@@ -140,7 +140,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }else {
                     nationalIndicators.add(id);
                 }
-
             }
 
             /**
@@ -235,12 +234,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }
 
             }
-
-            System.out.println("************");
-            System.out.println(response);
-            System.out.println("************");
-
-
 
         }catch (Exception e){
             e.printStackTrace();
