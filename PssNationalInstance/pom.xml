@@ -127,7 +127,16 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-
+        <!-- https://mvnrepository.com/artifact/com.sendgrid/sendgrid-java -->
+<!--        <dependency>-->
+<!--            <groupId>com.sendgrid</groupId>-->
+<!--            <artifactId>sendgrid-java</artifactId>-->
+<!--            <version>4.0.1</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+        </dependency>
 
     </dependencies>
 

@@ -1,14 +1,35 @@
 package com.intellisoft.pssnationalinstance
 
 import org.springframework.http.ResponseEntity
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
 
 class FormatterClass {
+    fun extractName(emailAddress: String): String{
+        return emailAddress.substringBefore("@")
+    }
+    fun getRemainingTime(dateString: String): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val dateTime = LocalDateTime.parse(dateString, formatter)
 
+        // Convert to Instant and calculate duration between current time and given date
+        val instant = dateTime.toInstant(ZoneOffset.UTC)
+        val duration = Duration.between(Instant.now(), instant)
+
+        // Calculate remaining time in days, hours, minutes, and seconds
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+        val seconds = duration.seconds % 60
+
+        // Build remaining time string
+        val sb = StringBuilder()
+        if (days > 0) sb.append("$days days, ")
+        sb.append("$hours hours, $minutes minutes, and $seconds seconds remaining")
+        return sb.toString()
+    }
     fun isDateFormatValid(dateString: String): Boolean {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         try {

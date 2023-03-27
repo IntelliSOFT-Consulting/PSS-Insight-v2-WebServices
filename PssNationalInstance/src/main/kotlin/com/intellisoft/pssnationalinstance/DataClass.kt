@@ -152,6 +152,12 @@ enum class SurveyRespondentStatus {
     PENDING,
     RESEND_REQUEST
 }
+enum class MailStatus {
+    SEND,
+    RESEND,
+    REMIND,
+    EXPIRED
+}
 data class DbPublishVersionResponse(
     @JsonProperty("httpStatus")
     val httpStatus:String,
@@ -240,15 +246,7 @@ data class DbSurveyRespondent(
     val surveyId: String,
     val customAppUrl: String
 )
-data class DbRespondents(
-    val respondents: List<DbSurveyRespondentData>
-)
-data class DbSurveyRespondentData(
-    val emailAddress:String,
-    val expiryDate:String,
-    val customUrl: String,
-    val password:String
-)
+
 data class DbSurveyDetails(
     val surveyId:String,
     val surveyName: String,
@@ -318,4 +316,16 @@ data class DbDataEntryResponses(
 )
 data class DbRequestLink(
     val comment: String
+)
+
+
+
+data class DbRespondents(
+    val respondents: List<DbSurveyRespondentData>
+)
+data class DbSurveyRespondentData(
+    val emailAddress:String,
+    val expiryDate:String,
+    val customUrl: String,
+    val password:String
 )

@@ -8,6 +8,7 @@ import com.intellisoft.pssnationalinstance.repository.RespondentAnswersRepositor
 import com.intellisoft.pssnationalinstance.repository.SurveyRespondentsRepo;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService;
+import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
@@ -32,6 +33,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     private final RespondentAnswersRepository respondentAnswersRepository;
 
     private final DataEntryService dataEntryService;
+
+    private final JavaMailSenderService javaMailSenderService;
 
     @Override
     public Results addSurveyRespondent(DbSurveyRespondent dbSurveyRespondent) {
@@ -105,26 +108,30 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 emailAddress, expiryDateTime, loginUrl, password);
         dbSurveyRespondentDataList.add(dbSurveyRespondentData);
         DbRespondents dbRespondents = new DbRespondents(dbSurveyRespondentDataList);
-        sendBackgroundEmail(dbRespondents);
+        sendBackgroundEmail(dbRespondents, MailStatus.SEND.name());
 
     }
     @Async
-    void sendBackgroundEmail(DbRespondents dbRespondents){
+    void sendBackgroundEmail(DbRespondents dbRespondents, String status){
 
         try{
-            String hostname = InetAddress.getLocalHost().getHostAddress();
-            System.out.println("===1"+hostname);
 
-//            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
-            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
-            System.out.println("===2"+mailServerUrl);
+            javaMailSenderService.sendMail(dbRespondents, status);
 
-            var response = GenericWebclient.postForSingleObjResponse(
-                    mailServerUrl,
-                    dbRespondents,
-                    DbRespondents.class,
-                    String.class);
-            System.out.println("RESPONSE FROM REMOTE: {}"+response);
+
+//            String hostname = InetAddress.getLocalHost().getHostAddress();
+//            System.out.println("===1"+hostname);
+//
+////            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
+//            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
+//            System.out.println("===2"+mailServerUrl);
+//
+//            var response = GenericWebclient.postForSingleObjResponse(
+//                    mailServerUrl,
+//                    dbRespondents,
+//                    DbRespondents.class,
+//                    String.class);
+//            System.out.println("RESPONSE FROM REMOTE: {}"+response);
 
 
 
@@ -364,7 +371,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             }
 
             DbRespondents dbRespondents = new DbRespondents(dbSurveyRespondentDataList);
-            sendBackgroundEmail(dbRespondents);
+            sendBackgroundEmail(dbRespondents, MailStatus.RESEND.name());
 
             return new Results(200, new DbDetails("We have sent the email."));
 
