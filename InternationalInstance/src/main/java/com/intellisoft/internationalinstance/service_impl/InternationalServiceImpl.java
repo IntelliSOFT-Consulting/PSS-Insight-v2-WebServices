@@ -136,6 +136,12 @@ public class InternationalServiceImpl implements InternationalService{
             Optional<VersionEntity> optionalVersionEntity = versionRepos.findById(versionId);
             if (optionalVersionEntity.isPresent()){
                 versionEntity = optionalVersionEntity.get();
+
+                String versionEntityStatus = versionEntity.getStatus();
+                if (versionEntityStatus.equals(PublishStatus.PUBLISHED.name())){
+                    return new Results(400, "You cannot edit a published version");
+                }
+
             }
         }
         if (versionDescription != null) versionEntity.setVersionDescription(versionDescription);

@@ -115,6 +115,13 @@ public class VersionServiceImpl implements VersionService {
         Optional<VersionEntity> optionalVersionEntity =
                 versionRepos.findById(deleteId);
         if (optionalVersionEntity.isPresent()){
+
+            VersionEntity versionEntity = optionalVersionEntity.get();
+            String status = versionEntity.getStatus();
+            if (status.equals(PublishStatus.PUBLISHED.name())){
+                return new Results(400, "You cannot delete a published version.");
+            }
+
             versionRepos.deleteById(deleteId);
             results = new Results(200, new DbDetails(
                     optionalVersionEntity.get().getVersionName() + " has been deleted successfully."
