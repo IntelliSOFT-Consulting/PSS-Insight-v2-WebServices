@@ -3,10 +3,8 @@ package com.intellisoft.pssnationalinstance.service_impl.impl;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
 import com.sendgrid.*;
-import com.sendgrid.helpers.mail.Mail;
-import com.sendgrid.helpers.mail.objects.Content;
-import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -79,9 +77,8 @@ public class JavaMailSenderImpl implements JavaMailSenderService {
                 System.out.println(response.getStatusCode());
                 System.out.println(response.getBody());
 
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
-                throw ex;
             }
 
         }

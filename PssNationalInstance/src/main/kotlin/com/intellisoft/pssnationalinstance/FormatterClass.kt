@@ -40,8 +40,9 @@ class FormatterClass {
         return true
     }
     fun isEmailValid(email: String): Boolean {
-        val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z]{2,}$"
-        return email.matches(emailRegex.toRegex())
+        val EMAIL_REGEX = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})";
+        return EMAIL_REGEX.toRegex().matches(email);
+
     }
     fun isPastToday(dateString: String): Boolean {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
