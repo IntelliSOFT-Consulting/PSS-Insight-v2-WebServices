@@ -96,7 +96,41 @@ data class DbDataElements(
     @JsonProperty("code")
     val code: String?,
     @JsonProperty("valueType")
-    val valueType: String?
+    val valueType: String?,
+    @JsonProperty("id")
+    val id: Any?,
+    @JsonProperty("lastUpdated")
+    val lastUpdated: Any?,
+    @JsonProperty("created")
+    val created: Any?,
+    @JsonProperty("name")
+    val name: Any?,
+    @JsonProperty("shortName")
+    val shortName: Any?,
+    @JsonProperty("aggregationType")
+    val aggregationType: Any?,
+    @JsonProperty("domainType")
+    val domainType: Any?,
+    @JsonProperty("formName")
+    val formName: Any?,
+    @JsonProperty("zeroIsSignificant")
+    val zeroIsSignificant: Any?,
+    @JsonProperty("categoryCombo")
+    val categoryCombo: Any?,
+    @JsonProperty("lastUpdatedBy")
+    val lastUpdatedBy: Any?,
+    @JsonProperty("sharing")
+    val sharing: Any?,
+    @JsonProperty("createdBy")
+    val createdBy: Any?,
+    @JsonProperty("translations")
+    val translations: Any?,
+    @JsonProperty("attributeValues")
+    val attributeValues: Any?,
+    @JsonProperty("legendSets")
+    val legendSets: Any?,
+    @JsonProperty("aggregationLevels")
+    val aggregationLevels: Any?,
 
 )
 
