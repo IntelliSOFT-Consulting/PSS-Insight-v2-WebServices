@@ -51,7 +51,7 @@ jobs:
       - name: Build International Instance
         run: |
           cd InternationalInstance
-          mvn clean install
+          mvn clean package -Dspring.profiles.active=server
 
       - name: Build & push International Docker image
         run: |
@@ -109,7 +109,7 @@ jobs:
       - name: Build National Instance
         run: |
           cd PssNationalInstance
-          mvn clean install
+          mvn clean package -Dspring.profiles.active=server
 
       - name: Build & push National Docker image
         run: |
@@ -164,7 +164,7 @@ jobs:
       - name: Build File Service
         run: |
           cd FileService
-          mvn clean install
+          mvn clean package -Dspring.profiles.active=server
 
       - name: Build & push File Service Docker image
         run: |
@@ -218,7 +218,7 @@ jobs:
       - name: Build Email Service
         run: |
           cd MailServer
-          mvn clean install
+          mvn clean package -Dspring.profiles.active=server
 
       - name: Build & push Email Service Docker image
         run: |
