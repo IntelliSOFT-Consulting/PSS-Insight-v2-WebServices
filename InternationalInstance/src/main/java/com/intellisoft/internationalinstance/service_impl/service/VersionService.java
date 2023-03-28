@@ -1,4 +1,4 @@
-package com.intellisoft.internationalinstance.service_impl;
+package com.intellisoft.internationalinstance.service_impl.service;
 
 import com.intellisoft.internationalinstance.DbVersionData;
 import com.intellisoft.internationalinstance.Results;

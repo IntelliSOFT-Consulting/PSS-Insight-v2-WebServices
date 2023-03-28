@@ -17,6 +17,8 @@ public class NotificationSubscription {
     private Long id;
     private String firstName;
     private String lastName;
+
+    @Column(unique = true)
     private String email;
     private String phone;
     private Boolean isActive = Boolean.TRUE;

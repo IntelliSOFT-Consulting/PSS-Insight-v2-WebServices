@@ -1,8 +1,8 @@
-package com.intellisoft.internationalinstance.service_impl;
+package com.intellisoft.internationalinstance.service_impl.impl;
 
 import com.intellisoft.internationalinstance.*;
+import com.intellisoft.internationalinstance.service_impl.service.ProgramsService;
 import net.minidev.json.JSONObject;
-import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
-public class ProgramsServiceImpl implements ProgramsService{
+public class ProgramsServiceImpl implements ProgramsService {
 
     @Autowired
     private RestTemplate restTemplate;

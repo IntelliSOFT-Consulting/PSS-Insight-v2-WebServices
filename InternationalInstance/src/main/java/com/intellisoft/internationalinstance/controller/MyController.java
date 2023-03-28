@@ -1,33 +1,19 @@
 package com.intellisoft.internationalinstance.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intellisoft.internationalinstance.DbIndicatorDescription;
 import com.intellisoft.internationalinstance.DbVersionData;
 import com.intellisoft.internationalinstance.FormatterClass;
 import com.intellisoft.internationalinstance.Results;
-import com.intellisoft.internationalinstance.db.NotificationSubscription;
-import com.intellisoft.internationalinstance.db.VersionEntity;
-import com.intellisoft.internationalinstance.model.IndicatorForFrontEnd;
-import com.intellisoft.internationalinstance.model.Response;
-import com.intellisoft.internationalinstance.service_impl.InternationalService;
-import com.intellisoft.internationalinstance.service_impl.NotificationService;
-import com.intellisoft.internationalinstance.service_impl.VersionService;
-import com.intellisoft.internationalinstance.util.GenericWebclient;
+import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
+import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
+import com.intellisoft.internationalinstance.service_impl.service.VersionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONArray;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.websocket.server.PathParam;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(value = "/api/v1/master-template")

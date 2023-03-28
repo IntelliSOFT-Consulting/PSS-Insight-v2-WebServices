@@ -4,5 +4,5 @@ import com.intellisoft.pssnationalinstance.DbRespondents;
 
 public interface JavaMailSenderService {
 
-    void sendMail(DbRespondents dbRespondents, String status);
+    void sendEmailBackground(DbRespondents dbRespondents, String status);
 }

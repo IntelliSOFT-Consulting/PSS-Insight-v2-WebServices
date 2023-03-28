@@ -7,7 +7,9 @@ import java.util.regex.Pattern
 
 
 class FormatterClass {
-
+    fun extractName(emailAddress: String): String{
+        return emailAddress.substringBefore("@")
+    }
     fun getNextVersion(list:List<Any>):Int{
 
         val intList = list.map { it.toString().toIntOrNull() }

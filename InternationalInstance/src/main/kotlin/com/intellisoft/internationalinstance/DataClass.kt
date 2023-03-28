@@ -280,3 +280,10 @@ data class DbVersionDetails(
     var indicators: Any?
 
     )
+
+data class DbNotificationData(
+    val emailAddress:String,
+    val createdAt:String,
+    val title: String,
+    val description:String
+)

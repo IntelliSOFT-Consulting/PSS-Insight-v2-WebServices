@@ -4,9 +4,27 @@ import org.springframework.http.ResponseEntity
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 class FormatterClass {
+
+    fun getNewDays(): String {
+        val now = LocalDateTime.now()
+        val later = now.plusDays(3)
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        return later.format(formatter)
+    }
+    fun isExpiredToday(dateString: String): Boolean {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ HH:mm:ss]")
+        val today = LocalDate.now()
+        val dateStr = LocalDate.parse(dateString, formatter)
+        val dayNo = (ChronoUnit.DAYS.between(today, dateStr)).toInt()
+        if (dayNo == 0){
+            return true
+        }
+        return false
+    }
     fun extractName(emailAddress: String): String{
         return emailAddress.substringBefore("@")
     }

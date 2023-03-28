@@ -12,4 +12,5 @@ public interface SurveyRespondentsRepo extends JpaRepository<SurveyRespondents, 
     List<SurveyRespondents> findAllBySurveyId(String surveyId);
     void deleteAllBySurveyId(String surveyId);
     Optional<SurveyRespondents> findByEmailAddressAndSurveyId(String emailAddress, String surveyId);
+    List<SurveyRespondents> findBySubmissionStatus(String status);
 }

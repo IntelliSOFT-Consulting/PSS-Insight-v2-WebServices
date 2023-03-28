@@ -1,15 +1,16 @@
-package com.intellisoft.internationalinstance.service_impl;
+package com.intellisoft.internationalinstance.service_impl.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
+import com.intellisoft.internationalinstance.db.NotificationEntity;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
-import com.intellisoft.internationalinstance.exception.CustomException;
 import com.intellisoft.internationalinstance.model.Response;
+import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
+import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class InternationalServiceImpl implements InternationalService{
+public class InternationalServiceImpl implements InternationalService {
 
     @Value("${dhis.international}")
     private String internationalUrl;
@@ -33,6 +34,7 @@ public class InternationalServiceImpl implements InternationalService{
     private String indicatorUrl;
     private final FormatterClass formatterClass = new FormatterClass();
     private final VersionRepos versionRepos;
+    private final NotificationService notificationService;
 
     @Override
     public Results getIndicators() {
@@ -246,6 +248,19 @@ public class InternationalServiceImpl implements InternationalService{
                 savedVersionEntity.setStatus(PublishStatus.PUBLISHED.name());
                 versionRepos.save(savedVersionEntity);
 
+                String message =
+                        "A new template has been published by " +
+                                savedVersionEntity.getPublishedBy() + " from the international instance. " +
+                                "The new template has the following details: " +
+                                "Version number: " + savedVersionEntity.getVersionName() + "\n" +
+                                "Version description: " + savedVersionEntity.getVersionDescription() + "\n" +
+                                "Number of indicators: " + savedVersionEntity.getIndicators().size();
+
+                NotificationEntity notification = new NotificationEntity();
+                notification.setTitle("New Version Published.");
+                notification.setSender(savedVersionEntity.getPublishedBy());
+                notification.setMessage(message);
+                notificationService.createNotification(notification);
             }
 
 

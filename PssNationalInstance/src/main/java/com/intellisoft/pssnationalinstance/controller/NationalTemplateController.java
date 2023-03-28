@@ -3,22 +3,38 @@ package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.*;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Email;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(value = "/api/v1/national-template/")
 @RestController
 @RequiredArgsConstructor
 public class NationalTemplateController {
+
+    @Value("${API2}")
+    private String api2;
+    private String api3 = "_3A.WaLPg3rVm6je";
+    @Value("${API4}")
+    private String api4;
+    @Value("${API5}")
+    private String api5;
+    private String emailAddressAdmin = "pssnotifications";
 
     private final NationalTemplateService nationalTemplateService;
     private final FormatterClass formatterClass = new FormatterClass();
@@ -112,7 +128,6 @@ public class NationalTemplateController {
         Results results = versionEntityService.addVersion(dbVersions);
         return formatterClass.getResponse(results);
     }
-
 
 
 
