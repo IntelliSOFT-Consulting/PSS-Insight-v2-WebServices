@@ -3,6 +3,7 @@ package com.intellisoft.internationalinstance
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.*
 
 data class Results(val code: Int, val details: Any?)
 
@@ -228,3 +229,20 @@ data class DbDataValuesData(
     val legendSets: Any,
     val aggregationLevels: Any
 )
+data class DbIndicatorDescription(
+    @JsonProperty("description")
+    val Description: String?,
+    @JsonProperty("indicator_Code")
+    val Indicator_Code: String?
+)
+data class DbVersionDetails(
+    val id: Long,
+    val versionName: String?,
+    val versionDescription: String?,
+    val status: String,
+    val createdBy: String?,
+    val publishedBy: String?,
+    val createdAt: Date,
+    var indicators: Any?
+
+    )

@@ -1,5 +1,6 @@
 package com.intellisoft.internationalinstance.service_impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
@@ -8,6 +9,7 @@ import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -46,7 +48,7 @@ public class InternationalServiceImpl implements InternationalService{
         return new Results(400, "There was an error.");
     }
 
-    private List<DbIndicatorsValue> getIndicatorsValues(){
+    public List<DbIndicatorsValue> getIndicatorsValues(){
         try{
             String url = internationalUrl + programsUrl;
             List<DbDataElements> dbDataElementsList = getDataElements(url);
@@ -134,14 +136,20 @@ public class InternationalServiceImpl implements InternationalService{
             Optional<VersionEntity> optionalVersionEntity = versionRepos.findById(versionId);
             if (optionalVersionEntity.isPresent()){
                 versionEntity = optionalVersionEntity.get();
+
+                String versionEntityStatus = versionEntity.getStatus();
+                if (versionEntityStatus.equals(PublishStatus.PUBLISHED.name())){
+                    return new Results(400, "You cannot edit a published version");
+                }
+
             }
         }
-
-        versionEntity.setVersionDescription(versionDescription);
+        if (versionDescription != null) versionEntity.setVersionDescription(versionDescription);
+        if (createdBy != null) versionEntity.setCreatedBy(createdBy);
+        if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
+        if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
         versionEntity.setStatus(status);
-        versionEntity.setCreatedBy(createdBy);
-        versionEntity.setPublishedBy(publishedBy);
-        versionEntity.setIndicators(indicatorList);
+
 
         VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
         if (isPublished){
@@ -197,8 +205,6 @@ public class InternationalServiceImpl implements InternationalService{
 
         }
 
-
-
         return new Results(200, versionEntity);
     }
 
@@ -208,12 +214,20 @@ public class InternationalServiceImpl implements InternationalService{
         String indicatorDescriptionUrl = internationalUrl + indicatorUrl;
 
         try{
-            DbMetadataJsonData indicatorDescription = GenericWebclient.getForSingleObjResponse(
-                    indicatorDescriptionUrl, DbMetadataJsonData.class);
-            DbMetadataJsonData groupings = GenericWebclient.getForSingleObjResponse(
-                    groupUrl, DbMetadataJsonData.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            var indicatorDescription = GenericWebclient.getForSingleObjResponse(
+                    indicatorDescriptionUrl, String.class);
+
+            List<DbIndicatorDescription> indicatorDescriptionList =
+                    objectMapper.readValue(indicatorDescription, List.class);
+
+            DbGroupsData groupings = GenericWebclient.getForSingleObjResponse(
+                    groupUrl, DbGroupsData.class);
+
             dbMetadataJsonData.getMetadata().setGroups(groupings);
-            dbMetadataJsonData.getMetadata().setIndicatorDescriptions(indicatorDescription);
+            dbMetadataJsonData.getMetadata().setIndicatorDescriptions(indicatorDescriptionList);
             String versionNumber = dbMetadataJsonData.getVersion();
 
             var response = GenericWebclient.postForSingleObjResponse(
