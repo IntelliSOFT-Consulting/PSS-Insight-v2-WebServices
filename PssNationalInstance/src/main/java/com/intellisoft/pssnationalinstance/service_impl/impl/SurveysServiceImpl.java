@@ -60,11 +60,13 @@ public class SurveysServiceImpl implements SurveysService {
             List<DbRespondent> dbRespondentList = new ArrayList<>();
             List<SurveyRespondents> respondentsList =
                     surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status);
+
             for (SurveyRespondents surveyRespondents : respondentsList){
 
                 String respId = String.valueOf(surveyRespondents.getId());
                 String emailAddress = surveyRespondents.getEmailAddress();
                 String date = String.valueOf(surveyRespondents.getCreatedAt());
+
                 DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
                         null, null);
 

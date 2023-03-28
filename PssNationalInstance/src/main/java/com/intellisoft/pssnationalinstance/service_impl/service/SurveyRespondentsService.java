@@ -71,5 +71,6 @@ public interface SurveyRespondentsService {
      * Request new link with comment
      */
     Results requestLink(String respondentId, DbRequestLink dbRequestLink);
+    List<SurveyRespondents> getSurveyRespondents();
 
 }

@@ -12,7 +12,6 @@ import com.intellisoft.pssnationalinstance.service_impl.service.PeriodConfigurat
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -171,9 +170,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntryPersonId,
                     dbDataValuesList);
 
-            JSONObject jsonObject = new JSONObject(dataEntry);
-            System.out.println("------");
-            System.out.println(jsonObject);
+
 
             try {
 

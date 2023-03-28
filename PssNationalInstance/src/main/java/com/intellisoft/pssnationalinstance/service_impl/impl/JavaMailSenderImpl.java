@@ -3,6 +3,9 @@ package com.intellisoft.pssnationalinstance.service_impl.impl;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
 import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -28,74 +31,69 @@ public class JavaMailSenderImpl implements JavaMailSenderService {
     private final FormatterClass formatterClass = new FormatterClass();
 
     @Async
-    void sendEmailBackground(List<DbSurveyRespondentData> surveyRespondentList, String  status) throws IOException {
+    public void sendEmailBackground(DbRespondents dbRespondents, String  status) {
 
-        String sendGridApi = "S"+api2+api3+api4+api5+"DmxOJa2vBRI";
-        System.out.println(sendGridApi);
+        try{
 
-        Email from = new Email(emailAddressAdmin+"23@gmail.com");
-        String subject = "PSS Survey";
-        SendGrid sg = new SendGrid(sendGridApi);
-        Request request = new Request();
+            String sendGridApi = "S"+api2+api3+api4+api5+"DmxOJa2vBRI";
 
-        ClassPathResource sendEmailClassPath = new ClassPathResource("templates/email.html");
-        ClassPathResource resendEmailClassPath = new ClassPathResource("templates/resend_email.html");
-        ClassPathResource expiredEmailClassPath = new ClassPathResource("templates/expired_email.html");
-        String htmlContent = "";
+            Email from = new Email(emailAddressAdmin+"23@gmail.com");
+            String subject = "PSS Survey";
+            SendGrid sg = new SendGrid(sendGridApi);
+            Request request = new Request();
 
-        if (status.equals(MailStatus.SEND.name())){
-            htmlContent = new String(sendEmailClassPath.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        }else if (status.equals(MailStatus.RESEND.name())){
-            htmlContent = new String(resendEmailClassPath.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        }else if (status.equals(MailStatus.EXPIRED.name())){
-            htmlContent = new String(expiredEmailClassPath.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        }
+            ClassPathResource sendEmailClassPath = new ClassPathResource("templates/email.html");
+            ClassPathResource resendEmailClassPath = new ClassPathResource("templates/resend_email.html");
+            ClassPathResource expiredEmailClassPath = new ClassPathResource("templates/expired_email.html");
+            String htmlContent = "";
 
-        for (DbSurveyRespondentData dbSurveyRespondent: surveyRespondentList){
+            if (status.equals(MailStatus.SEND.name())){
+                htmlContent = new String(sendEmailClassPath.getInputStream().readAllBytes(),
+                        StandardCharsets.UTF_8);
+            }else if (status.equals(MailStatus.RESEND.name())){
+                htmlContent = new String(resendEmailClassPath.getInputStream().readAllBytes(),
+                        StandardCharsets.UTF_8);
+            }else if (status.equals(MailStatus.EXPIRED.name())){
+                htmlContent = new String(expiredEmailClassPath.getInputStream().readAllBytes(),
+                        StandardCharsets.UTF_8);
+            }else if (status.equals(MailStatus.REMIND.name())){
+                htmlContent = new String(expiredEmailClassPath.getInputStream().readAllBytes(),
+                        StandardCharsets.UTF_8);
+            }
 
-            String emailAddress = dbSurveyRespondent.getEmailAddress();
-            String expiryDateTime = dbSurveyRespondent.getExpiryDate();
-            String customUrl = dbSurveyRespondent.getCustomUrl();
-            String password = dbSurveyRespondent.getPassword();
+            List<DbSurveyRespondentData> dataList = dbRespondents.getRespondents();
+            for (DbSurveyRespondentData respondentData: dataList){
 
-            // Replace the placeholders in the email template with the dynamic content
-            htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
-            htmlContent = htmlContent.replace("[PASSWORD]", password);
-            htmlContent = htmlContent.replace("[ACCESS_LINK]", customUrl);
-            htmlContent = htmlContent.replace("[EXPIRY_TIME]", formatterClass.getRemainingTime(expiryDateTime));
+                String emailAddress = respondentData.getEmailAddress();
+                String expiryDateTime = respondentData.getExpiryDate();
+                String customUrl = respondentData.getCustomUrl();
+                String password = respondentData.getPassword();
 
-            Email to = new Email(emailAddress);
-            Content content = new Content("text/html", htmlContent);
-            Mail mail = new Mail(from, subject, to, content);
-            try {
+                // Replace the placeholders in the email template with the dynamic content
+                htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
+                htmlContent = htmlContent.replace("[PASSWORD]", password);
+                htmlContent = htmlContent.replace("[ACCESS_LINK]", customUrl);
+                htmlContent = htmlContent.replace("[EXPIRY_TIME]", formatterClass.getRemainingTime(expiryDateTime));
+
+                Email to = new Email(emailAddress);
+                Content content = new Content("text/html", htmlContent);
+                Mail mail = new Mail(from, subject, to, content);
                 request.setMethod(Method.POST);
                 request.setEndpoint("mail/send");
                 request.setBody(mail.build());
                 Response response = sg.api(request);
-
                 System.out.println("------");
                 System.out.println(response.getStatusCode());
                 System.out.println(response.getBody());
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
             }
 
-        }
-
-    }
-    @Override
-    public void sendMail(DbRespondents dbRespondents, String  status) {
-
-        try{
-            List<DbSurveyRespondentData> surveyRespondentList = dbRespondents.getRespondents();
-            // TODO: 15/03/2023 implement background task in other class
-            sendEmailBackground(surveyRespondentList, status);//take note that Asycn does not work for methods in the same class.
-            //this is because async needs a proxy class to be created.
         }catch (Exception e){
             e.printStackTrace();
         }
 
 
+
     }
+
+
 }

@@ -119,22 +119,21 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         try{
 
-//            javaMailSenderService.sendMail(dbRespondents, status);
+            javaMailSenderService.sendEmailBackground(dbRespondents, status);
 
-
-            String hostname = InetAddress.getLocalHost().getHostAddress();
-            System.out.println("===1"+hostname);
-
-//            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
-            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
-            System.out.println("===2"+mailServerUrl);
-
-            var response = GenericWebclient.postForSingleObjResponse(
-                    mailServerUrl,
-                    dbRespondents,
-                    DbRespondents.class,
-                    String.class);
-            System.out.println("RESPONSE FROM REMOTE: {}"+response);
+//            String hostname = InetAddress.getLocalHost().getHostAddress();
+//            System.out.println("===1"+hostname);
+//
+////            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
+//            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
+//            System.out.println("===2"+mailServerUrl);
+//
+//            var response = GenericWebclient.postForSingleObjResponse(
+//                    mailServerUrl,
+//                    dbRespondents,
+//                    DbRespondents.class,
+//                    String.class);
+//            System.out.println("RESPONSE FROM REMOTE: {}"+response);
 
 
 
@@ -441,6 +440,11 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }
 
         return new Results(400, "There was an issue processing the request.");
+    }
+
+    @Override
+    public List<SurveyRespondents> getSurveyRespondents() {
+        return respondentsRepo.findBySubmissionStatus(SurveyStatus.SENT.name());
     }
 
     private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId){
