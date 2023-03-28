@@ -9,8 +9,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 public interface VersionService {
- Results getIndicators() throws URISyntaxException;
- Results saveDraftOrPublish(DbVersionData version) throws URISyntaxException;
 
  Results getTemplates(int page, int size, String status);
 

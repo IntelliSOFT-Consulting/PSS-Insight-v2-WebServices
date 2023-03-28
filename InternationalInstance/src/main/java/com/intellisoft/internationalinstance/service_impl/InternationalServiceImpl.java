@@ -48,7 +48,7 @@ public class InternationalServiceImpl implements InternationalService{
         return new Results(400, "There was an error.");
     }
 
-    private List<DbIndicatorsValue> getIndicatorsValues(){
+    public List<DbIndicatorsValue> getIndicatorsValues(){
         try{
             String url = internationalUrl + programsUrl;
             List<DbDataElements> dbDataElementsList = getDataElements(url);
@@ -138,12 +138,12 @@ public class InternationalServiceImpl implements InternationalService{
                 versionEntity = optionalVersionEntity.get();
             }
         }
-
-        versionEntity.setVersionDescription(versionDescription);
+        if (versionDescription != null) versionEntity.setVersionDescription(versionDescription);
+        if (createdBy != null) versionEntity.setCreatedBy(createdBy);
+        if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
+        if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
         versionEntity.setStatus(status);
-        versionEntity.setCreatedBy(createdBy);
-        versionEntity.setPublishedBy(publishedBy);
-        versionEntity.setIndicators(indicatorList);
+
 
         VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
         if (isPublished){
@@ -198,8 +198,6 @@ public class InternationalServiceImpl implements InternationalService{
 
 
         }
-
-
 
         return new Results(200, versionEntity);
     }

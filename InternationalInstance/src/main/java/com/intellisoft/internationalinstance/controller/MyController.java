@@ -74,9 +74,9 @@ public class MyController {
     @PutMapping(value = "/version/{versionId}")
     public ResponseEntity<?> updateVersions(
             @RequestBody DbVersionData dbVersionData,
-            @Param("versionId") Long versionId){
+            @PathVariable("versionId") String versionId ){
 
-        dbVersionData.setVersionId(versionId);
+        dbVersionData.setVersionId(Long.valueOf(versionId));
 
         Results results = internationalService.saveUpdate(dbVersionData);
         return formatterClass.getResponse(results);
