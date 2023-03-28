@@ -228,3 +228,9 @@ data class DbDataValuesData(
     val legendSets: Any,
     val aggregationLevels: Any
 )
+data class DbIndicatorDescription(
+    @JsonProperty("description")
+    val Description: String?,
+    @JsonProperty("indicator_Code")
+    val Indicator_Code: String?
+)

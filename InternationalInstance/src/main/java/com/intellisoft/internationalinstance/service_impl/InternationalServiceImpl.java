@@ -1,5 +1,6 @@
 package com.intellisoft.internationalinstance.service_impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
@@ -8,6 +9,7 @@ import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -208,12 +210,20 @@ public class InternationalServiceImpl implements InternationalService{
         String indicatorDescriptionUrl = internationalUrl + indicatorUrl;
 
         try{
-            DbMetadataJsonData indicatorDescription = GenericWebclient.getForSingleObjResponse(
-                    indicatorDescriptionUrl, DbMetadataJsonData.class);
-            DbMetadataJsonData groupings = GenericWebclient.getForSingleObjResponse(
-                    groupUrl, DbMetadataJsonData.class);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            var indicatorDescription = GenericWebclient.getForSingleObjResponse(
+                    indicatorDescriptionUrl, String.class);
+
+            List<DbIndicatorDescription> indicatorDescriptionList =
+                    objectMapper.readValue(indicatorDescription, List.class);
+
+            DbGroupsData groupings = GenericWebclient.getForSingleObjResponse(
+                    groupUrl, DbGroupsData.class);
+
             dbMetadataJsonData.getMetadata().setGroups(groupings);
-            dbMetadataJsonData.getMetadata().setIndicatorDescriptions(indicatorDescription);
+            dbMetadataJsonData.getMetadata().setIndicatorDescriptions(indicatorDescriptionList);
             String versionNumber = dbMetadataJsonData.getVersion();
 
             var response = GenericWebclient.postForSingleObjResponse(
