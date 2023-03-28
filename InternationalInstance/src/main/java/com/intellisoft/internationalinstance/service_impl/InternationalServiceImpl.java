@@ -173,11 +173,13 @@ public class InternationalServiceImpl implements InternationalService{
                         }
                     }
 
-                    DbIndicatorsValue dbIndicatorsValueNew = new DbIndicatorsValue(
-                            categoryName,
-                            dbIndicatorDataValuesList
-                    );
-                    dbIndicatorsValueListNew.add(dbIndicatorsValueNew);
+                    if (!dbIndicatorDataValuesList.isEmpty()){
+                        DbIndicatorsValue dbIndicatorsValueNew = new DbIndicatorsValue(
+                                categoryName,
+                                dbIndicatorDataValuesList
+                        );
+                        dbIndicatorsValueListNew.add(dbIndicatorsValueNew);
+                    }
 
                 }
                 DbResults dbResults = new DbResults(
