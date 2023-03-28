@@ -2,11 +2,18 @@ package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
+import com.sendgrid.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(value = "/api/v1/survey-respondents")
@@ -17,14 +24,25 @@ public class SurveyRespondentsController {
     private final SurveyRespondentsService surveyRespondentsService;
     FormatterClass formatterClass = new FormatterClass();
 
+    @Value("${API2}")
+    private String api2;
+    private String api3 = "_3A.WaLPg3rVm6je";
+    @Value("${API4}")
+    private String api4;
+    @Value("${API5}")
+    private String api5;
+    private String emailAddressAdmin = "pssnotifications";
+
     @PostMapping("/add")
     public ResponseEntity<?> addSurveyRespondent(
-            @RequestBody DbSurveyRespondent dbSurveyRespondent) {
+            @RequestBody DbSurveyRespondent dbSurveyRespondent) throws IOException {
+
         Results results = surveyRespondentsService
                 .addSurveyRespondent(dbSurveyRespondent);
 
         return formatterClass.getResponse(results);
     }
+
 
     @GetMapping(value = "/{surveyId}")
     public ResponseEntity<?> listSurveyRespondent(

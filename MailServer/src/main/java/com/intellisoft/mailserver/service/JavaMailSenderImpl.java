@@ -85,6 +85,8 @@ public class JavaMailSenderImpl implements JavaMailSender{
 
 
     }
+
+
     @Override
     public Results sendMail(DbRespondents dbRespondents) {
 

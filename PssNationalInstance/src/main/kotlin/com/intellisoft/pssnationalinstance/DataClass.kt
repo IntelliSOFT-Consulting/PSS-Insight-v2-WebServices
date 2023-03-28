@@ -102,9 +102,9 @@ data class DbIndicatorDataValues(
 )
 data class DbIndicatorDescription(
     @JsonProperty("description")
-    val Description: String?,
+    val description: String?,
     @JsonProperty("indicator_Code")
-    val Indicator_Code: String?
+    val indicator_Code: String?
 )
 data class DbIndicatorDataResponses(
     var id: Any?,

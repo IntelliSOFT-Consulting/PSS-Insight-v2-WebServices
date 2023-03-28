@@ -84,7 +84,8 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             if (dbMetadataJsonNational != null){
                 DbPrograms dbPrograms = dbMetadataJsonNational.getMetadata();
                 if (dbPrograms != null){
-                    List<DbIndicatorDescription> indicatorDescriptionNational = dbPrograms.getIndicatorDescriptions();
+                    List<DbIndicatorDescription> indicatorDescriptionNational =
+                            dbPrograms.getIndicatorDescriptions();
                     description = getIndicatorDescription(pssCode, indicatorDescriptionNational);
                 }
 

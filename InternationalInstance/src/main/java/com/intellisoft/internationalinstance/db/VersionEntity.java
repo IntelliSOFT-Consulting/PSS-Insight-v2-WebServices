@@ -19,7 +19,7 @@ public class VersionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true)
+//    @Column(unique = true)
     private String versionName;
     private String versionDescription;
     private String status;

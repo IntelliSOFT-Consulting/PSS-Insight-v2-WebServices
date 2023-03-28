@@ -264,9 +264,9 @@ data class DbDataValuesData(
     val aggregationLevels: Any
 )
 data class DbIndicatorDescription(
-    @JsonProperty("description")
+    @JsonProperty("Description")
     val Description: String?,
-    @JsonProperty("indicator_Code")
+    @JsonProperty("Indicator_Code")
     val Indicator_Code: String?
 )
 data class DbVersionDetails(

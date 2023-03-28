@@ -65,7 +65,10 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 emailErrors = emailErrors + emailAddress + ",";
             }
         }
-        String emailResponse = "The following email addresses have an issue: " + emailErrors;
+        String emailResponse = "";
+        if (!emailErrors.equals("")){
+            emailResponse = "The following email addresses have an issue: " + emailErrors;
+        }
 
         return new Results(200, new DbDetails("Please wait as we send the mails." + emailResponse));
     }
@@ -116,22 +119,22 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         try{
 
-            javaMailSenderService.sendMail(dbRespondents, status);
+//            javaMailSenderService.sendMail(dbRespondents, status);
 
 
-//            String hostname = InetAddress.getLocalHost().getHostAddress();
-//            System.out.println("===1"+hostname);
-//
-////            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
-//            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
-//            System.out.println("===2"+mailServerUrl);
-//
-//            var response = GenericWebclient.postForSingleObjResponse(
-//                    mailServerUrl,
-//                    dbRespondents,
-//                    DbRespondents.class,
-//                    String.class);
-//            System.out.println("RESPONSE FROM REMOTE: {}"+response);
+            String hostname = InetAddress.getLocalHost().getHostAddress();
+            System.out.println("===1"+hostname);
+
+//            String mailServerUrl = "http://"+hostname+":7007/"+"api/v1/mail-service/send-email";
+            String mailServerUrl = "http://"+"172.104.91.99"+":7007/"+"api/v1/mail-service/send-email";
+            System.out.println("===2"+mailServerUrl);
+
+            var response = GenericWebclient.postForSingleObjResponse(
+                    mailServerUrl,
+                    dbRespondents,
+                    DbRespondents.class,
+                    String.class);
+            System.out.println("RESPONSE FROM REMOTE: {}"+response);
 
 
 
