@@ -236,7 +236,8 @@ public class InternationalServiceImpl implements InternationalService{
                     DbMetadataValue.class,
                     Response.class);
             if (response.getHttpStatusCode() < 200) {
-                throw new CustomException("Unable to create/update record on data store"+response);
+//                throw new CustomException("Unable to create/update record on data store"+response);
+
             }else {
 
                 savedVersionEntity.setVersionName(versionNumber);
