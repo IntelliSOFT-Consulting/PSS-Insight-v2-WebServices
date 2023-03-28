@@ -47,6 +47,19 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return new Results(400, "The national indicators could not be found.");
 
     }
+
+    public DbPublishedVersion getThePreviousIndicators(String versionNumber){
+        String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS + versionNumber;
+        DbMetadataJson dbMetadataJson =
+                internationalTemplateService.getIndicators(publishedBaseUrl);
+        if (dbMetadataJson != null){
+            DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+            if (dbPrograms != null){
+                return dbPrograms.getPublishedVersion();
+            }
+        }
+        return null;
+    }
     public DbPublishedVersion nationalPublishedIndicators(){
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
         DbMetadataJson dbMetadataJson =
@@ -117,45 +130,57 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         try{
 
             String nationalPublishedUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+            String interNationalPublishedUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
 
-            String versionNumber = "1";
+            String versionNumberLatest = "1";
+            String versionNumberPast = "1";
+            int nationalLatestVersion = 1;
             try{
-                int versionNo = internationalTemplateService
-                        .getVersions(nationalPublishedUrl);
-                versionNumber = String.valueOf(versionNo + 1);
+                int versionNo = internationalTemplateService.getVersions(interNationalPublishedUrl);
+                nationalLatestVersion = internationalTemplateService.getVersions(nationalPublishedUrl);
+
+                versionNumberLatest = String.valueOf(versionNo + 1);
+
+                if (versionNo > 1){
+                    versionNumberPast = String.valueOf(versionNo - 1);
+                }
+
             }catch (Exception e){
                 e.printStackTrace();
             }
 
             List<DbIndicators> indicatorsList = new ArrayList<>();
 
-            List<String> internationalIndicators = new ArrayList<>();
-            List<String> nationalIndicators = new ArrayList<>();
+            List<String> latestIndicators = new ArrayList<>();
+            List<String> pastIndicators = new ArrayList<>();
             for (DbVersionDate dbVersionDate : indicatorList){
 
-                boolean isInternational = Boolean.TRUE.equals(dbVersionDate.isInternational());
+                boolean isLatest = dbVersionDate.isLatest();
                 String id = dbVersionDate.getId();
-                if (isInternational){
-                    internationalIndicators.add(id);
+                if (isLatest){
+                    latestIndicators.add(id);
                 }else {
-                    nationalIndicators.add(id);
+                    pastIndicators.add(id);
                 }
             }
 
             /**
-             * Get national metadata
+             * Get past metadata from the version number
              */
-            DbPublishedVersion publishedNationalIndicators = nationalPublishedIndicators();
-            if (publishedNationalIndicators != null){
+            DbPublishedVersion pastInternationalIndicators = getThePreviousIndicators(versionNumberPast);
+            if (pastInternationalIndicators != null){
                 List<DbIndicators> indicatorValuesList =
                         getSelectedIndicators(
-                                publishedNationalIndicators.getDetails(),
-                                nationalIndicators);
-                indicatorsList.addAll(indicatorValuesList);
+                                pastInternationalIndicators.getDetails(),
+                                pastIndicators);
+                if(!indicatorValuesList.isEmpty()){
+                    indicatorsList.addAll(indicatorValuesList);
+                }
+
             }
 
             /**
-             * Get international metadata
+             * Get international Latest metadata
              */
             String internationalPublishedUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
             DbMetadataJson dbMetadataJson = getMetadata(internationalPublishedUrl);
@@ -169,8 +194,11 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                         List<DbIndicators> indicatorValuesList =
                                 getSelectedIndicators(
                                         publishedVersionValues.getDetails(),
-                                        internationalIndicators);
-                        indicatorsList.addAll(indicatorValuesList);
+                                        latestIndicators);
+                        if(!indicatorValuesList.isEmpty()){
+                            indicatorsList.addAll(indicatorValuesList);
+                        }
+
                     }
 
                 }
@@ -219,7 +247,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             //Save the new Version
 
             var response = GenericWebclient.postForSingleObjResponse(
-                    nationalPublishedUrl + versionNumber,
+                    nationalPublishedUrl + (nationalLatestVersion + 1),
                     dbMetadataJson,
                     DbMetadataJson.class,
                     DbPublishVersionResponse.class);
@@ -229,7 +257,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                         versionEntityRepository.findById(Long.valueOf(versionId));
                 if (optionalVersionEntity.isPresent()){
                     VersionEntity versionEntity = optionalVersionEntity.get();
-                    versionEntity.setVersionName(versionNumber);
+                    versionEntity.setVersionName(versionNumberLatest);
                     versionEntityRepository.save(versionEntity);
                 }
 

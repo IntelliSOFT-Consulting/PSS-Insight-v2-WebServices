@@ -15,5 +15,6 @@ public interface InternationalTemplateService {
     int getVersions(String url) throws URISyntaxException;
     DbMetadataJson getPublishedData(String url);
     DbPublishedVersion interNationalPublishedIndicators();
+    DbMetadataJson getIndicators(String url);
 
 }

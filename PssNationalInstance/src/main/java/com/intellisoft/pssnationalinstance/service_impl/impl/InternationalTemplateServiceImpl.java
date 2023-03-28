@@ -119,4 +119,22 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         return null;
 
     }
+
+    public DbMetadataJson getIndicators(String url) {
+
+        try {
+
+            //Get the dataStore values from the international
+            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
+                    url, DbMetadataJson.class);
+
+            if (dbMetadataJson.getMetadata() != null){
+                return dbMetadataJson;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+
+    }
 }
