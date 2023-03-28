@@ -127,7 +127,7 @@ data class DbVersions(
     val indicators: List<DbVersionDate>
 )
 data class DbVersionDate(
-    val isInternational:Boolean?,
+    val isLatest:Boolean,
     val id:String
 )
 enum class PublishStatus {
