@@ -89,6 +89,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                         DbPublishedVersion publishedData = metadata.getPublishedVersion();
                         if(publishedData != null){
                             DbVersionDetails dbVersionDetails = new DbVersionDetails(
+                                    versionEntity.getId(),
                                     versionEntity.getVersionName(),
                                     versionEntity.getVersionDescription(),
                                     versionEntity.getCreatedBy(),
@@ -119,6 +120,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         List<VersionEntity> versionEntityList = getPagedVersions(
                 page, size, "","");
         for (int i = 0; i < versionEntityList.size(); i++){
+            Long id = versionEntityList.get(i).getId();
             String versionName = versionEntityList.get(i).getVersionName();
             String versionDescription = versionEntityList.get(i).getVersionDescription();
             String createdBy = versionEntityList.get(i).getCreatedBy();
@@ -129,6 +131,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             List<DbIndicators> selectedIndicators =
                     nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList);
             DbVersionDetails dbVersionDetails = new DbVersionDetails(
+                    id,
                     versionName,
                     versionDescription,
                     createdBy,

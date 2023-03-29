@@ -118,15 +118,6 @@ public class SurveyRespondentsController {
                 .resendSurvey(respondentId,resendSurvey);
         return formatterClass.getResponse(results);
     }
-//    @PostMapping("/resend-survey/{respondentId}")
-//    public ResponseEntity<?> resendSurvey(
-//            @PathVariable("respondentId") String respondentId,
-//            @RequestBody DbConfirmSurvey dbConfirmSurvey){
-//        Results results = surveyRespondentsService
-//                .confirmSurvey(respondentId,dbConfirmSurvey);
-//        return formatterClass.getResponse(results);
-//    }
-
 
     @PostMapping("/request-link/{respondentId}")
     public ResponseEntity<?> requestLink(
@@ -136,23 +127,6 @@ public class SurveyRespondentsController {
                 .requestLink(respondentId,dbRequestLink);
         return formatterClass.getResponse(results);
     }
-//    @GetMapping(value = "/answers/{respondentId}")
-//    public ResponseEntity<?> getAnswers(
-//            @PathVariable("respondentId") String respondentId){
-//        Results results = surveyRespondentsService
-//                .getAssignedAnswers(respondentId);
-//        return formatterClass.getResponse(results);
-//
-//    }
 
-//    @PutMapping(value = "/{surveyId}")
-//    public VersionEntity updateVersions(
-//            @RequestBody DbVersionData dbVersionData,
-//            @PathVariable("surveyId") String surveyId)throws URISyntaxException {
-//
-//        dbVersionData.setVersionId(surveyId);
-//        return versionService.saveDraftOrPublish(dbVersionData);
-//
-//    }
 
 }

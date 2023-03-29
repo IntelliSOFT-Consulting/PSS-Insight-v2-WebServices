@@ -169,6 +169,7 @@ data class DbPublishVersionResponse(
     val message:String,
 )
 data class DbVersionDetails(
+    val id: Long?,
     val versionName: String?,
     val versionDescription: String,
     val createdBy: String,
