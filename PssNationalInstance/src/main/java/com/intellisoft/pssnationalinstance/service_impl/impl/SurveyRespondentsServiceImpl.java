@@ -287,6 +287,19 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             String surveyId = surveyRespondents.getSurveyId();
             String status = surveyRespondents.getRespondentsStatus();
 
+            String landingPage = "";
+            String surveyName = "";
+            String surveyDesc = "";
+
+            Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
+            if (optionalSurvey.isPresent()){
+                Surveys surveys = optionalSurvey.get();
+                landingPage = surveys.getLandingPage();
+                surveyName = surveys.getName();
+                surveyDesc = surveys.getDescription();
+
+            }
+
             String expiryDate = surveyRespondents.getExpiryTime();
 
             boolean isExpired = formatterClass.isPastToday(expiryDate);
@@ -307,8 +320,9 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                                 emailAddress,
                                 expiryTime,
                                 status,
-                                null,
-                                null,
+                                surveyName,
+                                surveyDesc,
+                                landingPage,
                                 null
                         );
                 dbResponseDetailsValues.setRespondentDetails(dbRespondentsDetails);
@@ -350,6 +364,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         if (optionalSurveyRespondents.isPresent()){
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             String surveyId = surveyRespondents.getSurveyId();
+
+
 
             String emailAddress = surveyRespondents.getEmailAddress();
             String loginUrl = surveyRespondents.getCustomUrl();

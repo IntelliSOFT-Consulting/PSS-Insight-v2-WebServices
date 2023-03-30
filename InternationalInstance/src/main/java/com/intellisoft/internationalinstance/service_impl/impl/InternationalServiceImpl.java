@@ -114,11 +114,14 @@ public class InternationalServiceImpl implements InternationalService {
                     String name = (String) dataValues.getCategoryName();
                     String categoryName = formatterClass.mapIndicatorNameToCategory(name);
 
-                    if (!categoryMap.containsKey(categoryName)){
-                        categoryMap.put(categoryName, new ArrayList<>());
+                    if (!categoryName.equals("Others")){
+                        if (!categoryMap.containsKey(categoryName)){
+                            categoryMap.put(categoryName, new ArrayList<>());
+                        }
+
+                        categoryMap.get(categoryName).add(dataValues);
                     }
 
-                    categoryMap.get(categoryName).add(dataValues);
                 }
 
                 for (Map.Entry<String, List<DbIndicatorDataValues>> entry : categoryMap.entrySet()) {

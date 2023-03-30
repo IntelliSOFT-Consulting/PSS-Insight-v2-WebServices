@@ -24,6 +24,9 @@ public class Surveys {
     private String name;
     private String description;
     private String status;
+
+    @Column(length = 8000)
+    private String landingPage;
     private String creatorId;
     @ElementCollection
     private List<String> indicators;

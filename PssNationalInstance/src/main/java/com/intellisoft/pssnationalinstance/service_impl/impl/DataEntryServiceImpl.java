@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -182,10 +183,6 @@ public class DataEntryServiceImpl implements DataEntryService {
                             dataEntryPersonId,
                             dbDataValuesList);
 
-                    System.out.println("------");
-                    System.out.println(dataEntry);
-                    System.out.println("------");
-
                     var response = GenericWebclient.postForSingleObjResponse(
                             AppConstants.EVENTS_ENDPOINT,
                             dataEntry,
@@ -211,6 +208,64 @@ public class DataEntryServiceImpl implements DataEntryService {
         }
 
     }
+
+    @Override
+    public Results viewDataEntry(String id) {
+
+        Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(Long.valueOf(id));
+        if (optionalDataEntry.isPresent()){
+
+            DataEntry dataEntry = optionalDataEntry.get();
+            List<DataEntryResponses> dataEntryResponseList =
+                    dataEntryResponsesRepository.findByDataEntry(dataEntry);
+            DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(
+                    dataEntry.getId(),
+                    dataEntry.getSelectedPeriod(),
+                    dataEntry.getStatus(),
+                    dataEntry.getDataEntryPersonId(),
+                    dataEntry.getDataEntryDate(),
+                    dataEntry.getCreatedAt(),
+                    dataEntryResponseList);
+            return new Results(200, dbDataEntryResponse);
+        }
+
+        return new Results(400, "Resource not found.");
+    }
+
+    @Override
+    public Results updateDataEntry(String id, DbDataEntryData dbDataEntryData) {
+
+        Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(Long.valueOf(id));
+        if (optionalDataEntry.isPresent()){
+
+            DataEntry dataEntry = optionalDataEntry.get();
+            String status = dataEntry.getStatus();
+            if (status.equals(PublishStatus.PUBLISHED.name())){
+                return new Results(400, new DbDetails("This has already been pushed"));
+            }
+
+            String selectedPeriod = dbDataEntryData.getSelectedPeriod();
+            boolean isPublished = dbDataEntryData.isPublished();
+            String dateEntryDate = dbDataEntryData.getDataEntryDate();
+
+            String statusValue = PublishStatus.DRAFT.name();
+            if (isPublished){
+                statusValue = PublishStatus.PUBLISHED.name();
+            }
+
+            dataEntry.setStatus(status);
+            dataEntry.setSelectedPeriod(selectedPeriod);
+            dataEntry.setDataEntryDate(dateEntryDate);
+            dataEntry.setStatus(statusValue);
+            DataEntry dataEntryAdded = dataEntryRepository.save(dataEntry);
+
+            return new Results(200, dataEntryAdded);
+
+        }
+
+        return new Results(400, "Resource not found");
+    }
+
     private String getCommentsUploads(String codeComments, List<DbDataElements> dataElementsList) {
 
         String id = "";

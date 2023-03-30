@@ -12,4 +12,8 @@ public interface DataEntryService {
     Results listDataEntry(int no, int size, String status, String dataEntryPersonId);
     void saveEventData(DbDataEntryData dbDataEntryData);
 
+    Results viewDataEntry(String id);
+
+    Results updateDataEntry(String id, DbDataEntryData dbDataEntryData);
+
 }

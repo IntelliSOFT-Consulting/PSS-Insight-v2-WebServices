@@ -1,6 +1,7 @@
 package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.DbDataEntryData;
+import com.intellisoft.pssnationalinstance.DbVersions;
 import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.Results;
 import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService;
@@ -69,11 +70,19 @@ public class DataEntryController {
     /**
      * Get Data entry Details
      */
-//    @GetMapping(value = "/response/{id}")
-//    public ResponseEntity<?> getDataEntryDetails(@PathVariable("id") Long id){
-//        Results results = dataEntryService.viewDataEntry(id);
-//        return formatterClass.getResponse(results);
-//    }
+    @GetMapping(value = "/response/{id}")
+    public ResponseEntity<?> getDataEntryDetails(@PathVariable("id") String id){
+        Results results = dataEntryService.viewDataEntry(id);
+        return formatterClass.getResponse(results);
+    }
+
+    @PutMapping(value = "/response/{id}")
+    public ResponseEntity<?> updateVersions(
+            @RequestBody DbDataEntryData dbDataEntryData,
+            @PathVariable("id") String id) {
+        Results results = dataEntryService.updateDataEntry(id, dbDataEntryData);
+        return formatterClass.getResponse(results);
+    }
 
     /**
      * Delete Data entry and all its reposnes

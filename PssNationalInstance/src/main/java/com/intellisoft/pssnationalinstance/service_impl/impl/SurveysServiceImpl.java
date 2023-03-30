@@ -28,6 +28,7 @@ public class SurveysServiceImpl implements SurveysService {
         String surveyDescription = dbSurvey.getSurveyDescription();
         boolean isSaved = dbSurvey.isSaved();
         String creatorId = dbSurvey.getCreatorId();
+        String landingPage = dbSurvey.getSurveyLandingPage();
         List<String> indicatorList = dbSurvey.getIndicators();
 
         String status = SurveyStatus.SAVED.name();
@@ -39,6 +40,7 @@ public class SurveysServiceImpl implements SurveysService {
         surveys.setName(surveyName);
         surveys.setDescription(surveyDescription);
         surveys.setStatus(status);
+        surveys.setLandingPage(landingPage);
         surveys.setCreatorId(creatorId);
         surveys.setIndicators(indicatorList);
         surveysRepo.save(surveys);
@@ -55,6 +57,9 @@ public class SurveysServiceImpl implements SurveysService {
 
             Long id = surveys.getId();
             String surveyName = surveys.getName();
+            String surveyDesc = surveys.getDescription();
+            String surveyStatusValue = surveys.getStatus();
+            String landingPage = surveys.getLandingPage();
             //Get respondents under this with required status
 
             List<DbRespondent> dbRespondentList = new ArrayList<>();
@@ -88,7 +93,9 @@ public class SurveysServiceImpl implements SurveysService {
             DbSurveyDetails details = new DbSurveyDetails(
                     String.valueOf(id),
                     surveyName,
-                    status,
+                    surveyStatusValue,
+                    surveyDesc,
+                    landingPage,
                     dbRespondentList);
             dbSurveyDetailsList.add(details);
         }

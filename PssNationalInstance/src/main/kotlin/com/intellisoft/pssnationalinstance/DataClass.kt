@@ -242,6 +242,7 @@ data class DbDataEntryResponse(
 data class DbSurvey(
     val surveyName: String,
     val surveyDescription: String,
+    val surveyLandingPage:String?,
     val isSaved: Boolean,
     val creatorId: String,
     val indicators : List<String>
@@ -257,6 +258,8 @@ data class DbSurveyDetails(
     val surveyId:String,
     val surveyName: String,
     val surveyStatus: String,
+    val surveyDescription: String?,
+    val landingPage: String?,
     val respondentList:List<DbRespondent>
 )
 data class DbRespondent(
@@ -278,6 +281,7 @@ data class DbRespondentsDetails(
     val status:String?,
     val surveyName:String?,
     val surveyDescription: String?,
+    val landingPage: String?,
     val referenceSheet:String?
 )
 data class DbResponse(
