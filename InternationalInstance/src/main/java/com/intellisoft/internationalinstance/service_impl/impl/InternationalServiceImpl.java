@@ -11,14 +11,14 @@ import com.intellisoft.internationalinstance.service_impl.service.NotificationSe
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,27 +52,32 @@ public class InternationalServiceImpl implements InternationalService {
 
     public List<DbIndicatorsValue> getIndicatorsValues(){
         try{
+            List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
+
             String url = internationalUrl + programsUrl;
             List<DbDataElements> dbDataElementsList = getDataElements(url);
 
             String groupUrl = internationalUrl + groupsUrl;
-            List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
             DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(
                     groupUrl, DbGroupsData.class);
+
             if (dbGroupsData != null){
+                List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
+
                 List<DbGroupings> groupingsList = dbGroupsData.getDataElementGroups();
                 for (DbGroupings dbGroupings : groupingsList){
-                    List<DbDataElementsData> dataElementsList = dbGroupings.getDataElements();
+
                     String categoryName = dbGroupings.getName();
                     String categoryId = dbGroupings.getId();
+                    List<DbDataElementsData> dataElementsList = dbGroupings.getDataElements();
 
                     List<DbDataGrouping> dbDataGroupingList = new ArrayList<>();
-
-                    for (DbDataElementsData dataElementsData: dataElementsList){
+                    for (DbDataElementsData dataElementsData: dataElementsList) {
 
                         String code = dataElementsData.getCode();
                         String name = dataElementsData.getName();
                         String id = dataElementsData.getId();
+
                         if(code != null){
                             if (!code.contains("_Comments") && !code.contains("_Uploads")){
                                 String valueType = getValueType(code, dbDataElementsList);
@@ -89,27 +94,43 @@ public class InternationalServiceImpl implements InternationalService {
                         }
 
                     }
-                    if (categoryName != null){
-                        List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
-                        String indicatorName = formatterClass.getIndicatorName(categoryName);
-                        String categoryNameData = formatterClass.mapIndicatorNameToCategory(categoryName);
 
-                        DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(
-                                categoryId,
-                                categoryName,
-                                indicatorName,
-                                dbDataGroupingList
-                        );
-                        dbIndicatorDataValuesList.add(dbIndicatorDataValues);
+                    String indicatorName = formatterClass.getIndicatorName(categoryName);
 
-                        DbIndicatorsValue dbIndicatorsValue = new DbIndicatorsValue(
-                                categoryNameData,
-                                dbIndicatorDataValuesList);
-                        dbIndicatorsValueList.add(dbIndicatorsValue);
-                    }
+                    DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(
+                            categoryId,
+                            categoryName,
+                            indicatorName,
+                            dbDataGroupingList
+                    );
+                    dbIndicatorDataValuesList.add(dbIndicatorDataValues);
 
                 }
+
+
+                Map<String, List<DbIndicatorDataValues>> categoryMap = new HashMap<>();
+
+                for (DbIndicatorDataValues dataValues: dbIndicatorDataValuesList){
+                    String name = (String) dataValues.getCategoryName();
+                    String categoryName = formatterClass.mapIndicatorNameToCategory(name);
+
+                    if (!categoryMap.containsKey(categoryName)){
+                        categoryMap.put(categoryName, new ArrayList<>());
+                    }
+
+                    categoryMap.get(categoryName).add(dataValues);
+                }
+
+                for (Map.Entry<String, List<DbIndicatorDataValues>> entry : categoryMap.entrySet()) {
+                    String category = entry.getKey();
+                    List<DbIndicatorDataValues> indicators = entry.getValue();
+                    dbIndicatorsValueList.add(new DbIndicatorsValue(category, indicators));
+                }
+
             }
+
+
+
             return dbIndicatorsValueList;
         }catch (Exception e){
             return Collections.emptyList();

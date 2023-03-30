@@ -7,4 +7,5 @@ public interface VersionEntityService {
     Results addVersion(DbVersions dbVersions);
     Results listVersions(int page, int size, boolean isLatest);
     Results updateVersion(String id, DbVersions dbVersions);
+    Results deleteTemplate(String versionId);
 }

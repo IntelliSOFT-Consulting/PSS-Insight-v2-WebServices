@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/FileService/FileService.iml" filepath="$PROJECT_DIR$/FileService/FileService.iml" />
       <module fileurl="file://$PROJECT_DIR$/InternationalInstance/InternationalInstance.iml" filepath="$PROJECT_DIR$/InternationalInstance/InternationalInstance.iml" />
-      <module fileurl="file://$PROJECT_DIR$/MailServer/MailServer.iml" filepath="$PROJECT_DIR$/MailServer/MailServer.iml" />
-      <module fileurl="file://$PROJECT_DIR$/NationalInstance/NationalInstance.iml" filepath="$PROJECT_DIR$/NationalInstance/NationalInstance.iml" />
       <module fileurl="file://$PROJECT_DIR$/PssDhisCustomApp.iml" filepath="$PROJECT_DIR$/PssDhisCustomApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/PssNationalInstance/PssNationalInstance.iml" filepath="$PROJECT_DIR$/PssNationalInstance/PssNationalInstance.iml" />
     </modules>
