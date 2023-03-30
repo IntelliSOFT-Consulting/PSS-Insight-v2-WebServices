@@ -7,5 +7,6 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface DataEntryRepository extends CrudRepository<DataEntry, Long> {
     Page<DataEntry> findAllByStatusAndDataEntryPersonId(String status, String dataEntryPersonId, Pageable pageable);
+    Page<DataEntry> findAllByDataEntryPersonId(String dataEntryPersonId, Pageable pageable);
 
 }

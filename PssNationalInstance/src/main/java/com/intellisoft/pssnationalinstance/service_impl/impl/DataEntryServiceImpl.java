@@ -12,6 +12,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.PeriodConfigurat
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import net.minidev.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -124,7 +125,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
                                     if (comment != null && !commentId.equals("")){
                                         DbDataValues dbDataValues = new DbDataValues(
-                                                commentId, commentId
+                                                commentId, comment
                                         );
                                         dbDataValuesList.add(dbDataValues);
                                     }
@@ -153,7 +154,7 @@ public class DataEntryServiceImpl implements DataEntryService {
         if (selectedPeriod != null){
             PeriodConfiguration periodConfiguration =
                     periodConfigurationService.getConfigurationDetails(selectedPeriod);
-            String status = PublishStatus.DRAFT.name();
+            String status = DhisStatus.ACTIVE.name();
 
             if (periodConfiguration != null){
                 boolean isCompleted = periodConfiguration.isCompleted();
@@ -171,7 +172,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     String id = "";
                     List<DbProgramsValue> programsValueList = dbProgramsData.getPrograms();
                     for (int i = 0; i < programsValueList.size(); i++){
-                        id = programsValueList.get(i).toString();
+                        id = programsValueList.get(i).getId().toString();
                     }
                     DbDataEntry dataEntry = new DbDataEntry(
                             id,
@@ -180,6 +181,11 @@ public class DataEntryServiceImpl implements DataEntryService {
                             status,
                             dataEntryPersonId,
                             dbDataValuesList);
+
+                    System.out.println("------");
+                    System.out.println(dataEntry);
+                    System.out.println("------");
+
                     var response = GenericWebclient.postForSingleObjResponse(
                             AppConstants.EVENTS_ENDPOINT,
                             dataEntry,
@@ -220,17 +226,15 @@ public class DataEntryServiceImpl implements DataEntryService {
 
     @Override
     public Results listDataEntry(int no, int size, String status, String dataEntryPersonId) {
-
-        List<DataEntry> dataEntryList =
-                getPagedDataEntryData(
-                        no,
-                        size,
-                        "",
-                        "",
-                        status,
-                        dataEntryPersonId);
-
         List<DbDataEntryResponse> responseList = new ArrayList<>();
+        List<DataEntry> dataEntryList = getPagedDataEntryData(
+                no,
+                size,
+                "",
+                "",
+                status,
+                dataEntryPersonId);
+
         for (DataEntry dataEntry : dataEntryList){
 
             List<DataEntryResponses> dataEntryResponseList =
@@ -246,6 +250,8 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntryResponseList);
             responseList.add(dbDataEntryResponse);
         }
+
+
 
         DbResults dbResults = new DbResults(
                 responseList.size(),
@@ -270,9 +276,17 @@ public class DataEntryServiceImpl implements DataEntryService {
         Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
-        Page<DataEntry> page =
-                dataEntryRepository.findAllByStatusAndDataEntryPersonId(
-                        status, userId, pageable);
+        Page<DataEntry> page;
+        if (status.equals("ALL")){
+            page =
+                    dataEntryRepository.findAllByDataEntryPersonId(userId, pageable);
+        }else {
+            page =
+                    dataEntryRepository.findAllByStatusAndDataEntryPersonId(
+                            status, userId, pageable);
+        }
+
+
 
         return page.getContent();
     }
