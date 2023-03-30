@@ -129,6 +129,20 @@ public class NationalTemplateController {
         return formatterClass.getResponse(results);
     }
 
+    @Operation(
+            summary = "Deletes a version ",
+            description = "A published version cannot be deleted.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
+            @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
+                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+            @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
+                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+    @DeleteMapping(value = "/version-details/{versionId}")
+    public ResponseEntity<?> deleteTemplate(@PathVariable("versionId") String versionId) {
+        Results results = versionEntityService.deleteTemplate(versionId);
+        return formatterClass.getResponse(results);
+    }
 
 
 }

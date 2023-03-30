@@ -189,6 +189,31 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
     }
 
+    @Override
+    public Results deleteTemplate(String versionId) {
+
+        try{
+            Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
+            if (optionalVersionEntity.isPresent()){
+
+                VersionEntity versionEntity = optionalVersionEntity.get();
+                String status = versionEntity.getStatus();
+                if (status.equals(PublishStatus.PUBLISHED.name())){
+                    return new Results(400, "You cannot delete a published version");
+                }
+
+                versionEntityRepository.deleteById(versionEntity.getId());
+                return new Results(200, new DbDetails("The version has been deleted successfully."));
+
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return new Results(400, "Version not found.");
+    }
+
+
     private DbPublishedVersion getAvailableVersion(){
         DbPublishedVersion dbPublishedVersion =
                 nationalTemplateService.nationalPublishedIndicators();

@@ -8,9 +8,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="PssNationalInstance" />
-        <module name="MailServer" />
-        <module name="FileService" />
-        <module name="NationalInstance" />
         <module name="InternationalInstance" />
       </profile>
     </annotationProcessing>
