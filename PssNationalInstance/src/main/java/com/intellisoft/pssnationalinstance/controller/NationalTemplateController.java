@@ -49,6 +49,26 @@ public class NationalTemplateController {
      * @throws URISyntaxException
      */
     @Operation(
+            summary = "Get the national org units",
+            description = "This api is used for pulling the national org units")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
+            @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
+                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+            @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
+                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+    @GetMapping("organisation-units")
+    public ResponseEntity<?> getOrgUnits(
+            @RequestParam(value = "page", required = false) String page
+            ) {
+        int pageNo = 1;
+        if (page != null)
+            pageNo = Integer.parseInt(page);
+
+        Results results = nationalTemplateService.getOrgUnits(pageNo);
+        return formatterClass.getResponse(results);
+    }
+    @Operation(
             summary = "Pull the international template",
             description = "This api is used for pulling the international template and displaying it to frontend")
     @ApiResponses(value = {

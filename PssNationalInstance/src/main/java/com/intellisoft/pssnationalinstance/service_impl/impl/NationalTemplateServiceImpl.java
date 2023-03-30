@@ -14,7 +14,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -300,6 +299,34 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     public DbMetadataJson getPublishedMetadataJson() {
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
         return internationalTemplateService.getPublishedData(publishedBaseUrl);
+    }
+
+    @Override
+    public Results getOrgUnits(int pageNo) {
+
+        try{
+
+            DbOrganisationUnit dbOrganisationUnit = GenericWebclient.getForSingleObjResponse(
+                    AppConstants.NATIONAL_BASE_ORG_UNIT + pageNo, DbOrganisationUnit.class);
+            if (dbOrganisationUnit != null){
+
+                List<DbProgramsValue> dbProgramsValueList = dbOrganisationUnit.getOrganisationUnits();
+                DbResults dbResults = new DbResults(
+                        dbProgramsValueList.size(),
+                        dbProgramsValueList
+                );
+                return new Results(200, dbResults);
+
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+
+
+        return new Results(400, "There was an issue processing the request");
     }
 
 }

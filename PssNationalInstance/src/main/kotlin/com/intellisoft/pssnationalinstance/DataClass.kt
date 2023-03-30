@@ -318,9 +318,6 @@ data class DbDataEntryResponses(
 data class DbRequestLink(
     val comment: String
 )
-
-
-
 data class DbRespondents(
     val respondents: List<DbSurveyRespondentData>
 )
@@ -329,4 +326,23 @@ data class DbSurveyRespondentData(
     val expiryDate:String,
     val customUrl: String,
     val password:String
+)
+data class DbProgramsData(
+    @JsonProperty("pager")
+    val pager: Any?,
+    @JsonProperty("programs")
+    val programs: List<DbProgramsValue>
+)
+data class DbProgramsValue(
+    @JsonProperty("id")
+    val id:Any?,
+    @JsonProperty("displayName")
+    val displayName:Any?,
+
+)
+data class DbOrganisationUnit(
+    @JsonProperty("pager")
+    val pager: Any?,
+    @JsonProperty("organisationUnits")
+    val organisationUnits: List<DbProgramsValue>
 )

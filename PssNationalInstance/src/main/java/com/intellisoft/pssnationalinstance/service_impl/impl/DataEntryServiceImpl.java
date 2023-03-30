@@ -162,32 +162,45 @@ public class DataEntryServiceImpl implements DataEntryService {
                 }
             }
 
-            DbDataEntry dataEntry = new DbDataEntry(
-                    "T4EBleGG9mU",
-                    orgUnit,
-                    selectedPeriod + "-01-" + "01",
-                    status,
-                    dataEntryPersonId,
-                    dbDataValuesList);
-
-
-
             try {
 
-                var response = GenericWebclient.postForSingleObjResponse(
-                        AppConstants.EVENTS_ENDPOINT,
-                        dataEntry,
-                        DbDataEntry.class,
-                        String.class);
+                DbProgramsData dbProgramsData = GenericWebclient.getForSingleObjResponse(
+                        AppConstants.NATIONAL_BASE_PROGRAMS, DbProgramsData.class);
 
-                System.out.println("************");
-                System.out.println(response);
-                System.out.println("************");
+                if (dbProgramsData !=null){
+                    String id = "";
+                    List<DbProgramsValue> programsValueList = dbProgramsData.getPrograms();
+                    for (int i = 0; i < programsValueList.size(); i++){
+                        id = programsValueList.get(i).toString();
+                    }
+                    DbDataEntry dataEntry = new DbDataEntry(
+                            id,
+                            orgUnit,
+                            selectedPeriod + "-01-" + "01",
+                            status,
+                            dataEntryPersonId,
+                            dbDataValuesList);
+                    var response = GenericWebclient.postForSingleObjResponse(
+                            AppConstants.EVENTS_ENDPOINT,
+                            dataEntry,
+                            DbDataEntry.class,
+                            String.class);
+
+                    System.out.println("************");
+                    System.out.println(response);
+                    System.out.println("************");
+
+                }
+
+
+
+
 
 
             }catch (Exception e){
                 e.printStackTrace();
             }
+
 
         }
 
