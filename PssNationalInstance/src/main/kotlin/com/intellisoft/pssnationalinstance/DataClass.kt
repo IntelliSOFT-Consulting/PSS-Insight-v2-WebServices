@@ -130,6 +130,11 @@ data class DbVersionDate(
     val isLatest:Boolean,
     val id:String
 )
+enum class DhisStatus {
+    ACTIVE,
+    COMPLETED,
+    OVERDUE
+}
 enum class PublishStatus {
     DRAFT,
     PUBLISHED,
@@ -226,13 +231,13 @@ data class DbResFileRes(
     val id:String?
 )
 data class DbDataEntryResponse(
-    val id: Long,
-    val selectedPeriod: String,
-    val status: String,
-    val dataEntryPersonId: String,
-    val dataEntryDate: String,
-    val createdAt: Any,
-    val responses: Any,
+    val id: Long?,
+    val selectedPeriod: String?,
+    val status: String?,
+    val dataEntryPersonId: String?,
+    val dataEntryDate: String?,
+    val createdAt: Any?,
+    val responses: Any?,
 )
 data class DbSurvey(
     val surveyName: String,
