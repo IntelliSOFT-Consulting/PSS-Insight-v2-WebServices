@@ -10,15 +10,18 @@ import com.intellisoft.internationalinstance.service_impl.service.InternationalS
 import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -285,12 +288,113 @@ public class InternationalServiceImpl implements InternationalService {
                 notification.setSender(savedVersionEntity.getPublishedBy());
                 notification.setMessage(message);
                 notificationService.createNotification(notification);
+
+                //Create pdf
+//                generatePdf(dbMetadataJsonData);
+
             }
 
 
         }catch (Exception e){
             e.printStackTrace();
         }
+
+    }
+
+    private void generatePdf(DbMetadataValue dbMetadataValue) {
+
+        try{
+
+            String version = dbMetadataValue.getVersion();
+            String versionDescription = dbMetadataValue.getVersionDescription();
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            Document document = new Document();
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+
+            // add title to the document
+            Font titleFont1 = new Font(Font.FontFamily.TIMES_ROMAN, 24, Font.BOLD);
+            Font titleFont2 = new Font(Font.FontFamily.TIMES_ROMAN, 20, Font.BOLD);
+            Font titleFont3 = new Font(Font.FontFamily.TIMES_ROMAN, 15, Font.BOLD);
+            Paragraph title1 = new Paragraph("Pharmaceutical Products and Services", titleFont1);
+            Paragraph title2 = new Paragraph("Version: "+ version, titleFont2);
+            Paragraph title3 = new Paragraph("Version Description: "+ versionDescription, titleFont3);
+
+            title1.setAlignment(Element.ALIGN_CENTER);
+            title2.setAlignment(Element.ALIGN_CENTER);
+            title3.setAlignment(Element.ALIGN_CENTER);
+
+            document.add(title1);
+            document.add(title2);
+            document.add(title3);
+            // add table to the document
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(20f);
+            table.setSpacingAfter(20f);
+
+            Font tableHeaderFont = new Font(Font.FontFamily.TIMES_ROMAN, 14, Font.BOLD);
+            Font tableCellFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL);
+
+            PdfPCell cell;
+
+
+            DbMetadataJsonData metadataJsonData = dbMetadataValue.getMetadata();
+
+            DbPublishedVersion publishedVersion = (DbPublishedVersion) metadataJsonData.getPublishedVersion();
+            if(publishedVersion != null){
+                List<DbIndicatorsData> dataList = publishedVersion.getDetails();
+                for (DbIndicatorsData dbIndicatorsData : dataList){
+                    String categoryName = (String) dbIndicatorsData.getCategoryName();
+                    cell = new PdfPCell(new Phrase(categoryName, tableHeaderFont));
+                    cell.setBorderColor(BaseColor.BLACK);
+                    cell.setColspan(2);
+                    cell.setPaddingLeft(10);
+                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                    cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                    table.addCell(cell);
+
+                    List<DbIndicatorValuesData> valuesDataList = dbIndicatorsData.getIndicators();
+                    for (DbIndicatorValuesData data: valuesDataList){
+                        String categoryId = (String) data.getCategoryId();
+                        String categoryNameCode = (String) data.getCategoryName();
+                        String indicatorName = (String) data.getIndicatorName();
+
+                        StringBuilder assessmentQuestion = new StringBuilder();
+                        List<DbIndicatorDataValuesData> dataValuesDataList = data.getIndicatorDataValue();
+                        for (DbIndicatorDataValuesData dbIndicatorDataValuesData: dataValuesDataList){
+                            String name = (String) dbIndicatorDataValuesData.getName();
+                            assessmentQuestion.append(name).append("\n");
+                        }
+
+                        cell = new PdfPCell(new Phrase("Indicator Name", tableHeaderFont));
+                        cell.setBorderColor(BaseColor.BLACK);
+                        cell.setPaddingLeft(10);
+                        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                        table.addCell(cell);
+
+                        cell = new PdfPCell(new Phrase(indicatorName, tableCellFont));
+                        cell.setBorderColor(BaseColor.BLACK);
+                        cell.setPaddingLeft(10);
+                        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                        table.addCell(cell);
+
+                    }
+                }
+
+            }
+
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
 
     }
 

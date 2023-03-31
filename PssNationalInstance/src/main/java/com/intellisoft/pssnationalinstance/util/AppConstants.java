@@ -6,7 +6,8 @@ public class AppConstants {
     public static final String INTERNATIONAL_BASE_URL="http://pssinternational.intellisoftkenya.com/api/";
     public static final String NATIONAL_BASE_URL="http://pssnational.intellisoftkenya.com/api/";
     public static final String NATIONAL_BASE_PROGRAMS="http://pssnational.intellisoftkenya.com/api/programs";
-    public static final String NATIONAL_BASE_ORG_UNIT="http://pssnational.intellisoftkenya.com/api/organisationUnits?page=";
+    public static final String NATIONAL_BASE_ORG_UNIT= NATIONAL_BASE_URL+"organisationUnits?page=";
+    public static final String NATIONAL_BASE_DOCUMENT= NATIONAL_BASE_URL+"documents";
 
     public static final String NATIONAL_PUBLISHED_VERSIONS = NATIONAL_BASE_URL+"dataStore/master_indicator_templates/";
     public static final String INTERNATIONAL_PUBLISHED_VERSIONS = INTERNATIONAL_BASE_URL+"dataStore/master_indicator_templates/";

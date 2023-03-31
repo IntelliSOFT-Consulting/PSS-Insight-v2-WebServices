@@ -355,3 +355,20 @@ data class DbOrganisationUnit(
     @JsonProperty("organisationUnits")
     val organisationUnits: List<DbProgramsValue>
 )
+data class DbDocuments(
+    val name:String,
+    val type:String,
+    val attachment: Boolean,
+    val external:Boolean,
+    val url:String
+)
+data class DbDocumentFile(
+    @JsonProperty("httpStatusCode")
+    val httpStatusCode:Any?,
+    @JsonProperty("response")
+    val response:DbFileResponse?
+)
+data class DbFileResponse(
+    @JsonProperty("uid")
+    val uid:String?
+)

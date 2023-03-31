@@ -92,6 +92,38 @@ data class DbMetadataJsonData(
     @JsonProperty("publishedVersion")
     var publishedVersion: Any?
 )
+data class DbPublishedVersion(
+    @JsonProperty("count")
+    var count: Any?,
+    @JsonProperty("details")
+    var details: List<DbIndicatorsData>,
+)
+data class DbIndicatorsData(
+    @JsonProperty("categoryName")
+    var categoryName: Any?,
+    @JsonProperty("indicators")
+    var indicators: List<DbIndicatorValuesData>,
+)
+data class DbIndicatorValuesData(
+    @JsonProperty("categoryId")
+    var categoryId: Any?,
+    @JsonProperty("categoryName")
+    var categoryName: Any?,
+    @JsonProperty("indicatorName")
+    var indicatorName: Any?,
+    @JsonProperty("indicatorDataValue")
+    var indicatorDataValue: List<DbIndicatorDataValuesData>,
+)
+data class DbIndicatorDataValuesData(
+    @JsonProperty("id")
+    var id: Any?,
+    @JsonProperty("code")
+    var code: Any?,
+    @JsonProperty("name")
+    var name: Any?,
+    @JsonProperty("valueType")
+    var valueType: Any?,
+)
 data class DbDataElements(
     @JsonProperty("code")
     val code: String?,
