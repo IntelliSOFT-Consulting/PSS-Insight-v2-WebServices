@@ -242,6 +242,7 @@ data class DbDataEntryResponse(
 data class DbSurvey(
     val surveyName: String,
     val surveyDescription: String,
+    val surveyLandingPage:String?,
     val isSaved: Boolean,
     val creatorId: String,
     val indicators : List<String>
@@ -257,6 +258,8 @@ data class DbSurveyDetails(
     val surveyId:String,
     val surveyName: String,
     val surveyStatus: String,
+    val surveyDescription: String?,
+    val landingPage: String?,
     val respondentList:List<DbRespondent>
 )
 data class DbRespondent(
@@ -278,6 +281,7 @@ data class DbRespondentsDetails(
     val status:String?,
     val surveyName:String?,
     val surveyDescription: String?,
+    val landingPage: String?,
     val referenceSheet:String?
 )
 data class DbResponse(
@@ -350,4 +354,21 @@ data class DbOrganisationUnit(
     val pager: Any?,
     @JsonProperty("organisationUnits")
     val organisationUnits: List<DbProgramsValue>
+)
+data class DbDocuments(
+    val name:String,
+    val type:String,
+    val attachment: Boolean,
+    val external:Boolean,
+    val url:String
+)
+data class DbDocumentFile(
+    @JsonProperty("httpStatusCode")
+    val httpStatusCode:Any?,
+    @JsonProperty("response")
+    val response:DbFileResponse?
+)
+data class DbFileResponse(
+    @JsonProperty("uid")
+    val uid:String?
 )

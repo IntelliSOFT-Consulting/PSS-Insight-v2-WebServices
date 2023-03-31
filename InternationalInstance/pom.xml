@@ -125,6 +125,11 @@
 <!--            <artifactId>spring-boot-starter-reactor-netty</artifactId>-->
 <!--        </dependency>-->
 
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.13</version>
+        </dependency>
 
     </dependencies>
 
