@@ -314,11 +314,93 @@ public class InternationalServiceImpl implements InternationalService {
 
     }
 
+    private DbPdfData getPdfData(DbMetadataValue dbMetadataValue){
+
+        String title = "PSS";
+        String versionName = dbMetadataValue.getVersion();
+        String versionDescription = dbMetadataValue.getVersionDescription();
+        DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
+
+        List<Map<String, String>> indicatorDescriptionsList = (List<Map<String, String>>) dbMetadataJsonData.getIndicatorDescriptions();
+
+        DbResults dbResults = (DbResults) dbMetadataJsonData.getPublishedVersion();
+        if (dbResults != null){
+
+            List<DbPdfSubTitle> dbPdfSubTitleList = new ArrayList<>();
+            List<DbIndicatorsValue> dbIndicatorsValueList = (List<DbIndicatorsValue>) dbResults.getDetails();
+            for (DbIndicatorsValue dbIndicatorsValue: dbIndicatorsValueList){
+                String subtitle = (String) dbIndicatorsValue.getCategoryName();
+
+                List<DbPdfValue> dbPdfValueList = new ArrayList<>();
+                List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
+                for (DbIndicatorDataValues dataValues: indicatorDataValuesList){
+                    String categoryName = (String) dataValues.getCategoryName();
+                    String indicatorName = (String) dataValues.getIndicatorName();
+
+                    if (indicatorName != null){
+                        DbPdfValue dbPdfValue = new DbPdfValue("indicatorName", indicatorName);
+                        dbPdfValueList.add(dbPdfValue);
+                    }
+
+                    List<String> questionList = new ArrayList<>();
+                    List<DbDataGrouping> dbDataGroupingList = dataValues.getIndicatorDataValue();
+                    for (DbDataGrouping dataGrouping: dbDataGroupingList){
+                        String name = dataGrouping.getName();
+                        questionList.add(name);
+                    }
+
+                    if (!questionList.isEmpty()){
+                        String assessmentQuestions = String.join("\n", questionList);
+                        DbPdfValue dbPdfValue = new DbPdfValue("assessmentQuestions", assessmentQuestions);
+                        dbPdfValueList.add(dbPdfValue);
+                    }
+
+
+                    if (categoryName != null){
+                        if (indicatorDescriptionsList != null){
+                            String definition = getDescriptionByCode(categoryName, indicatorDescriptionsList);
+                            if (definition != null){
+                                DbPdfValue dbPdfValue = new DbPdfValue("Definition", definition);
+                                dbPdfValueList.add(dbPdfValue);
+                            }
+                        }
+                        DbPdfValue dbPdfValue = new DbPdfValue("Pss Insight Indicator", categoryName);
+                        dbPdfValueList.add(dbPdfValue);
+                    }
+                    if (subtitle != null){
+                        DbPdfValue dbPdfValue = new DbPdfValue("Topic", subtitle);
+                        dbPdfValueList.add(dbPdfValue);
+                    }
+
+                }
+
+                if (subtitle != null){
+                    DbPdfSubTitle dbPdfSubTitle = new DbPdfSubTitle(
+                            subtitle,
+                            dbPdfValueList);
+                    dbPdfSubTitleList.add(dbPdfSubTitle);
+                }
+            }
+
+            DbPdfData dbPdfData = new DbPdfData(
+                    title,
+                    versionName,
+                    versionDescription,
+                    dbPdfSubTitleList
+            );
+            return dbPdfData;
+
+        }
+
+        return null;
+
+    }
+
     private void generatePdf(DbMetadataValue dbMetadataValue) {
 
         try{
 
-            DbPdfData dbPdfData = getPdfData(metadataValue);
+            DbPdfData dbPdfData = getPdfData(dbMetadataValue);
             if (dbPdfData != null){
                 File file = formatterClass.generatePdf(dbPdfData);
                 String id = createFileResource(file);
@@ -386,20 +468,17 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
 
-    public String getDescriptionByCode(String indicatorCode, List<DbIndicatorDescriptionData> dbIndicatorDescriptions) {
+    public String getDescriptionByCode(String indicatorCode, List<Map<String, String>> indicatorDescriptionsList) {
 
-        System.out.println("-------");
-        System.out.println(dbIndicatorDescriptions);
-        System.out.println("-------");
-
-        for (int i = 0; i < dbIndicatorDescriptions.size(); i++){
-            String code = dbIndicatorDescriptions.get(i).getIndicator_Code();
+        for (Map<String, String> indicatorDescription : indicatorDescriptionsList) {
+           String code = indicatorDescription.get("Indicator_Code");
             if (code != null){
                 if (code.equals(indicatorCode)) {
-                    return dbIndicatorDescriptions.get(i).getDescription();
+                    return indicatorDescription.get("Description");
                 }
             }
         }
+
         return null; // return null if no match is found
     }
 
