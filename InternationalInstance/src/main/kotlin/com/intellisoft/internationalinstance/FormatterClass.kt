@@ -1,12 +1,63 @@
 package com.intellisoft.internationalinstance
 
+
+import java.io.ByteArrayOutputStream
+import java.io.File
 import org.springframework.http.ResponseEntity
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
 
+import com.itextpdf.text.*
+import com.itextpdf.text.pdf.*
+
+import org.apache.http.HttpEntity
+import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.ContentType
+
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import java.io.FileOutputStream
+import java.io.IOException
+
 
 class FormatterClass {
+
+
+    fun generatePdf(dbPdfData: DbPdfData): File {
+        val file = File("output.pdf")
+        val document = Document(PageSize.A4)
+        val writer = PdfWriter.getInstance(document, FileOutputStream(file))
+        document.open()
+        document.addTitle(dbPdfData.title)
+        document.addHeader("Version", dbPdfData.version ?: "")
+        document.addHeader("Version Description", dbPdfData.versionDescription ?: "")
+
+        for (subTitle in dbPdfData.subTitleList) {
+            document.addSubtitle(subTitle.subTitle)
+            for (value in subTitle.valueList) {
+                document.addKeyValue(value.key, value.value)
+            }
+        }
+        document.close()
+        writer.close()
+        return file
+    }
+
+    private fun Document.addKeyValue(key: String, value: String) {
+        this.addParagraph("$key: $value")
+    }
+
+    private fun Document.addSubtitle(subTitle: String) {
+        this.addParagraph("\n$subTitle\n")
+    }
+
+    private fun Document.addParagraph(text: String) {
+        val paragraph = Paragraph(text)
+        this.add(paragraph)
+    }
+
     fun extractName(emailAddress: String): String{
         return emailAddress.substringBefore("@")
     }

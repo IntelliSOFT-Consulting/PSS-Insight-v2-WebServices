@@ -15,5 +15,7 @@ public interface NationalTemplateService {
     DbMetadataJson getPublishedMetadataJson();
     Results getOrgUnits(int pageNo);
 
+    int getCurrentVersion(String url);
+
 
 }

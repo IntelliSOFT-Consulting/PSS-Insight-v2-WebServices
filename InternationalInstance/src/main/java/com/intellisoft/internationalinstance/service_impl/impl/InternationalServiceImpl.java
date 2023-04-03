@@ -1,5 +1,6 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.NotificationEntity;
@@ -16,10 +17,22 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.*;
 import java.util.List;
 
@@ -290,7 +303,7 @@ public class InternationalServiceImpl implements InternationalService {
                 notificationService.createNotification(notification);
 
                 //Create pdf
-//                generatePdf(dbMetadataJsonData);
+                generatePdf(dbMetadataJsonData);
 
             }
 
@@ -305,87 +318,16 @@ public class InternationalServiceImpl implements InternationalService {
 
         try{
 
-            String version = dbMetadataValue.getVersion();
-            String versionDescription = dbMetadataValue.getVersionDescription();
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            Document document = new Document();
-            PdfWriter.getInstance(document, outputStream);
-            document.open();
-
-            // add title to the document
-            Font titleFont1 = new Font(Font.FontFamily.TIMES_ROMAN, 24, Font.BOLD);
-            Font titleFont2 = new Font(Font.FontFamily.TIMES_ROMAN, 20, Font.BOLD);
-            Font titleFont3 = new Font(Font.FontFamily.TIMES_ROMAN, 15, Font.BOLD);
-            Paragraph title1 = new Paragraph("Pharmaceutical Products and Services", titleFont1);
-            Paragraph title2 = new Paragraph("Version: "+ version, titleFont2);
-            Paragraph title3 = new Paragraph("Version Description: "+ versionDescription, titleFont3);
-
-            title1.setAlignment(Element.ALIGN_CENTER);
-            title2.setAlignment(Element.ALIGN_CENTER);
-            title3.setAlignment(Element.ALIGN_CENTER);
-
-            document.add(title1);
-            document.add(title2);
-            document.add(title3);
-            // add table to the document
-            PdfPTable table = new PdfPTable(2);
-            table.setWidthPercentage(100);
-            table.setSpacingBefore(20f);
-            table.setSpacingAfter(20f);
-
-            Font tableHeaderFont = new Font(Font.FontFamily.TIMES_ROMAN, 14, Font.BOLD);
-            Font tableCellFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL);
-
-            PdfPCell cell;
-
-
-            DbMetadataJsonData metadataJsonData = dbMetadataValue.getMetadata();
-
-            DbPublishedVersion publishedVersion = (DbPublishedVersion) metadataJsonData.getPublishedVersion();
-            if(publishedVersion != null){
-                List<DbIndicatorsData> dataList = publishedVersion.getDetails();
-                for (DbIndicatorsData dbIndicatorsData : dataList){
-                    String categoryName = (String) dbIndicatorsData.getCategoryName();
-                    cell = new PdfPCell(new Phrase(categoryName, tableHeaderFont));
-                    cell.setBorderColor(BaseColor.BLACK);
-                    cell.setColspan(2);
-                    cell.setPaddingLeft(10);
-                    cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                    cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                    table.addCell(cell);
-
-                    List<DbIndicatorValuesData> valuesDataList = dbIndicatorsData.getIndicators();
-                    for (DbIndicatorValuesData data: valuesDataList){
-                        String categoryId = (String) data.getCategoryId();
-                        String categoryNameCode = (String) data.getCategoryName();
-                        String indicatorName = (String) data.getIndicatorName();
-
-                        StringBuilder assessmentQuestion = new StringBuilder();
-                        List<DbIndicatorDataValuesData> dataValuesDataList = data.getIndicatorDataValue();
-                        for (DbIndicatorDataValuesData dbIndicatorDataValuesData: dataValuesDataList){
-                            String name = (String) dbIndicatorDataValuesData.getName();
-                            assessmentQuestion.append(name).append("\n");
-                        }
-
-                        cell = new PdfPCell(new Phrase("Indicator Name", tableHeaderFont));
-                        cell.setBorderColor(BaseColor.BLACK);
-                        cell.setPaddingLeft(10);
-                        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                        table.addCell(cell);
-
-                        cell = new PdfPCell(new Phrase(indicatorName, tableCellFont));
-                        cell.setBorderColor(BaseColor.BLACK);
-                        cell.setPaddingLeft(10);
-                        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                        table.addCell(cell);
-
-                    }
-                }
+            DbPdfData dbPdfData = getPdfData(metadataValue);
+            if (dbPdfData != null){
+                File file = formatterClass.generatePdf(dbPdfData);
+                String id = createFileResource(file);
+                System.out.println("&&&&&&&&&");
+                System.out.println(id);
+                System.out.println("&&&&&&&&&");
 
             }
+
 
 
 
@@ -396,6 +338,69 @@ public class InternationalServiceImpl implements InternationalService {
 
 
 
+    }
+
+    public String createFileResource(File file) {
+
+        try {
+
+            RestTemplate restTemplate = new RestTemplate();
+            String authHeader = "Basic " + Base64.getEncoder().encodeToString((
+                    "admin" + ":" + "district").getBytes());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.add("Authorization", authHeader);
+
+            // Create request body
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", new FileSystemResource(file));
+
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity =
+                    new HttpEntity<>(body, headers);
+
+            ResponseEntity<DbFileResources> responseEntity =
+                    restTemplate.postForEntity(
+                            AppConstants.FILES_RESOURCES_ENDPOINT,
+                            requestEntity, DbFileResources.class);
+            int code = responseEntity.getStatusCodeValue();
+            if (code == 202){
+                if (responseEntity.getBody() != null){
+                    if (responseEntity.getBody().getResponse() != null){
+                        if (responseEntity.getBody().getResponse().getFileResource() != null){
+                            String id = responseEntity.getBody().getResponse().getFileResource().getId();
+                            if (id != null){
+                                return id;
+                            }
+
+                        }
+                    }
+                }
+            }
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    public String getDescriptionByCode(String indicatorCode, List<DbIndicatorDescriptionData> dbIndicatorDescriptions) {
+
+        System.out.println("-------");
+        System.out.println(dbIndicatorDescriptions);
+        System.out.println("-------");
+
+        for (int i = 0; i < dbIndicatorDescriptions.size(); i++){
+            String code = dbIndicatorDescriptions.get(i).getIndicator_Code();
+            if (code != null){
+                if (code.equals(indicatorCode)) {
+                    return dbIndicatorDescriptions.get(i).getDescription();
+                }
+            }
+        }
+        return null; // return null if no match is found
     }
 
     private int getInternationalVersions() {

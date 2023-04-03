@@ -92,6 +92,7 @@ data class DbMetadataJsonData(
     @JsonProperty("publishedVersion")
     var publishedVersion: Any?
 )
+
 data class DbPublishedVersion(
     @JsonProperty("count")
     var count: Any?,
@@ -301,6 +302,10 @@ data class DbIndicatorDescription(
     @JsonProperty("Indicator_Code")
     val Indicator_Code: String?
 )
+data class DbIndicatorDescriptionData(
+    val Description: String?,
+    val Indicator_Code: String?
+)
 data class DbVersionDetails(
     val id: Long,
     val versionName: String?,
@@ -318,4 +323,34 @@ data class DbNotificationData(
     val createdAt:String,
     val title: String,
     val description:String
+)
+data class DbPdfData(
+    val title:String,
+    val version: String?,
+    val versionDescription: String?,
+    val subTitleList:List<DbPdfSubTitle>
+)
+data class DbPdfSubTitle(
+    val subTitle:String,
+    val valueList:List<DbPdfValue>
+)
+data class DbPdfValue(
+    val key:String,
+    val value:String
+)
+data class DbFileResources(
+    @JsonProperty("httpStatus")
+    val httpStatus:String,
+    @JsonProperty("httpStatusCode")
+    val httpStatusCode:String,
+    @JsonProperty("response")
+    val response:DbResponseFileResource?,
+)
+data class DbResponseFileResource(
+    @JsonProperty("fileResource")
+    val fileResource:DbResFileRes?
+)
+data class DbResFileRes(
+    @JsonProperty("id")
+    val id:String?
 )

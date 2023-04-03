@@ -329,4 +329,21 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return new Results(400, "There was an issue processing the request");
     }
 
+    @Override
+    public int getCurrentVersion(String url) {
+
+        try{
+            var response = GenericWebclient.getForSingleObjResponse(
+                    url,
+                    List.class);
+            if (!response.isEmpty()){
+                return formatterClass.getNextVersion(response);
+            }else {
+                return 1;
+            }
+        }catch (Exception e){
+            return 1;
+        }
+    }
+
 }

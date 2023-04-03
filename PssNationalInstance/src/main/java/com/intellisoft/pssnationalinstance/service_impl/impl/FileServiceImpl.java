@@ -53,10 +53,7 @@ public class FileServiceImpl implements FileService {
                         if (responseEntity.getBody().getResponse().getFileResource() != null){
                             String id = responseEntity.getBody().getResponse().getFileResource().getId();
                             if (id != null){
-                                String documentId = getDocumentDetails(id);
-                                if (documentId != null){
-                                    return new Results(200, new DbResFileRes(documentId));
-                                }
+                                return new Results(200, new DbResFileRes(id));
                             }
 
                         }
@@ -72,7 +69,8 @@ public class FileServiceImpl implements FileService {
         return new Results(400, "There was an issue with this request. Please try again.");
     }
 
-    private String getDocumentDetails(String fileId){
+    @Override
+    public String getDocumentDetails(String fileId){
 
         try{
             DbDocuments dbDocuments = new DbDocuments(
@@ -113,6 +111,8 @@ public class FileServiceImpl implements FileService {
 
         try{
 
+            String id = getDocumentDetails(documentId);
+
             RestTemplate restTemplate = new RestTemplate();
             String authHeader = "Basic " + Base64.getEncoder().encodeToString((
                     "admin" + ":" + "district").getBytes());
@@ -120,13 +120,13 @@ public class FileServiceImpl implements FileService {
             headers.add("Authorization", authHeader);
             HttpEntity<String> entity = new HttpEntity<>(null, headers);
             ResponseEntity<Resource> response = restTemplate.exchange(
-                    AppConstants.NATIONAL_BASE_DOCUMENT + "/" + documentId + "/data",
+                    AppConstants.NATIONAL_BASE_DOCUMENT + "/" + id + "/data",
                     HttpMethod.GET, entity, Resource.class);
 
 
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + documentId)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + id)
                     .contentLength(response.getBody().contentLength())
                     .contentType(MediaType.parseMediaType("application/octet-stream"))
                     .body(response.getBody());
