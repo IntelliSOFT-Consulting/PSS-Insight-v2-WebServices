@@ -316,7 +316,7 @@ public class InternationalServiceImpl implements InternationalService {
 
     private DbPdfData getPdfData(DbMetadataValue dbMetadataValue){
 
-        String title = "PSS";
+        String title = "Pharmaceutical Products and Services";
         String versionName = dbMetadataValue.getVersion();
         String versionDescription = dbMetadataValue.getVersionDescription();
         DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
@@ -341,6 +341,22 @@ public class InternationalServiceImpl implements InternationalService {
                         DbPdfValue dbPdfValue = new DbPdfValue("indicatorName", indicatorName);
                         dbPdfValueList.add(dbPdfValue);
                     }
+                    if (categoryName != null){
+                        DbPdfValue dbPdfValueIndicator = new DbPdfValue("Pss Insight Indicator", categoryName);
+                        dbPdfValueList.add(dbPdfValueIndicator);
+
+                        if (indicatorDescriptionsList != null){
+                            String definition = getDescriptionByCode(categoryName, indicatorDescriptionsList);
+                            if (definition != null){
+                                DbPdfValue dbPdfValue = new DbPdfValue("Definition", definition);
+                                dbPdfValueList.add(dbPdfValue);
+                            }
+                        }
+                    }
+                    if (subtitle != null){
+                        DbPdfValue dbPdfValue = new DbPdfValue("Topic", subtitle);
+                        dbPdfValueList.add(dbPdfValue);
+                    }
 
                     List<String> questionList = new ArrayList<>();
                     List<DbDataGrouping> dbDataGroupingList = dataValues.getIndicatorDataValue();
@@ -356,21 +372,8 @@ public class InternationalServiceImpl implements InternationalService {
                     }
 
 
-                    if (categoryName != null){
-                        if (indicatorDescriptionsList != null){
-                            String definition = getDescriptionByCode(categoryName, indicatorDescriptionsList);
-                            if (definition != null){
-                                DbPdfValue dbPdfValue = new DbPdfValue("Definition", definition);
-                                dbPdfValueList.add(dbPdfValue);
-                            }
-                        }
-                        DbPdfValue dbPdfValue = new DbPdfValue("Pss Insight Indicator", categoryName);
-                        dbPdfValueList.add(dbPdfValue);
-                    }
-                    if (subtitle != null){
-                        DbPdfValue dbPdfValue = new DbPdfValue("Topic", subtitle);
-                        dbPdfValueList.add(dbPdfValue);
-                    }
+
+
 
                 }
 
@@ -402,7 +405,7 @@ public class InternationalServiceImpl implements InternationalService {
 
             DbPdfData dbPdfData = getPdfData(dbMetadataValue);
             if (dbPdfData != null){
-                File file = formatterClass.generatePdf(dbPdfData);
+                File file = formatterClass.generatePdfFile(dbPdfData);
                 String id = createFileResource(file);
                 System.out.println("&&&&&&&&&");
                 System.out.println(id);
@@ -410,15 +413,9 @@ public class InternationalServiceImpl implements InternationalService {
 
             }
 
-
-
-
-
         }catch (Exception e){
             e.printStackTrace();
         }
-
-
 
     }
 

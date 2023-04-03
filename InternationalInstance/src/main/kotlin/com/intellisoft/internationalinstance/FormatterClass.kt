@@ -1,62 +1,92 @@
 package com.intellisoft.internationalinstance
 
 
-import java.io.ByteArrayOutputStream
-import java.io.File
+import com.itextpdf.text.*
+import com.itextpdf.text.pdf.PdfPCell
+import com.itextpdf.text.pdf.PdfPTable
+import com.itextpdf.text.pdf.PdfWriter
 import org.springframework.http.ResponseEntity
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
-
-import com.itextpdf.text.*
-import com.itextpdf.text.pdf.*
-
-import org.apache.http.HttpEntity
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.ContentType
-
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
-import java.io.FileOutputStream
-import java.io.IOException
 
 
 class FormatterClass {
 
 
-    fun generatePdf(dbPdfData: DbPdfData): File {
-        val file = File("output.pdf")
-        val document = Document(PageSize.A4)
-        val writer = PdfWriter.getInstance(document, FileOutputStream(file))
+    fun generatePdfFile(dbPdfData: DbPdfData):File {
+        val pdfFile = File("file.pdf")
+        val document = Document(PageSize.A4, 50f, 50f, 50f, 50f)
+        PdfWriter.getInstance(document, FileOutputStream(pdfFile))
         document.open()
-        document.addTitle(dbPdfData.title)
-        document.addHeader("Version", dbPdfData.version ?: "")
-        document.addHeader("Version Description", dbPdfData.versionDescription ?: "")
 
-        for (subTitle in dbPdfData.subTitleList) {
-            document.addSubtitle(subTitle.subTitle)
-            for (value in subTitle.valueList) {
-                document.addKeyValue(value.key, value.value)
+        // Add title
+
+        // Add title
+        val titleFont = Font(Font.FontFamily.HELVETICA, 36f, Font.BOLD, BaseColor.WHITE)
+        val titleTable = PdfPTable(1)
+        titleTable.widthPercentage = 100f
+        val titleCell = PdfPCell(Phrase(dbPdfData.title, titleFont))
+        titleCell.backgroundColor = BaseColor.RED
+        titleCell.horizontalAlignment = Element.ALIGN_CENTER
+        titleCell.verticalAlignment = Element.ALIGN_MIDDLE
+        titleCell.fixedHeight = 50f
+        titleTable.addCell(titleCell)
+        document.add(titleTable)
+
+        // Add version and description
+        val versionFont = Font(Font.FontFamily.HELVETICA, 12f, Font.NORMAL, BaseColor.BLACK)
+        val paragraph = Paragraph()
+        paragraph.add(Chunk("\n"))
+        paragraph.add(Chunk("Version:", versionFont))
+        paragraph.add(Chunk(dbPdfData.version, versionFont))
+        paragraph.add(Chunk("\n\n"))
+        paragraph.add(Chunk("Description", versionFont))
+        paragraph.add(Chunk(dbPdfData.versionDescription, versionFont))
+        paragraph.add(Chunk("\n"))
+        document.add(paragraph)
+
+        // Add subtitles and values
+        val subTitleFont = Font(Font.FontFamily.HELVETICA, 18f, Font.BOLD, BaseColor.BLACK)
+        val valueFont = Font(Font.FontFamily.HELVETICA, 12f, Font.NORMAL, BaseColor.BLACK)
+        val subTitleList = dbPdfData.subTitleList
+        for (subTitle in subTitleList){
+
+            // Add subtitle
+            val subTitleTable = PdfPTable(1)
+            subTitleTable.widthPercentage = 100f
+            subTitleTable.spacingBefore = 10f
+            subTitleTable.addCell(PdfPCell(Phrase(subTitle.subTitle, subTitleFont)))
+            document.add(subTitleTable)
+
+            // Add values
+            val valueTable = PdfPTable(2)
+            valueTable.widthPercentage = 100f
+            valueTable.spacingBefore = 10f
+
+            val valueList = subTitle.valueList
+            for (valueKey in valueList){
+                valueTable.addCell(createCell(valueKey.key, BaseColor.BLUE, valueFont))
+                valueTable.addCell(createCell(valueKey.value, BaseColor.WHITE, valueFont))
             }
+
+            document.add(valueTable)
         }
+
         document.close()
-        writer.close()
-        return file
+        return pdfFile
+    }
+    private fun createCell(text: String, backgroundColor: BaseColor, font: Font): PdfPCell? {
+        val cell = PdfPCell(Phrase(text, font))
+        cell.backgroundColor = backgroundColor
+        cell.border = Rectangle.BOX
+        cell.borderWidth = 1f
+        cell.setPadding(5f)
+        return cell
     }
 
-    private fun Document.addKeyValue(key: String, value: String) {
-        this.addParagraph("$key: $value")
-    }
-
-    private fun Document.addSubtitle(subTitle: String) {
-        this.addParagraph("\n$subTitle\n")
-    }
-
-    private fun Document.addParagraph(text: String) {
-        val paragraph = Paragraph(text)
-        this.add(paragraph)
-    }
 
     fun extractName(emailAddress: String): String{
         return emailAddress.substringBefore("@")
