@@ -1,12 +1,12 @@
 package com.intellisoft.internationalinstance.controller;
 
-import com.intellisoft.internationalinstance.DbVersionData;
-import com.intellisoft.internationalinstance.FormatterClass;
-import com.intellisoft.internationalinstance.Results;
+import com.intellisoft.internationalinstance.*;
+import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
 import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
 import com.intellisoft.internationalinstance.service_impl.service.VersionService;
 import com.itextpdf.text.*;
+
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -16,14 +16,17 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(value = "/api/v1/master-template")
@@ -153,70 +156,5 @@ public class MyController {
         Results results = versionService.deleteTemplate(versionId);
         return formatterClass.getResponse(results);
     }
-
-    @GetMapping("/create-pdf")
-    public ResponseEntity<byte[]> createPdf() throws Exception {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        Document document = new Document();
-        PdfWriter.getInstance(document, outputStream);
-        document.open();
-        // add title to the document
-        Font titleFont = new Font(Font.FontFamily.TIMES_ROMAN, 24, Font.BOLD);
-        Paragraph title = new Paragraph("Pharmaceutical Products and Services", titleFont);
-        title.setAlignment(Element.ALIGN_CENTER);
-        document.add(title);
-        // add table to the document
-        PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100);
-        table.setSpacingBefore(20f);
-        table.setSpacingAfter(20f);
-
-        Font tableHeaderFont = new Font(Font.FontFamily.TIMES_ROMAN, 14, Font.BOLD);
-        Font tableCellFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL);
-
-        PdfPCell cell;
-
-        for (int i = 0 ; i < 3; i++){
-
-            cell = new PdfPCell(new Phrase("Category Name", tableHeaderFont));
-            cell.setBorderColor(BaseColor.BLACK);
-            cell.setColspan(2);
-            cell.setPaddingLeft(10);
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            table.addCell(cell);
-
-            for (int j = 0; j < 2; j++){
-                cell = new PdfPCell(new Phrase("Indicator Name", tableHeaderFont));
-                cell.setBorderColor(BaseColor.BLACK);
-                cell.setPaddingLeft(10);
-                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                table.addCell(cell);
-
-                cell = new PdfPCell(new Phrase("Key "+i, tableCellFont));
-                cell.setBorderColor(BaseColor.BLACK);
-                cell.setPaddingLeft(10);
-                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                table.addCell(cell);
-            }
-
-
-
-        }
-
-
-
-        document.add(table);
-        document.close();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("inline", "example.pdf");
-
-        return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
-    }
-
 
 }

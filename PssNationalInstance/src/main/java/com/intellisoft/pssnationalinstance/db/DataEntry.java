@@ -24,6 +24,7 @@ public class DataEntry {
     private String status; // DRAFT / SUBMITTED
     private String dataEntryPersonId; //The person
     private String dataEntryDate; // The format is yyyymmdd
+    private String versionNumber; // Current version number
     @CreationTimestamp
     private Date createdAt;
     @UpdateTimestamp

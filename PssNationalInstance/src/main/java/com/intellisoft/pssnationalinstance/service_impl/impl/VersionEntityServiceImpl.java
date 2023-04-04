@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -211,6 +213,82 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         }
 
         return new Results(400, "Version not found.");
+    }
+
+    @Override
+    public Results getVersionDetails(String versionId) {
+
+        try{
+            DbPublishedVersion dbPublishedVersion;
+
+            Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
+            if (optionalVersionEntity.isPresent()){
+                VersionEntity versionEntity = optionalVersionEntity.get();
+                String versionNo = versionEntity.getVersionName();
+                if (versionNo != null){
+                    System.out.println("*****");
+                    System.out.println(versionNo);
+                    dbPublishedVersion = getThePreviousIndicators(versionNo);
+                }else {
+                    System.out.println("-----");
+                    dbPublishedVersion = getAvailableVersion();
+                }
+
+                DbVersionDataDetails dbVersionDataDetails = new DbVersionDataDetails(
+                        versionEntity.getId(),
+                        versionEntity.getVersionName(),
+                        versionEntity.getVersionDescription(),
+                        versionEntity.getStatus(),
+                        versionEntity.getCreatedBy(),
+                        versionEntity.getPublishedBy(),
+                        null);
+
+                List<String> indicators = versionEntity.getIndicators();
+
+                DbPublishedVersion publishedVersion = filterDbPublishedVersionByCategoryId(indicators, dbPublishedVersion);
+                dbVersionDataDetails.setIndicators(publishedVersion);
+                return new Results(200, dbVersionDataDetails);
+
+            }
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return new Results(400, "Resource not found.");
+    }
+    public static DbPublishedVersion filterDbPublishedVersionByCategoryId(List<String> categoryIds, DbPublishedVersion version) {
+        List<DbIndicators> filteredDetails = version.getDetails().stream()
+                .map(indicator -> {
+                    List<DbIndicatorValues> filteredIndicators = indicator.getIndicators().stream()
+                            .filter(indicatorValue -> indicatorValue != null
+                                    && categoryIds.contains(indicatorValue.getCategoryId().toString()))
+                            .collect(Collectors.toList());
+                    if (!filteredIndicators.isEmpty()) {
+                        return new DbIndicators(indicator.getCategoryName(), filteredIndicators);
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        return new DbPublishedVersion(filteredDetails.size(), filteredDetails);
+    }
+
+
+    private DbPublishedVersion getThePreviousIndicators(String versionNumber){
+        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
+        DbMetadataJson dbMetadataJson =
+                internationalTemplateService.getIndicators(publishedBaseUrl);
+
+        if (dbMetadataJson != null){
+            DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+            if (dbPrograms != null){
+                return dbPrograms.getPublishedVersion();
+            }
+        }
+        return null;
     }
 
 

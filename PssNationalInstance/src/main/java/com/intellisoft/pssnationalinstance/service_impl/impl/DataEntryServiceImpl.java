@@ -1,14 +1,14 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.DataEntry;
 import com.intellisoft.pssnationalinstance.db.DataEntryResponses;
 import com.intellisoft.pssnationalinstance.db.PeriodConfiguration;
 import com.intellisoft.pssnationalinstance.repository.DataEntryRepository;
 import com.intellisoft.pssnationalinstance.repository.DataEntryResponsesRepository;
-import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService;
-import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
-import com.intellisoft.pssnationalinstance.service_impl.service.PeriodConfigurationService;
+import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +35,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     private final DataEntryResponsesRepository dataEntryResponsesRepository;
     private final NationalTemplateService nationalTemplateService;
     private final PeriodConfigurationService periodConfigurationService;
+    private final InternationalTemplateService internationalTemplateService;
 
     @Override
     public Results addDataEntry(DbDataEntryData dbDataEntryData) {
@@ -50,12 +51,15 @@ public class DataEntryServiceImpl implements DataEntryService {
             status = PublishStatus.PUBLISHED.name();
         }
 
+        String versionNo = getCurrentVersion();
         DataEntry dataEntry = new DataEntry();
         dataEntry.setStatus(status);
         dataEntry.setSelectedPeriod(selectedPeriod);
         dataEntry.setDataEntryPersonId(dataEntryPersonId);
         dataEntry.setDataEntryDate(dateEntryDate);
+        dataEntry.setVersionNumber(versionNo);
         DataEntry dataEntryAdded = dataEntryRepository.save(dataEntry);
+
 
         List<DbDataEntryResponses> responsesList = dbDataEntryData.getResponses();
         for(DbDataEntryResponses dbDataEntryResponses: responsesList){
@@ -83,6 +87,12 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         return new Results(201, new DbDetails("Data submitted successfully."));
     }
+
+    private String getCurrentVersion(){
+        int versionNumber = nationalTemplateService
+                .getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS);
+        return String.valueOf(versionNumber);
+    }
     @Async
     public void saveEventData(DbDataEntryData dbDataEntryData){
 
@@ -96,9 +106,21 @@ public class DataEntryServiceImpl implements DataEntryService {
         for(DbDataEntryResponses dbDataEntryResponses: responsesList){
 
             String indicatorId = dbDataEntryResponses.getIndicator();
-            String response = dbDataEntryResponses.getResponse();
+            String dbResponse = dbDataEntryResponses.getResponse();
             String comment = dbDataEntryResponses.getComment();
             String attachment = dbDataEntryResponses.getAttachment();
+
+            String response = "";
+            if (dbResponse != null){
+                if (dbResponse.equals("Yes")){
+                    response = "true";
+                }else if (dbResponse.equals("No")){
+                    response = "false";
+                }else {
+                    response = dbResponse;
+                }
+            }
+
 
             //Get the saved national template, and check for the ids and get code and add comments and uploads
             DbMetadataJson dbMetadataJson = nationalTemplateService.getPublishedMetadataJson();
@@ -183,6 +205,13 @@ public class DataEntryServiceImpl implements DataEntryService {
                             dataEntryPersonId,
                             dbDataValuesList);
 
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String json = objectMapper.writeValueAsString(dataEntry);
+
+                    System.out.println("--------");
+                    System.out.println(json);
+                    System.out.println("--------");
+
                     var response = GenericWebclient.postForSingleObjResponse(
                             AppConstants.EVENTS_ENDPOINT,
                             dataEntry,
@@ -225,12 +254,44 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntry.getDataEntryPersonId(),
                     dataEntry.getDataEntryDate(),
                     dataEntry.getCreatedAt(),
-                    dataEntryResponseList);
+                    dataEntryResponseList, null);
+
+            String versionNumber = dataEntry.getVersionNumber();
+            if (versionNumber != null){
+
+                DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNumber);
+                if (dbPublishedVersion != null){
+                    dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                }
+
+            }else {
+                String versionNo = getCurrentVersion();
+                DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNo);
+                if (dbPublishedVersion != null){
+                    dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                }
+            }
+
+
             return new Results(200, dbDataEntryResponse);
         }
 
         return new Results(400, "Resource not found.");
     }
+    private DbPublishedVersion getThePreviousIndicators(String versionNumber){
+        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
+        DbMetadataJson dbMetadataJson =
+                internationalTemplateService.getIndicators(publishedBaseUrl);
+        if (dbMetadataJson != null){
+            DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+            if (dbPrograms != null){
+                return dbPrograms.getPublishedVersion();
+            }
+        }
+        return null;
+    }
+
+
 
     @Override
     public Results updateDataEntry(String id, DbDataEntryData dbDataEntryData) {
@@ -302,7 +363,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntry.getDataEntryPersonId(),
                     dataEntry.getDataEntryDate(),
                     dataEntry.getCreatedAt(),
-                    dataEntryResponseList);
+                    dataEntryResponseList, null);
             responseList.add(dbDataEntryResponse);
         }
 
@@ -314,6 +375,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         return new Results(200, dbResults);
     }
+
 
     private List<DataEntry> getPagedDataEntryData(
             int pageNo,

@@ -238,6 +238,7 @@ data class DbDataEntryResponse(
     val dataEntryDate: String?,
     val createdAt: Any?,
     val responses: Any?,
+    var indicators: Any? = null,
 )
 data class DbSurvey(
     val surveyName: String,
@@ -371,4 +372,13 @@ data class DbDocumentFile(
 data class DbFileResponse(
     @JsonProperty("uid")
     val uid:String?
+)
+data class DbVersionDataDetails(
+    val id:Long?,
+    val versionName: String?,
+    val versionDescription: String?,
+    val status: String?,
+    val createdBy: Any?,
+    val publishedBy: String?,
+    var indicators: Any?
 )

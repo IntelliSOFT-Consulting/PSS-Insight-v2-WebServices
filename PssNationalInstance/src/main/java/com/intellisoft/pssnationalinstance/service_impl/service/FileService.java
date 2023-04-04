@@ -9,4 +9,6 @@ public interface FileService {
 
     Results createFileResource(MultipartFile file);
     ResponseEntity<Resource> getDocument(String documentId);
+
+    String getDocumentDetails(String id);
 }
