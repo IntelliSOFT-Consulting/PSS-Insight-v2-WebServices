@@ -142,6 +142,12 @@ public class NationalTemplateController {
                 .updateVersion(id, dbVersionData);
         return formatterClass.getResponse(results);
     }
+    @GetMapping(value = "version-details/{id}")
+    public ResponseEntity<?> getVersionDetails(@PathVariable("id") String id) {
+        Results results = versionEntityService
+                .getVersionDetails(id);
+        return formatterClass.getResponse(results);
+    }
     @PostMapping("add-version")
     public ResponseEntity<?> addVersion(
             @RequestBody DbVersions dbVersions){
