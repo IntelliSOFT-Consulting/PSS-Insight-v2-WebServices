@@ -70,6 +70,13 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             emailResponse = "The following email addresses have an issue: " + emailErrors;
         }
 
+        Optional<Surveys> optionalSurveys = surveysRepo.findById(Long.valueOf(surveyId));
+        if (optionalSurveys.isPresent()){
+            Surveys surveys = optionalSurveys.get();
+            surveys.setStatus(SurveyStatus.SENT.name());
+            surveysRepo.save(surveys);
+        }
+
         return new Results(200, new DbDetails("Please wait as we send the mails." + emailResponse));
     }
 
@@ -204,6 +211,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
     @Override
     public Results getAssignedSurvey(String respondentId) {
+
+        System.out.println("----"+respondentId);
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(Long.valueOf(respondentId));
@@ -473,14 +482,17 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
             for (String indicator : indicatorList){
 
-                Optional<RespondentAnswers> optionalRespondentAnswers =
-                        respondentAnswersRepository.findById(Long.valueOf(indicator));
-                if (optionalRespondentAnswers.isPresent()){
-                    String status = optionalRespondentAnswers.get().getStatus();
-                    if (status.equals(SurveyRespondentStatus.VERIFIED.name())){
-                        indicatorList.remove(indicator);
-                    }
-                }
+                System.out.println("****");
+                System.out.println(indicator);
+
+//                Optional<RespondentAnswers> optionalRespondentAnswers =
+//                        respondentAnswersRepository.findById(Long.valueOf(indicator));
+//                if (optionalRespondentAnswers.isPresent()){
+//                    String status = optionalRespondentAnswers.get().getStatus();
+//                    if (status.equals(SurveyRespondentStatus.VERIFIED.name())){
+//                        indicatorList.remove(indicator);
+//                    }
+//                }
 
             }
 

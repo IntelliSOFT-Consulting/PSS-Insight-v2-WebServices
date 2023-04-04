@@ -51,6 +51,25 @@ public class SurveyController {
 
     }
 
+    @GetMapping(value = "/survey-details/{surveyId}")
+    public ResponseEntity<?> surveyDetails(
+            @PathVariable("surveyId") String surveyId
+    ){
+
+        Results results = surveysService
+                .getSurveyDetails(surveyId);
+        return formatterClass.getResponse(results);
+
+    }
+
+//    @PostMapping("/add")
+//    public ResponseEntity<?> confirmSurvey(
+//            @RequestBody DbSurvey dbSurvey){
+//        Results results = surveysService
+//                .confirmSurvey(dbSurvey);
+//        return formatterClass.getResponse(results);
+//    }
+
 //    @GetMapping(value = "/admin-respondents/{creatorId}")
 //    public ResponseEntity<?> listSurvey(
 //            @PathVariable("creatorId") String creatorId,

@@ -32,8 +32,8 @@ public class SurveysServiceImpl implements SurveysService {
         List<String> indicatorList = dbSurvey.getIndicators();
 
         String status = SurveyStatus.SAVED.name();
-        if (isSaved)
-            status = SurveyStatus.SENT.name();
+//        if (isSaved)
+//            status = SurveyStatus.SENT.name();
 
 
         Surveys surveys = new Surveys();
@@ -117,5 +117,20 @@ public class SurveysServiceImpl implements SurveysService {
         }
 
         return Collections.emptyList();
+    }
+
+    @Override
+    public Results getSurveyDetails(String surveyId) {
+
+        Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
+        if (optionalSurvey.isPresent()){
+            Surveys surveys = optionalSurvey.get();
+
+
+
+        }
+
+
+        return null;
     }
 }

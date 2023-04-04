@@ -226,11 +226,8 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                 VersionEntity versionEntity = optionalVersionEntity.get();
                 String versionNo = versionEntity.getVersionName();
                 if (versionNo != null){
-                    System.out.println("*****");
-                    System.out.println(versionNo);
                     dbPublishedVersion = getThePreviousIndicators(versionNo);
                 }else {
-                    System.out.println("-----");
                     dbPublishedVersion = getAvailableVersion();
                 }
 
