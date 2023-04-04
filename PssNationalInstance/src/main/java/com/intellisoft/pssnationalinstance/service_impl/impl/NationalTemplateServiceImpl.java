@@ -47,6 +47,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
     }
 
+
     public DbPublishedVersion getThePreviousIndicators(String versionNumber){
         String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS + versionNumber;
         DbMetadataJson dbMetadataJson =
@@ -345,5 +346,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             return 1;
         }
     }
+
 
 }

@@ -238,6 +238,7 @@ data class DbDataEntryResponse(
     val dataEntryDate: String?,
     val createdAt: Any?,
     val responses: Any?,
+    var indicators: Any? = null,
 )
 data class DbSurvey(
     val surveyName: String,
