@@ -53,7 +53,9 @@ public class FileServiceImpl implements FileService {
                         if (responseEntity.getBody().getResponse().getFileResource() != null){
                             String id = responseEntity.getBody().getResponse().getFileResource().getId();
                             if (id != null){
-                                return new Results(200, new DbResFileRes(id));
+                                String documentId = getDocumentDetails(id);
+                                String documentUrl = AppConstants.DOCUMENT_RESOURCES_ENDPOINT + documentId + "/data";
+                                return new Results(200, new DbResFileRes(documentUrl));
                             }
 
                         }
