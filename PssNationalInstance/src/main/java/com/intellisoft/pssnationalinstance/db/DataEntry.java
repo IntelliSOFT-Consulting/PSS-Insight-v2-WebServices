@@ -20,6 +20,7 @@ public class DataEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String orgUnit;
     private String selectedPeriod;
     private String status; // DRAFT / SUBMITTED
     private String dataEntryPersonId; //The person

@@ -58,6 +58,7 @@ public class DataEntryServiceImpl implements DataEntryService {
         dataEntry.setDataEntryPersonId(dataEntryPersonId);
         dataEntry.setDataEntryDate(dateEntryDate);
         dataEntry.setVersionNumber(versionNo);
+        dataEntry.setOrgUnit(orgUnit);
         DataEntry dataEntryAdded = dataEntryRepository.save(dataEntry);
 
 
@@ -156,7 +157,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                                         DbDataValues dbDataValues = new DbDataValues(
                                                 uploadId, attachment
                                         );
-                                        dbDataValuesList.add(dbDataValues);
+//                                        dbDataValuesList.add(dbDataValues);
                                     }
 
 
@@ -341,6 +342,46 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntryResponsesList.add(dataEntryResponsesDb);
                 }
                 dataEntryResponsesRepository.saveAll(dataEntryResponsesList);
+
+            }
+
+            if (isPublished){
+
+                Long dataEntryId = dataEntry.getId();
+                Optional<DataEntry> dataEntryOptional = dataEntryRepository.findById(dataEntryId);
+
+                if (dataEntryOptional.isPresent()){
+
+                    DataEntry dataEntry1 = dataEntryOptional.get();
+                    List<DataEntryResponses> dataEntryResponseList =
+                            dataEntryResponsesRepository.findByDataEntry(dataEntry);
+
+                    List<DbDataEntryResponses> dataEntryResponsesList =  new ArrayList<>();
+                    for (DataEntryResponses dataEntryResponses: dataEntryResponseList){
+                        String indicator = dataEntryResponses.getIndicator();
+                        String response = dataEntryResponses.getResponse();
+                        String comment = dataEntryResponses.getComment();
+                        String attachment = dataEntryResponses.getAttachment();
+                        DbDataEntryResponses dbDataEntryResponses = new DbDataEntryResponses(
+                                indicator,
+                                response,
+                                comment,
+                                attachment
+                        );
+                        dataEntryResponsesList.add(dbDataEntryResponses);
+                    }
+
+                    DbDataEntryData dbDataEntryResponse = new DbDataEntryData(
+                            dataEntry1.getOrgUnit(),
+                            dataEntry1.getSelectedPeriod(),
+                            true,
+                            dataEntry1.getDataEntryPersonId(),
+                            dataEntry1.getDataEntryDate(),
+                            dataEntryResponsesList);
+                    saveEventData(dbDataEntryResponse);
+
+                }
+
 
             }
 
