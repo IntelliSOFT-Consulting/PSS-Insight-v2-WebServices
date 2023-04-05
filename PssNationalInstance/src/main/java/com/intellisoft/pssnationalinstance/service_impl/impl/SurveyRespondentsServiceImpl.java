@@ -222,7 +222,6 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     @Override
     public Results getAssignedSurvey(String respondentId) {
 
-        System.out.println("----"+respondentId);
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(Long.valueOf(respondentId));
@@ -379,25 +378,21 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     public Results resendSurvey(
             String respondentId, DbResendSurvey dbResendSurvey) {
 
+        // Works for resending expired / resending
+
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(Long.valueOf(respondentId));
         if (optionalSurveyRespondents.isPresent()){
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             String surveyId = surveyRespondents.getSurveyId();
 
-
-
             String emailAddress = surveyRespondents.getEmailAddress();
-            String loginUrl = surveyRespondents.getCustomUrl();
+            String customAppUrl = surveyRespondents.getCustomUrl();
             String password = surveyRespondents.getPassword();
+            String loginUrl = customAppUrl + "?id="+respondentId;
+
 
             String expiryDateTime = dbResendSurvey.getExpiryDateTime();
-
-            List<DbSurveyRespondentData> dbSurveyRespondentDataList = new ArrayList<>();
-            DbSurveyRespondentData dbSurveyRespondentData = new DbSurveyRespondentData(
-                    emailAddress, expiryDateTime, loginUrl, password);
-            dbSurveyRespondentDataList.add(dbSurveyRespondentData);
-
             boolean isDateValid = formatterClass.isDateFormatValid(expiryDateTime);
             if (!isDateValid){
                 return new Results(400, "Change the date to yyyy-MM-dd HH:mm:ss.");
@@ -405,8 +400,30 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
             boolean isExpired = formatterClass.isPastToday(expiryDateTime);
             if (isExpired){
-                return new Results(400, "This link is expired.");
+                return new Results(400, "This date is expired.");
             }
+
+
+            List<String> indicatorList = dbResendSurvey.getIndicators();
+            String comments = dbResendSurvey.getComments();
+
+            if (!indicatorList.isEmpty()){
+
+                //Remove these responses
+                for(String indicator: indicatorList){
+                    Optional<RespondentAnswers> optionalRespondentAnswers =
+                            respondentAnswersRepository.findByIndicatorIdAndRespondentId(indicator, respondentId);
+                    if (optionalRespondentAnswers.isPresent()){
+                        RespondentAnswers respondentAnswers = optionalRespondentAnswers.get();
+                        respondentAnswersRepository.deleteById(respondentAnswers.getId());
+                    }
+                }
+            }
+
+            List<DbSurveyRespondentData> dbSurveyRespondentDataList = new ArrayList<>();
+            DbSurveyRespondentData dbSurveyRespondentData = new DbSurveyRespondentData(
+                    emailAddress, expiryDateTime, loginUrl, password);
+            dbSurveyRespondentDataList.add(dbSurveyRespondentData);
 
             DbRespondents dbRespondents = new DbRespondents(dbSurveyRespondentDataList);
             sendBackgroundEmail(dbRespondents, MailStatus.RESEND.name());
@@ -471,6 +488,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             surveyRespondents.setRespondentsStatus(SurveyRespondentStatus.RESEND_REQUEST.name());
             respondentsRepo.save(surveyRespondents);
+
 
             return new Results(200, new DbDetails("Request has been sent."));
         }

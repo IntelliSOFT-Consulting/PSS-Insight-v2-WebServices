@@ -324,6 +324,7 @@ data class DbResponseDetails(
     var respondentDetails: Any? = null
 )
 data class DbResendSurvey(
+    val comments: String?,
     val indicators : List<String>,
     val expiryDateTime: String
 )
@@ -348,6 +349,7 @@ data class DbDataEntryResponses(
     val attachment: String?
 )
 data class DbRequestLink(
+    @JsonProperty("comment")
     val comment: String
 )
 data class DbRespondents(
