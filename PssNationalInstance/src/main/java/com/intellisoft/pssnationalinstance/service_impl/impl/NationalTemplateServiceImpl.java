@@ -247,6 +247,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             //Save the new Version
 
+
             var response = GenericWebclient.postForSingleObjResponse(
                     nationalPublishedUrl + (nationalLatestVersion + 1),
                     dbMetadataJson,
@@ -254,11 +255,12 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     DbPublishVersionResponse.class);
 
             if (response.getHttpStatusCode() == 201) {
-                Optional<VersionEntity> optionalVersionEntity =
-                        versionEntityRepository.findById(Long.valueOf(versionId));
+                Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
                 if (optionalVersionEntity.isPresent()){
+                    String versionNo = String.valueOf(nationalLatestVersion + 1);
+
                     VersionEntity versionEntity = optionalVersionEntity.get();
-                    versionEntity.setVersionName(versionNumberLatest);
+                    versionEntity.setVersionName(versionNo);
                     versionEntityRepository.save(versionEntity);
                 }
 
