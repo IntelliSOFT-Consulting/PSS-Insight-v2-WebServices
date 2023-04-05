@@ -119,6 +119,25 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         return null;
 
     }
+    public DbMetadataJsonNational getPublishedDataNational(String url) {
+
+        try {
+            //Get latest international version
+            int publishedVersionNo = getVersions(url);
+
+            //Get the dataStore values from the international
+            DbMetadataJsonNational dbMetadataJson = GenericWebclient.getForSingleObjResponse(
+                    url+publishedVersionNo, DbMetadataJsonNational.class);
+
+            if (dbMetadataJson.getMetadata() != null){
+                return dbMetadataJson;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+
+    }
 
     public DbMetadataJson getIndicators(String url) {
 

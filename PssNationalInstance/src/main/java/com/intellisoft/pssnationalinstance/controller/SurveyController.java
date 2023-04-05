@@ -53,11 +53,18 @@ public class SurveyController {
 
     @GetMapping(value = "/survey-details/{surveyId}")
     public ResponseEntity<?> surveyDetails(
-            @PathVariable("surveyId") String surveyId
+            @PathVariable("surveyId") String surveyId,
+            @RequestParam(value = "isRespondents", required = false) String respondents
+
     ){
+        boolean isRespondents = false;
+        if (respondents != null && !respondents.equals("") && !respondents.equals("false")){
+            isRespondents = true;
+        }
+
 
         Results results = surveysService
-                .getSurveyDetails(surveyId);
+                .getSurveyDetails(surveyId,isRespondents);
         return formatterClass.getResponse(results);
 
     }

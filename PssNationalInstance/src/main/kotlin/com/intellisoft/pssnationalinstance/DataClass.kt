@@ -11,10 +11,19 @@ data class DbResults(
 
 data class DbDetails(val details: Any?)
 
+data class DbMetadataJsonNational(
+    @JsonProperty("metadata")
+    var metadata: DbProgramsDataDetails?
+)
+data class DbProgramsDataDetails(
+    @JsonProperty("indicatorDescriptions")
+    val indicatorDescriptions: List<DbIndicatorDescriptionData>
+)
+
 
 data class DbMetadataJson(
     @JsonProperty("version")
-    val version: String?,
+    var version: String?,
     @JsonProperty("versionDescription")
     val versionDescription: String?,
     @JsonProperty("metadata")
@@ -42,10 +51,12 @@ data class DbPrograms(
     @JsonProperty("groups")
     val groups: DbGroups?,
     @JsonProperty("indicatorDescriptions")
-    val indicatorDescriptions: List<DbIndicatorDescription>,
+    val indicatorDescriptions: Any?,
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
 )
+
+
 data class DbGroups(
     @JsonProperty("pager")
     val pager:Any?,
@@ -101,11 +112,22 @@ data class DbIndicatorDataValues(
     var valueType: Any?,
 )
 data class DbIndicatorDescription(
+    @JsonProperty("Description")
+    val Description: String?,
+    @JsonProperty("Indicator_Code")
+    val Indicator_Code: String?
+)
+data class DbIndicatorDescriptionInt(
+    val Description: String?,
+    val Indicator_Code: String?
+)
+data class DbIndicatorDescriptionData(
     @JsonProperty("description")
     val description: String?,
     @JsonProperty("indicator_Code")
     val indicator_Code: String?
 )
+
 data class DbIndicatorDataResponses(
     var id: Any?,
     var code: Any?,
@@ -381,4 +403,24 @@ data class DbVersionDataDetails(
     val createdBy: Any?,
     val publishedBy: String?,
     var indicators: Any?
+)
+data class DbSurveyData(
+    val id:Long?,
+    val name: String?,
+    val description: String?,
+    val landingPage: String?,
+    val status: String?,
+    val createdBy: Any?,
+    val createdAt: Any?,
+    var indicators: Any?,
+    var respondents: Any?
+)
+data class DbSurveyRespondentDataDerails(
+    val id:Long,
+    val emailAddress: String,
+    val expiryDateTime: String,
+    val surveyId: String,
+    val customUrl: String,
+    val status: String?
+
 )

@@ -58,6 +58,7 @@ public class DataEntryServiceImpl implements DataEntryService {
         dataEntry.setDataEntryPersonId(dataEntryPersonId);
         dataEntry.setDataEntryDate(dateEntryDate);
         dataEntry.setVersionNumber(versionNo);
+        dataEntry.setOrgUnit(orgUnit);
         DataEntry dataEntryAdded = dataEntryRepository.save(dataEntry);
 
 
@@ -156,7 +157,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                                         DbDataValues dbDataValues = new DbDataValues(
                                                 uploadId, attachment
                                         );
-                                        dbDataValuesList.add(dbDataValues);
+//                                        dbDataValuesList.add(dbDataValues);
                                     }
 
 
@@ -302,7 +303,7 @@ public class DataEntryServiceImpl implements DataEntryService {
             DataEntry dataEntry = optionalDataEntry.get();
             String status = dataEntry.getStatus();
             if (status.equals(PublishStatus.PUBLISHED.name())){
-                return new Results(400, new DbDetails("This has already been pushed"));
+                return new Results(400, "This has already been pushed and cannot be updated.");
             }
 
             String selectedPeriod = dbDataEntryData.getSelectedPeriod();
@@ -315,10 +316,75 @@ public class DataEntryServiceImpl implements DataEntryService {
             }
 
             dataEntry.setStatus(status);
-            dataEntry.setSelectedPeriod(selectedPeriod);
-            dataEntry.setDataEntryDate(dateEntryDate);
+
+            if (selectedPeriod != null) dataEntry.setSelectedPeriod(selectedPeriod);
+            if (dateEntryDate != null) dataEntry.setDataEntryDate(dateEntryDate);
             dataEntry.setStatus(statusValue);
             DataEntry dataEntryAdded = dataEntryRepository.save(dataEntry);
+
+            List<DbDataEntryResponses> responsesList = dbDataEntryData.getResponses();
+            for (DbDataEntryResponses dataEntryResponses: responsesList){
+                String indicator = dataEntryResponses.getIndicator();
+                String response = dataEntryResponses.getResponse();
+                String comment = dataEntryResponses.getComment();
+                String attachment = dataEntryResponses.getAttachment();
+
+                List<DataEntryResponses> dataEntryResponsesList = new ArrayList<>();
+                Optional<DataEntryResponses> optionalDataEntryResponses =
+                        dataEntryResponsesRepository.findByIndicatorAndDataEntry(indicator, dataEntryAdded);
+                if (optionalDataEntryResponses.isPresent()){
+                    DataEntryResponses dataEntryResponsesDb = optionalDataEntryResponses.get();
+
+                    if (response != null) dataEntryResponsesDb.setResponse(response);
+                    if (comment != null) dataEntryResponsesDb.setComment(comment);
+                    if (attachment != null) dataEntryResponsesDb.setAttachment(response);
+
+                    dataEntryResponsesList.add(dataEntryResponsesDb);
+                }
+                dataEntryResponsesRepository.saveAll(dataEntryResponsesList);
+
+            }
+
+            if (isPublished){
+
+                Long dataEntryId = dataEntry.getId();
+                Optional<DataEntry> dataEntryOptional = dataEntryRepository.findById(dataEntryId);
+
+                if (dataEntryOptional.isPresent()){
+
+                    DataEntry dataEntry1 = dataEntryOptional.get();
+                    List<DataEntryResponses> dataEntryResponseList =
+                            dataEntryResponsesRepository.findByDataEntry(dataEntry);
+
+                    List<DbDataEntryResponses> dataEntryResponsesList =  new ArrayList<>();
+                    for (DataEntryResponses dataEntryResponses: dataEntryResponseList){
+                        String indicator = dataEntryResponses.getIndicator();
+                        String response = dataEntryResponses.getResponse();
+                        String comment = dataEntryResponses.getComment();
+                        String attachment = dataEntryResponses.getAttachment();
+                        DbDataEntryResponses dbDataEntryResponses = new DbDataEntryResponses(
+                                indicator,
+                                response,
+                                comment,
+                                attachment
+                        );
+                        dataEntryResponsesList.add(dbDataEntryResponses);
+                    }
+
+                    DbDataEntryData dbDataEntryResponse = new DbDataEntryData(
+                            dataEntry1.getOrgUnit(),
+                            dataEntry1.getSelectedPeriod(),
+                            true,
+                            dataEntry1.getDataEntryPersonId(),
+                            dataEntry1.getDataEntryDate(),
+                            dataEntryResponsesList);
+                    saveEventData(dbDataEntryResponse);
+
+                }
+
+
+            }
+
 
             return new Results(200, dataEntryAdded);
 

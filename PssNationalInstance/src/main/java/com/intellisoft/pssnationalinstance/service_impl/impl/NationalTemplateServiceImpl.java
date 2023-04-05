@@ -1,5 +1,9 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
@@ -11,9 +15,11 @@ import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -79,14 +85,13 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         String description = "Indicator Description";
         try{
             String publishedBaseUrlNational = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
-            DbMetadataJson dbMetadataJsonNational = getMetadata(publishedBaseUrlNational);
+            DbMetadataJsonNational dbMetadataJsonNational = getMetadataNational(publishedBaseUrlNational);
 
             if (dbMetadataJsonNational != null){
-                DbPrograms dbPrograms = dbMetadataJsonNational.getMetadata();
+                DbProgramsDataDetails dbPrograms = dbMetadataJsonNational.getMetadata();
                 if (dbPrograms != null){
-                    List<DbIndicatorDescription> indicatorDescriptionNational =
-                            dbPrograms.getIndicatorDescriptions();
-                    description = getIndicatorDescription(pssCode, indicatorDescriptionNational);
+                    List<DbIndicatorDescriptionData> dbIndicatorDescriptionList = dbPrograms.getIndicatorDescriptions();
+                    description = getIndicatorDescriptionNational(pssCode, dbIndicatorDescriptionList);
                 }
 
             }else {
@@ -96,8 +101,8 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 if (dbMetadataJsonInternational != null){
                     DbPrograms dbPrograms = dbMetadataJsonInternational.getMetadata();
                     if (dbPrograms != null){
-                        List<DbIndicatorDescription> indicatorDescriptionNational = dbPrograms.getIndicatorDescriptions();
-                        description = getIndicatorDescription(pssCode, indicatorDescriptionNational);
+                        List<DbIndicatorDescriptionInt> indicatorDescriptionNational = (List<DbIndicatorDescriptionInt>) dbPrograms.getIndicatorDescriptions();
+                        description = getIndicatorDescriptionInterNational(pssCode, indicatorDescriptionNational);
                     }
                 }
             }
@@ -109,12 +114,24 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
         return new Results(200, new DbDetails(description));
     }
-    private String getIndicatorDescription(String code,
-                                           List<DbIndicatorDescription> dbIndicatorDescriptionList){
+    private String getIndicatorDescriptionNational(String code,
+                                           List<DbIndicatorDescriptionData> dbIndicatorDescriptionList){
 
         String description = "";
-        for (DbIndicatorDescription indicatorDescription : dbIndicatorDescriptionList){
-            if (indicatorDescription.getIndicator_Code().equals(code)){
+        for (DbIndicatorDescriptionData indicatorDescription : dbIndicatorDescriptionList){
+            if (code.equals(indicatorDescription.getIndicator_Code())){
+                description = indicatorDescription.getDescription();
+                break;
+            }
+        }
+        return description;
+    }
+    private String getIndicatorDescriptionInterNational(String code,
+                                           List<DbIndicatorDescriptionInt> dbIndicatorDescriptionList){
+
+        String description = "";
+        for (DbIndicatorDescriptionInt indicatorDescription : dbIndicatorDescriptionList){
+            if (code.equals(indicatorDescription.getIndicator_Code())){
                 description = indicatorDescription.getDescription();
                 break;
             }
@@ -124,6 +141,9 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
     private DbMetadataJson getMetadata(String url) {
         return internationalTemplateService.getPublishedData(url);
+    }
+    private DbMetadataJsonNational getMetadataNational(String url) {
+        return internationalTemplateService.getPublishedDataNational(url);
     }
 
     @Async
@@ -185,6 +205,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
              */
             String internationalPublishedUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
             DbMetadataJson dbMetadataJson = getMetadata(internationalPublishedUrl);
+            String versionNo = String.valueOf(nationalLatestVersion + 1);
 
             if (dbMetadataJson != null){
 
@@ -243,22 +264,23 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 assert dbPrograms != null;
                 dbPrograms.setPublishedVersion(dbPublishedVersion);
                 dbMetadataJson.setMetadata(dbPrograms);
+
+                dbMetadataJson.setVersion(versionNo);
+
             }
 
-            //Save the new Version
-
             var response = GenericWebclient.postForSingleObjResponse(
-                    nationalPublishedUrl + (nationalLatestVersion + 1),
+                    nationalPublishedUrl + versionNo,
                     dbMetadataJson,
                     DbMetadataJson.class,
                     DbPublishVersionResponse.class);
 
             if (response.getHttpStatusCode() == 201) {
-                Optional<VersionEntity> optionalVersionEntity =
-                        versionEntityRepository.findById(Long.valueOf(versionId));
+                Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
                 if (optionalVersionEntity.isPresent()){
+
                     VersionEntity versionEntity = optionalVersionEntity.get();
-                    versionEntity.setVersionName(versionNumberLatest);
+                    versionEntity.setVersionName(versionNo);
                     versionEntityRepository.save(versionEntity);
                 }
 
