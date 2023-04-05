@@ -182,8 +182,16 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     }
 
     @Override
-    public Results deleteRespondent(String id) {
-        return null;
+    public Results deleteRespondent(String respondentId) {
+
+        Optional<SurveyRespondents> optionalSurveyRespondents =
+                respondentsRepo.findById(Long.valueOf(respondentId));
+        if (optionalSurveyRespondents.isPresent()){
+            respondentsRepo.deleteById(Long.valueOf(respondentId));
+            return new Results(200, new DbDetails("Resource has been deleted successfully."));
+        }
+
+        return new Results(400, "Resource not found.");
     }
 
     @Override
@@ -241,6 +249,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
     @Override
     public Results saveResponse(DbResponse dbResponse) {
+
         List<RespondentAnswers> respondentAnswersList = new ArrayList<>();
         String respondentId = dbResponse.getRespondentId();
         boolean isSubmit = Boolean.TRUE.equals(dbResponse.isSubmit());

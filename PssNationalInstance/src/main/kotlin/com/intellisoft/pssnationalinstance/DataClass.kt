@@ -290,7 +290,7 @@ data class DbRespondent(
     val emailAddress: String,
     val createdAt: String,
 
-    var dateExpired: String?,
+    var expiryDate: String?,
     var newLinkRequested: Boolean?
 )
 data class DbVerifySurvey(

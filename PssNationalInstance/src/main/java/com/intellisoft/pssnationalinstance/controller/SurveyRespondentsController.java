@@ -43,25 +43,6 @@ public class SurveyRespondentsController {
         return formatterClass.getResponse(results);
     }
 
-
-    @GetMapping(value = "/{surveyId}")
-    public ResponseEntity<?> listSurveyRespondent(
-            @PathVariable("surveyId") String surveyId,
-            @RequestParam(value = "status") String status
-            ){
-        Results results = surveyRespondentsService
-                .listSurveyRespondent(surveyId,status);
-        return formatterClass.getResponse(results);
-
-    }
-
-    @DeleteMapping(value = "/survey/{surveyId}")
-    public ResponseEntity<?> deleteSurveyRespondent(
-            @PathVariable("surveyId") String surveyId) {
-        Results results = surveyRespondentsService
-                .deleteSurveyRespondent(surveyId);
-        return formatterClass.getResponse(results);
-    }
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<?> deleteRespondent(
             @PathVariable("id") String id) {
@@ -78,14 +59,6 @@ public class SurveyRespondentsController {
         return formatterClass.getResponse(results);
     }
 
-    @GetMapping(value = "/questions/{respondentId}")
-    public ResponseEntity<?> getAssignedSurvey(
-            @PathVariable("respondentId") String respondentId){
-        Results results = surveyRespondentsService
-                .getAssignedSurvey(respondentId);
-        return formatterClass.getResponse(results);
-
-    }
     @PostMapping("/response/save")
     public ResponseEntity<?> saveResponse(
             @RequestBody DbResponse dbResponse){

@@ -78,23 +78,32 @@ public class SurveysServiceImpl implements SurveysService {
                 String respId = String.valueOf(surveyRespondents.getId());
                 String emailAddress = surveyRespondents.getEmailAddress();
                 String date = String.valueOf(surveyRespondents.getCreatedAt());
+                String expiryDate = surveyRespondents.getExpiryTime();
 
-                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
-                        null, null);
 
                 if (status.equals(SurveySubmissionStatus.EXPIRED.name())){
-                    String expiryDate = surveyRespondents.getExpiryTime();
+
                     String respondentStatus = surveyRespondents.getRespondentsStatus();
+
                     boolean isExpired = formatterClass.isPastToday(expiryDate);
                     if (isExpired){
+                        DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
+                                null, null);
                         //Link has expired
-                        dbRespondent.setDateExpired(expiryDate);
+                        dbRespondent.setExpiryDate(expiryDate);
                         dbRespondent.setNewLinkRequested(
                                 respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                        dbRespondentList.add(dbRespondent);
+
                     }
+
+                }else {
+                    DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
+                            expiryDate, null);
+                    dbRespondentList.add(dbRespondent);
+
                 }
 
-                dbRespondentList.add(dbRespondent);
             }
 
             DbSurveyDetails details = new DbSurveyDetails(
