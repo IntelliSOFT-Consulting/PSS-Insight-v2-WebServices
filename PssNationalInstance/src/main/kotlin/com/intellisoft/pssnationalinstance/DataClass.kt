@@ -42,7 +42,7 @@ data class DbPrograms(
     @JsonProperty("groups")
     val groups: DbGroups?,
     @JsonProperty("indicatorDescriptions")
-    val indicatorDescriptions: List<DbIndicatorDescription>,
+    val indicatorDescriptions: List<DbIndicatorDescriptionData>,
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
 )
@@ -101,6 +101,12 @@ data class DbIndicatorDataValues(
     var valueType: Any?,
 )
 data class DbIndicatorDescription(
+    @JsonProperty("Description")
+    val Description: String?,
+    @JsonProperty("Indicator_Code")
+    val Indicator_Code: String?
+)
+data class DbIndicatorDescriptionData(
     @JsonProperty("description")
     val description: String?,
     @JsonProperty("indicator_Code")

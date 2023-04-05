@@ -84,7 +84,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             if (dbMetadataJsonNational != null){
                 DbPrograms dbPrograms = dbMetadataJsonNational.getMetadata();
                 if (dbPrograms != null){
-                    List<DbIndicatorDescription> indicatorDescriptionNational =
+                    List<DbIndicatorDescriptionData> indicatorDescriptionNational =
                             dbPrograms.getIndicatorDescriptions();
                     description = getIndicatorDescription(pssCode, indicatorDescriptionNational);
                 }
@@ -96,7 +96,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 if (dbMetadataJsonInternational != null){
                     DbPrograms dbPrograms = dbMetadataJsonInternational.getMetadata();
                     if (dbPrograms != null){
-                        List<DbIndicatorDescription> indicatorDescriptionNational = dbPrograms.getIndicatorDescriptions();
+                        List<DbIndicatorDescriptionData> indicatorDescriptionNational = dbPrograms.getIndicatorDescriptions();
                         description = getIndicatorDescription(pssCode, indicatorDescriptionNational);
                     }
                 }
@@ -110,10 +110,15 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return new Results(200, new DbDetails(description));
     }
     private String getIndicatorDescription(String code,
-                                           List<DbIndicatorDescription> dbIndicatorDescriptionList){
+                                           List<DbIndicatorDescriptionData> dbIndicatorDescriptionList){
+
+        System.out.println("********");
+        System.out.println(code);
+        System.out.println(dbIndicatorDescriptionList);
+        System.out.println("********");
 
         String description = "";
-        for (DbIndicatorDescription indicatorDescription : dbIndicatorDescriptionList){
+        for (DbIndicatorDescriptionData indicatorDescription : dbIndicatorDescriptionList){
             if (indicatorDescription.getIndicator_Code().equals(code)){
                 description = indicatorDescription.getDescription();
                 break;
@@ -247,9 +252,10 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             //Save the new Version
 
+            String versionNo = String.valueOf(nationalLatestVersion + 1);
 
             var response = GenericWebclient.postForSingleObjResponse(
-                    nationalPublishedUrl + (nationalLatestVersion + 1),
+                    nationalPublishedUrl + versionNo,
                     dbMetadataJson,
                     DbMetadataJson.class,
                     DbPublishVersionResponse.class);
@@ -257,7 +263,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             if (response.getHttpStatusCode() == 201) {
                 Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
                 if (optionalVersionEntity.isPresent()){
-                    String versionNo = String.valueOf(nationalLatestVersion + 1);
 
                     VersionEntity versionEntity = optionalVersionEntity.get();
                     versionEntity.setVersionName(versionNo);
