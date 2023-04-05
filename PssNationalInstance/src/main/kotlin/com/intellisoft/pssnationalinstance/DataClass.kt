@@ -11,10 +11,19 @@ data class DbResults(
 
 data class DbDetails(val details: Any?)
 
+data class DbMetadataJsonNational(
+    @JsonProperty("metadata")
+    var metadata: DbProgramsDataDetails?
+)
+data class DbProgramsDataDetails(
+    @JsonProperty("indicatorDescriptions")
+    val indicatorDescriptions: List<DbIndicatorDescriptionData>
+)
+
 
 data class DbMetadataJson(
     @JsonProperty("version")
-    val version: String?,
+    var version: String?,
     @JsonProperty("versionDescription")
     val versionDescription: String?,
     @JsonProperty("metadata")
@@ -42,10 +51,12 @@ data class DbPrograms(
     @JsonProperty("groups")
     val groups: DbGroups?,
     @JsonProperty("indicatorDescriptions")
-    val indicatorDescriptions: List<DbIndicatorDescriptionData>,
+    val indicatorDescriptions: Any?,
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
 )
+
+
 data class DbGroups(
     @JsonProperty("pager")
     val pager:Any?,
@@ -106,12 +117,17 @@ data class DbIndicatorDescription(
     @JsonProperty("Indicator_Code")
     val Indicator_Code: String?
 )
+data class DbIndicatorDescriptionInt(
+    val Description: String?,
+    val Indicator_Code: String?
+)
 data class DbIndicatorDescriptionData(
     @JsonProperty("description")
     val description: String?,
     @JsonProperty("indicator_Code")
     val indicator_Code: String?
 )
+
 data class DbIndicatorDataResponses(
     var id: Any?,
     var code: Any?,
