@@ -404,3 +404,23 @@ data class DbVersionDataDetails(
     val publishedBy: String?,
     var indicators: Any?
 )
+data class DbSurveyData(
+    val id:Long?,
+    val name: String?,
+    val description: String?,
+    val landingPage: String?,
+    val status: String?,
+    val createdBy: Any?,
+    val createdAt: Any?,
+    var indicators: Any?,
+    var respondents: Any?
+)
+data class DbSurveyRespondentDataDerails(
+    val id:Long,
+    val emailAddress: String,
+    val expiryDateTime: String,
+    val surveyId: String,
+    val customUrl: String,
+    val status: String?
+
+)

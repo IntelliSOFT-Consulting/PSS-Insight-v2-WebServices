@@ -168,7 +168,9 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         List<SurveyRespondents> surveyRespondentsList = new ArrayList<>();
         if (status.equals(SurveySubmissionStatus.EXPIRED.name())){
             surveyRespondentsList = respondentsRepo.findAllBySurveyId(surveyId);
-        }else {
+        }else if (status.equals("ALL")){
+            surveyRespondentsList = respondentsRepo.findAllBySurveyId(surveyId);
+        } else {
             surveyRespondentsList = respondentsRepo.findBySurveyIdAndRespondentsStatus(surveyId, status);
         }
         return surveyRespondentsList;

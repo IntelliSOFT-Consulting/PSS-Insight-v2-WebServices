@@ -4,8 +4,11 @@ import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.SurveyRespondents;
 import com.intellisoft.pssnationalinstance.db.Surveys;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
+import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveysService;
+import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ public class SurveysServiceImpl implements SurveysService {
     private final SurveysRepo surveysRepo;
     private final SurveyRespondentsService surveyRespondentsService;
     private final FormatterClass formatterClass = new FormatterClass();
+    private final NationalTemplateService nationalTemplateService;
 
     @Override
     public Results addSurvey(DbSurvey dbSurvey) {
@@ -35,10 +39,13 @@ public class SurveysServiceImpl implements SurveysService {
 //        if (isSaved)
 //            status = SurveyStatus.SENT.name();
 
+        String versionNumber = String.valueOf(nationalTemplateService.getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS));
+
 
         Surveys surveys = new Surveys();
         surveys.setName(surveyName);
         surveys.setDescription(surveyDescription);
+        surveys.setVersionNumber(versionNumber);
         surveys.setStatus(status);
         surveys.setLandingPage(landingPage);
         surveys.setCreatorId(creatorId);
@@ -120,17 +127,77 @@ public class SurveysServiceImpl implements SurveysService {
     }
 
     @Override
-    public Results getSurveyDetails(String surveyId) {
+    public Results getSurveyDetails(String surveyId, Boolean isRespondents) {
 
         Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
         if (optionalSurvey.isPresent()){
             Surveys surveys = optionalSurvey.get();
+            String versionNumber = surveys.getVersionNumber();
 
+            DbPublishedVersion dbPublishedVersion =
+                    getPublishedData(AppConstants.NATIONAL_PUBLISHED_VERSIONS+versionNumber);
+            List<String> indicators = surveys.getIndicators();
 
+            if (dbPublishedVersion != null){
+                List<DbIndicators> dbIndicatorsList = dbPublishedVersion.getDetails();
+                List<DbIndicators> selectedIndicators =
+                        nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicators);
+
+                List<DbSurveyRespondentDataDerails> dbSurveyRespondentDataDerailsList = new ArrayList<>();
+                if (isRespondents){
+                    List<SurveyRespondents> surveyRespondentsList =
+                            surveyRespondentsService.getSurveyRespondents(surveyId, "ALL");
+                    for (SurveyRespondents surveyRespondents: surveyRespondentsList){
+                        DbSurveyRespondentDataDerails dbSurveyRespondentDataDerails =
+                                new DbSurveyRespondentDataDerails(
+                                    surveyRespondents.getId(),
+                                    surveyRespondents.getEmailAddress(),
+                                    surveyRespondents.getExpiryTime(),
+                                    surveyId,
+                                    surveyRespondents.getCustomUrl(),
+                                    surveyRespondents.getRespondentsStatus()
+                                );
+                        dbSurveyRespondentDataDerailsList.add(dbSurveyRespondentDataDerails);
+                    }
+                }
+
+                DbSurveyData data = new DbSurveyData(
+                        surveys.getId(),
+                        surveys.getName(),
+                        surveys.getDescription(),
+                        surveys.getLandingPage(),
+                        surveys.getStatus(),
+                        surveys.getCreatorId(),
+                        surveys.getCreatedAt(),
+                        selectedIndicators,
+                        dbSurveyRespondentDataDerailsList);
+                return new Results(200, data);
+            }
 
         }
 
+        return new Results(400, "There was an issue with the request.");
+    }
+    public DbPublishedVersion getPublishedData(String url) {
 
+        try {
+            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
+                    url, DbMetadataJson.class);
+            if (dbMetadataJson != null){
+                DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+                if (dbPrograms != null){
+                    DbPublishedVersion dbPublishedVersion = dbPrograms.getPublishedVersion();
+                    if (dbPublishedVersion != null){
+                        return dbPublishedVersion;
+                    }
+                }
+            }
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return null;
+
     }
 }
