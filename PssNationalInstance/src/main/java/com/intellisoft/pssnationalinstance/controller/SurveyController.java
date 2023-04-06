@@ -1,6 +1,7 @@
 package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.DbSurvey;
+import com.intellisoft.pssnationalinstance.DbVersions;
 import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.Results;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveysService;
@@ -67,6 +68,14 @@ public class SurveyController {
                 .getSurveyDetails(surveyId,isRespondents);
         return formatterClass.getResponse(results);
 
+    }
+    @PutMapping(value = "survey-details/{id}")
+    public ResponseEntity<?> updateSurvey(
+            @RequestBody DbSurvey dbSurvey,
+            @PathVariable("id") String id) {
+        Results results = surveysService
+                .updateSurvey(id, dbSurvey);
+        return formatterClass.getResponse(results);
     }
 
 //    @PostMapping("/add")

@@ -170,8 +170,9 @@ enum class SurveySubmissionStatus {
     EXPIRED, // Respondent's survey has expired
 }
 enum class SurveyStatus {
-    SAVED,
-    SENT,
+    DRAFT, //Survey has just been created
+    SAVED, //
+    SENT, // Survey has been sent
     COMPLETED
 }
 enum class SurveyRespondentStatus {
@@ -263,8 +264,8 @@ data class DbDataEntryResponse(
     var indicators: Any? = null,
 )
 data class DbSurvey(
-    val surveyName: String,
-    val surveyDescription: String,
+    val surveyName: String?,
+    val surveyDescription: String?,
     val surveyLandingPage:String?,
     val isSaved: Boolean,
     val creatorId: String,
@@ -290,7 +291,7 @@ data class DbRespondent(
     val emailAddress: String,
     val createdAt: String,
 
-    var dateExpired: String?,
+    var expiryDate: String?,
     var newLinkRequested: Boolean?
 )
 data class DbVerifySurvey(
@@ -308,7 +309,7 @@ data class DbRespondentsDetails(
     val referenceSheet:String?
 )
 data class DbResponse(
-    val isSubmit: Boolean?,
+    val isSubmit: Boolean,
     val respondentId: String,
     val responses: List<DbRespondentSurvey>
 )
@@ -324,6 +325,7 @@ data class DbResponseDetails(
     var respondentDetails: Any? = null
 )
 data class DbResendSurvey(
+    val comments: String?,
     val indicators : List<String>,
     val expiryDateTime: String
 )
@@ -348,6 +350,7 @@ data class DbDataEntryResponses(
     val attachment: String?
 )
 data class DbRequestLink(
+    @JsonProperty("comment")
     val comment: String
 )
 data class DbRespondents(

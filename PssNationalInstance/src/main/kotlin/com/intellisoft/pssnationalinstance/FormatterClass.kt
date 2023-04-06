@@ -67,6 +67,7 @@ class FormatterClass {
         val dateTime = LocalDateTime.parse(dateString, formatter)
         val today = LocalDate.now()
         val date = dateTime.toLocalDate()
+
         return date.isBefore(today)
     }
     fun getOtp():String{
