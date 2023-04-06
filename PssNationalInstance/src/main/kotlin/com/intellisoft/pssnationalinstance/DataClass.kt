@@ -170,8 +170,9 @@ enum class SurveySubmissionStatus {
     EXPIRED, // Respondent's survey has expired
 }
 enum class SurveyStatus {
-    SAVED,
-    SENT,
+    DRAFT, //Survey has just been created
+    SAVED, //
+    SENT, // Survey has been sent
     COMPLETED
 }
 enum class SurveyRespondentStatus {
@@ -308,7 +309,7 @@ data class DbRespondentsDetails(
     val referenceSheet:String?
 )
 data class DbResponse(
-    val isSubmit: Boolean?,
+    val isSubmit: Boolean,
     val respondentId: String,
     val responses: List<DbRespondentSurvey>
 )

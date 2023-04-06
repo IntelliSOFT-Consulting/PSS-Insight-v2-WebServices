@@ -91,8 +91,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         surveyRespondents.setSurveyId(surveyId);
         surveyRespondents.setEmailAddress(emailAddress);
 
-        surveyRespondents.setSubmissionStatus(SurveyStatus.SENT.name());
-        surveyRespondents.setRespondentsStatus(SurveySubmissionStatus.DRAFT.name());
+        surveyRespondents.setSurveyStatus(SurveyStatus.SENT.name()); // Sent Survey
+        surveyRespondents.setRespondentsStatus(SurveySubmissionStatus.DRAFT.name()); // Draft because they have not yet responded
         surveyRespondents.setCustomUrl(customAppUrl);
 
         surveyRespondents.setPassword(password);
@@ -171,7 +171,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }else if (status.equals("ALL")){
             surveyRespondentsList = respondentsRepo.findAllBySurveyId(surveyId);
         } else {
-            surveyRespondentsList = respondentsRepo.findBySurveyIdAndRespondentsStatus(surveyId, status);
+            surveyRespondentsList = respondentsRepo.findBySurveyIdAndSurveyStatus(surveyId, status);
         }
         return surveyRespondentsList;
     }
@@ -251,10 +251,10 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         List<RespondentAnswers> respondentAnswersList = new ArrayList<>();
         String respondentId = dbResponse.getRespondentId();
-        boolean isSubmit = Boolean.TRUE.equals(dbResponse.isSubmit());
-        String status = SurveySubmissionStatus.PENDING.name();
-        if (!isSubmit){
-            status = SurveySubmissionStatus.DRAFT.name();
+        boolean isSubmit = dbResponse.isSubmit();
+        String status = SurveySubmissionStatus.DRAFT.name();
+        if (isSubmit){
+            status = SurveySubmissionStatus.PENDING.name();
         }
 
         List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
@@ -280,7 +280,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 return new Results(400, "This link is expired.");
             }
 
-            surveyRespondents.setSubmissionStatus(status);
+            surveyRespondents.setSurveyStatus(status);
             respondentsRepo.save(surveyRespondents);
         }
 
@@ -498,7 +498,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
     @Override
     public List<SurveyRespondents> getSurveyRespondents() {
-        return respondentsRepo.findBySubmissionStatus(SurveyStatus.SENT.name());
+        return respondentsRepo.findBySurveyStatus(SurveyStatus.SENT.name());
     }
 
     private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId){

@@ -38,11 +38,13 @@ public class SurveysServiceImpl implements SurveysService {
         String landingPage = dbSurvey.getSurveyLandingPage();
         List<String> indicatorList = dbSurvey.getIndicators();
 
-        String status = SurveyStatus.SAVED.name();
+        String status = SurveyStatus.DRAFT.name();
 //        if (isSaved)
 //            status = SurveyStatus.SENT.name();
 
-        String versionNumber = String.valueOf(nationalTemplateService.getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS));
+        String versionNumber = String.valueOf(
+                nationalTemplateService.getCurrentVersion(
+                        AppConstants.NATIONAL_PUBLISHED_VERSIONS));
 
 
         Surveys surveys = new Surveys();
@@ -60,9 +62,20 @@ public class SurveysServiceImpl implements SurveysService {
     @Override
     public Results listAdminSurveys(String creatorId, String status) {
 
+        /**
+         * if status = DRAFT, get surveys with the DRAFT status
+         * if status = PENDING,VERIFIED,CANCELLED,EXPIRED get survey non-respondent guys
+         */
+
+        List<Surveys> surveysList;
+        if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())){
+            surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, status);
+        }else {
+            String surveyStatus = SurveyStatus.SENT.name();
+            surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, surveyStatus);
+        }
+
         List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
-        String surveyStatus = SurveyStatus.SENT.name();
-        List<Surveys> surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, surveyStatus);
         for (Surveys surveys : surveysList){
 
             Long id = surveys.getId();
@@ -109,7 +122,7 @@ public class SurveysServiceImpl implements SurveysService {
 
             }
 
-            if (!dbRespondentList.isEmpty()){
+            if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())){
                 DbSurveyDetails details = new DbSurveyDetails(
                         String.valueOf(id),
                         surveyName,
@@ -118,7 +131,20 @@ public class SurveysServiceImpl implements SurveysService {
                         landingPage,
                         dbRespondentList);
                 dbSurveyDetailsList.add(details);
+            }else {
+                if (!dbRespondentList.isEmpty()){
+                    DbSurveyDetails details = new DbSurveyDetails(
+                            String.valueOf(id),
+                            surveyName,
+                            surveyStatusValue,
+                            surveyDesc,
+                            landingPage,
+                            dbRespondentList);
+                    dbSurveyDetailsList.add(details);
+                }
             }
+
+
 
 
         }
