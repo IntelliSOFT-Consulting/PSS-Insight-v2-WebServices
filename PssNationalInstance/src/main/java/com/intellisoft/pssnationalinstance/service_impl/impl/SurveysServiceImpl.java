@@ -1,8 +1,10 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.RespondentAnswers;
 import com.intellisoft.pssnationalinstance.db.SurveyRespondents;
 import com.intellisoft.pssnationalinstance.db.Surveys;
+import com.intellisoft.pssnationalinstance.repository.RespondentAnswersRepository;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
@@ -25,6 +27,7 @@ public class SurveysServiceImpl implements SurveysService {
     private final SurveyRespondentsService surveyRespondentsService;
     private final FormatterClass formatterClass = new FormatterClass();
     private final NationalTemplateService nationalTemplateService;
+    private final RespondentAnswersRepository respondentAnswersRepository;
 
     @Override
     public Results addSurvey(DbSurvey dbSurvey) {
@@ -106,14 +109,18 @@ public class SurveysServiceImpl implements SurveysService {
 
             }
 
-            DbSurveyDetails details = new DbSurveyDetails(
-                    String.valueOf(id),
-                    surveyName,
-                    surveyStatusValue,
-                    surveyDesc,
-                    landingPage,
-                    dbRespondentList);
-            dbSurveyDetailsList.add(details);
+            if (!dbRespondentList.isEmpty()){
+                DbSurveyDetails details = new DbSurveyDetails(
+                        String.valueOf(id),
+                        surveyName,
+                        surveyStatusValue,
+                        surveyDesc,
+                        landingPage,
+                        dbRespondentList);
+                dbSurveyDetailsList.add(details);
+            }
+
+
         }
 
         DbResults dbResults = new DbResults(
@@ -187,6 +194,35 @@ public class SurveysServiceImpl implements SurveysService {
 
         return new Results(400, "There was an issue with the request.");
     }
+
+    @Override
+    public Results updateSurvey(String surveyId, DbSurvey dbSurvey) {
+
+        Optional<Surveys> optionalSurveys = surveysRepo.findById(Long.valueOf(surveyId));
+        if (optionalSurveys.isPresent()){
+            Surveys surveys = optionalSurveys.get();
+
+            String surveyName = dbSurvey.getSurveyName();
+            String surveyDescription = dbSurvey.getSurveyDescription();
+            boolean isSaved = dbSurvey.isSaved();
+            String landingPage = dbSurvey.getSurveyLandingPage();
+            List<String> indicatorList = dbSurvey.getIndicators();
+
+            if (surveyName != null) surveys.setName(surveyName);
+            if (surveyDescription != null) surveys.setDescription(surveyDescription);
+            if (landingPage != null) surveys.setLandingPage(landingPage);
+            if (surveyName != null) surveys.setStatus(surveyName);
+            if (!indicatorList.isEmpty()) surveys.setIndicators(indicatorList);
+
+            Surveys surveysDetails = surveysRepo.save(surveys);
+            return new Results(200 ,surveysDetails);
+
+        }
+        return new Results(400, "Resource not found");
+
+
+    }
+
     public DbPublishedVersion getPublishedData(String url) {
 
         try {

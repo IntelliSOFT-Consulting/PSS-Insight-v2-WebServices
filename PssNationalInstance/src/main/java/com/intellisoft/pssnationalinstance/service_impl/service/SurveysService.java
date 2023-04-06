@@ -12,5 +12,6 @@ public interface SurveysService {
     Results listAdminSurveys(String creatorId, String status);
     List<String> getSurveyList(String surveyId);
     Results getSurveyDetails(String surveyId,Boolean respondents);
+    Results updateSurvey(String surveyId, DbSurvey dbSurvey);
 
 }

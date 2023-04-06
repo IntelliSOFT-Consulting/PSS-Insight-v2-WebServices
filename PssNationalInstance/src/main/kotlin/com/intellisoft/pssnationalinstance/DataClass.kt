@@ -263,8 +263,8 @@ data class DbDataEntryResponse(
     var indicators: Any? = null,
 )
 data class DbSurvey(
-    val surveyName: String,
-    val surveyDescription: String,
+    val surveyName: String?,
+    val surveyDescription: String?,
     val surveyLandingPage:String?,
     val isSaved: Boolean,
     val creatorId: String,
