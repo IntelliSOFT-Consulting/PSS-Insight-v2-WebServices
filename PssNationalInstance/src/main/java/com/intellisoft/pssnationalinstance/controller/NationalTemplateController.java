@@ -170,5 +170,20 @@ public class NationalTemplateController {
         return formatterClass.getResponse(results);
     }
 
+    @Operation(
+            summary = "Pull the international template",
+            description = "This api is used for pulling the international template and displaying it to frontend")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
+            @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
+                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+            @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
+                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+    @GetMapping("details")
+    public ResponseEntity<?> getNationalDetails() {
+        Results results = nationalTemplateService.getNationalDetails();
+        return formatterClass.getResponse(results);
+    }
+
 
 }

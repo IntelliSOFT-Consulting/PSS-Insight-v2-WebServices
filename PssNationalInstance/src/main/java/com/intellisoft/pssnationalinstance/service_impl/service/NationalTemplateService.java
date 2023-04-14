@@ -7,6 +7,7 @@ import java.util.List;
 public interface NationalTemplateService {
 
     Results getNationalPublishedVersion();
+    Results getNationalDetails();
     Results getIndicatorDescription(String pssCode);
     void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList);
     DbPublishedVersion nationalPublishedIndicators();
