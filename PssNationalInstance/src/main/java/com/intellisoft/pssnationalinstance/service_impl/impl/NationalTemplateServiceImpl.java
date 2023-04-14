@@ -5,9 +5,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.AboutUs;
 import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
 import com.intellisoft.pssnationalinstance.repository.VersionEntityRepository;
+import com.intellisoft.pssnationalinstance.service_impl.service.AboutUsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
@@ -34,6 +36,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private final InternationalTemplateService internationalTemplateService;
     private final VersionEntityRepository versionEntityRepository;
     private final IndicatorEditsService indicatorEditsService;
+    private final AboutUsService aboutUsService;
 
     @Override
     public Results getNationalPublishedVersion() {
@@ -44,6 +47,29 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     nationalPublishedIndicators();
             if (publishedVersionValues != null){
                 return new Results(200, publishedVersionValues);
+            }
+
+        } catch (Exception syntaxException){
+            syntaxException.printStackTrace();
+        }
+        return new Results(400, "The national indicators could not be found.");
+
+    }
+
+    @Override
+    public Results getNationalDetails() {
+        try{
+
+            DbPublishedVersion publishedVersionValues =
+                    nationalPublishedIndicators();
+            if (publishedVersionValues != null){
+
+                List<AboutUs> aboutUsList = aboutUsService.getAboutUs(true, 10, 1);
+                DbMobileData data = new DbMobileData(
+                        publishedVersionValues,
+                        aboutUsList
+                );
+                return new Results(200, data);
             }
 
         } catch (Exception syntaxException){

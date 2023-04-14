@@ -79,6 +79,10 @@ data class DbDataElements(
     @JsonProperty("id")
     val id: String?
 )
+data class DbMobileData(
+    val publishedIndicators: Any?,
+    val nationalInformation:Any?
+)
 data class DbPublishedVersion(
     @JsonProperty("count")
     var count: Any?,
@@ -92,6 +96,8 @@ data class DbIndicators(
     var indicators: List<DbIndicatorValues?>,
 )
 data class DbIndicatorValues(
+    @JsonProperty("description")
+    var description: Any?,
     @JsonProperty("categoryId")
     var categoryId: Any?,
     @JsonProperty("categoryName")
@@ -222,6 +228,10 @@ data class DbPeriodConfiguration(
     val period: String,
     val isCompleted:Boolean,
     val closedBy: String
+)
+data class DbAboutUs(
+    val aboutUs: String?,
+    val contactUs:String?,
 )
 
 data class DbDataEntry(

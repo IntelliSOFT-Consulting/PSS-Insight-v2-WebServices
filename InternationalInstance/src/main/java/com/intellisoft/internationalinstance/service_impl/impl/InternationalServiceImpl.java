@@ -16,6 +16,8 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
@@ -77,6 +79,13 @@ public class InternationalServiceImpl implements InternationalService {
             DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(
                     groupUrl, DbGroupsData.class);
 
+            String indicatorDescriptionUrl = internationalUrl + indicatorUrl;
+            String indicatorDescription = GenericWebclient.getForSingleObjResponse(
+                    indicatorDescriptionUrl, String.class);
+            JSONArray jsonArray = new JSONArray(indicatorDescription);
+
+
+
             if (dbGroupsData != null){
                 List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
 
@@ -113,7 +122,28 @@ public class InternationalServiceImpl implements InternationalService {
 
                     String indicatorName = formatterClass.getIndicatorName(categoryName);
 
+                    String description = "";
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        String Indicator_Code = jsonObject.getString("Indicator_Code");
+                        String Description = jsonObject.getString("Description");
+                        if(categoryName.equals(Indicator_Code)){
+                            description = Description;
+                            break;
+                        }
+                    }
+
+//                    for (int i = 0; i < indicatorDescriptionList.size(); i++){
+//                        String code = indicatorDescriptionList.get(i).getIndicator_Code();
+//                        if (categoryName.equals(code)){
+//                            description = indicatorDescriptionList.get(i).getDescription();
+//                            break;
+//                        }
+//                    }
+
+
                     DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(
+                            description,
                             categoryId,
                             categoryName,
                             indicatorName,
@@ -152,6 +182,7 @@ public class InternationalServiceImpl implements InternationalService {
 
             return dbIndicatorsValueList;
         }catch (Exception e){
+            e.printStackTrace();
             return Collections.emptyList();
         }
 
@@ -407,9 +438,7 @@ public class InternationalServiceImpl implements InternationalService {
             if (dbPdfData != null){
                 File file = formatterClass.generatePdfFile(dbPdfData);
                 String id = createFileResource(file);
-                System.out.println("&&&&&&&&&");
-                System.out.println(id);
-                System.out.println("&&&&&&&&&");
+
 
             }
 

@@ -33,7 +33,6 @@ public class SurveysServiceImpl implements SurveysService {
     public Results addSurvey(DbSurvey dbSurvey) {
         String surveyName = dbSurvey.getSurveyName();
         String surveyDescription = dbSurvey.getSurveyDescription();
-        boolean isSaved = dbSurvey.isSaved();
         String creatorId = dbSurvey.getCreatorId();
         String landingPage = dbSurvey.getSurveyLandingPage();
         List<String> indicatorList = dbSurvey.getIndicators();
@@ -230,18 +229,24 @@ public class SurveysServiceImpl implements SurveysService {
 
             String surveyName = dbSurvey.getSurveyName();
             String surveyDescription = dbSurvey.getSurveyDescription();
-            boolean isSaved = dbSurvey.isSaved();
             String landingPage = dbSurvey.getSurveyLandingPage();
             List<String> indicatorList = dbSurvey.getIndicators();
 
             if (surveyName != null) surveys.setName(surveyName);
             if (surveyDescription != null) surveys.setDescription(surveyDescription);
             if (landingPage != null) surveys.setLandingPage(landingPage);
-            if (surveyName != null) surveys.setStatus(surveyName);
             if (!indicatorList.isEmpty()) surveys.setIndicators(indicatorList);
+            surveysRepo.save(surveys);
 
-            Surveys surveysDetails = surveysRepo.save(surveys);
-            return new Results(200 ,surveysDetails);
+            String status = SurveyStatus.DRAFT.name();
+
+            if (dbSurvey.isSaved()){
+                // Save response
+                surveys.setStatus(status);
+            }
+
+
+            return new Results(200 ,dbSurvey);
 
         }
         return new Results(400, "Resource not found");

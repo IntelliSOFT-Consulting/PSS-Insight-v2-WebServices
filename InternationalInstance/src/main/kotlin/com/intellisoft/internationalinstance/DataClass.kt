@@ -41,6 +41,7 @@ data class DbIndicatorsValue(
     var indicators: List<DbIndicatorDataValues?>,
 )
 data class DbIndicatorDataValues(
+    var description: Any?,
     var categoryId: Any?,
     var categoryName: Any?,
     var indicatorName: Any?,
