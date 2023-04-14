@@ -408,6 +408,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
     @Override
     public Results listDataEntry(int no, int size, String status, String dataEntryPersonId) {
+
         List<DbDataEntryResponse> responseList = new ArrayList<>();
         List<DataEntry> dataEntryList = getPagedDataEntryData(
                 no,
@@ -419,8 +420,77 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         for (DataEntry dataEntry : dataEntryList){
 
+
+            List<String> stringList = new ArrayList<>();
             List<DataEntryResponses> dataEntryResponseList =
                     dataEntryResponsesRepository.findByDataEntry(dataEntry);
+
+            for (DataEntryResponses dataEntryResponses: dataEntryResponseList){
+
+                String indicator = dataEntryResponses.getIndicator();
+                stringList.add(indicator);
+            }
+
+            String versionNumber = dataEntry.getVersionNumber();
+            String url = AppConstants.NATIONAL_PUBLISHED_VERSIONS+versionNumber;
+            DbMetadataJson dbMetadataJson =
+                    internationalTemplateService.getIndicators(url);
+            DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+            List<DbIndicators> dbIndicatorsArrayList = new ArrayList<>();
+
+            if (dbPrograms != null){
+                DbPublishedVersion dbPublishedVersion = dbPrograms.getPublishedVersion();
+                if (dbPublishedVersion != null){
+
+                    List<DbIndicators> dbIndicatorsList = dbPublishedVersion.getDetails();
+                    for (DbIndicators dbIndicators: dbIndicatorsList){
+
+                        List<DbIndicatorValues> dbIndicatorValuesList = new ArrayList<>();
+                        List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
+                        for (DbIndicatorValues dbIndicatorValues: indicatorValuesList){
+
+                            List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
+                            List<DbIndicatorDataValues> dataValuesList =
+                                    dbIndicatorValues.getIndicatorDataValue();
+                            for (DbIndicatorDataValues dbIndicatorDataValues: dataValuesList){
+                                String indicatorId = (String) dbIndicatorDataValues.getId();
+                                if (stringList.contains(indicatorId)){
+
+                                    DbIndicatorDataValues indicatorDataValues =
+                                            new DbIndicatorDataValues(
+                                                    indicatorId,
+                                                    dbIndicatorDataValues.getCode(),
+                                                    dbIndicatorDataValues.getName(),
+                                                    dbIndicatorDataValues.getValueType());
+                                    dbIndicatorDataValuesList.add(indicatorDataValues);
+                                }
+
+
+                            }
+
+                            if (!dbIndicatorDataValuesList.isEmpty()){
+                                DbIndicatorValues indicatorValues = new DbIndicatorValues(
+                                        dbIndicatorValues.getCategoryId(),
+                                        dbIndicatorValues.getCategoryName(),
+                                        dbIndicatorValues.getIndicatorName(),
+                                        dbIndicatorDataValuesList);
+                                dbIndicatorValuesList.add(indicatorValues);
+                            }
+                        }
+
+                        DbIndicators indicators = new DbIndicators(
+                                dbIndicators.getCategoryName(),
+                                dbIndicatorValuesList);
+                        dbIndicatorsArrayList.add(indicators);
+                    }
+
+                }
+            }
+
+            DbPublishedVersion publishedVersion = new DbPublishedVersion(
+                    dbIndicatorsArrayList.size(),
+                    dbIndicatorsArrayList);
+
 
             DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(
                     dataEntry.getId(),
@@ -429,7 +499,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntry.getDataEntryPersonId(),
                     dataEntry.getDataEntryDate(),
                     dataEntry.getCreatedAt(),
-                    dataEntryResponseList, null);
+                    dataEntryResponseList, publishedVersion);
             responseList.add(dbDataEntryResponse);
         }
 
