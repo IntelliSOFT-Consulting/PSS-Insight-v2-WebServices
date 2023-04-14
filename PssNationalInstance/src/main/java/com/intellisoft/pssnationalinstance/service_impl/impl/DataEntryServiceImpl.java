@@ -470,6 +470,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
                             if (!dbIndicatorDataValuesList.isEmpty()){
                                 DbIndicatorValues indicatorValues = new DbIndicatorValues(
+                                        dbIndicatorValues.getDescription(),
                                         dbIndicatorValues.getCategoryId(),
                                         dbIndicatorValues.getCategoryName(),
                                         dbIndicatorValues.getIndicatorName(),

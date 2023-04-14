@@ -92,6 +92,8 @@ data class DbIndicators(
     var indicators: List<DbIndicatorValues?>,
 )
 data class DbIndicatorValues(
+    @JsonProperty("description")
+    var description: Any?,
     @JsonProperty("categoryId")
     var categoryId: Any?,
     @JsonProperty("categoryName")
