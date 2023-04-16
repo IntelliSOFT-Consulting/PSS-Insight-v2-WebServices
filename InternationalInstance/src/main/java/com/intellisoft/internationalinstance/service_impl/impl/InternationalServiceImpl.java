@@ -361,6 +361,29 @@ public class InternationalServiceImpl implements InternationalService {
 
     private DbPdfData getPdfData(DbMetadataValue dbMetadataValue){
 
+        DbIndicatorDetails indicatorDetails = null;
+        DbIndicatorDetails dbIndicatorDetails = dbMetadataValue.getMetadata().getIndicatorDetails();
+        if (dbIndicatorDetails != null){
+            indicatorDetails = dbIndicatorDetails;
+        }else {
+            String version = dbMetadataValue.getVersion();
+            if (version != null){
+                String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+                int pastVersion = Integer.parseInt(version) - 1;
+                DbMetadataValue dbMetadataValuePast =
+                        getMetadata(publishedBaseUrl+pastVersion);
+                if (dbMetadataValuePast != null){
+                    DbMetadataJsonData metadataJsonData = dbMetadataValuePast.getMetadata();
+                    DbIndicatorDetails jsonDataIndicatorDetails = metadataJsonData.getIndicatorDetails();
+                    if (jsonDataIndicatorDetails != null){
+                        indicatorDetails = jsonDataIndicatorDetails;
+                    }
+                }
+            }
+        }
+
+
+
         String title = "Pharmaceutical Products and Services";
         String versionName = dbMetadataValue.getVersion();
         String versionDescription = dbMetadataValue.getVersionDescription();
@@ -416,6 +439,25 @@ public class InternationalServiceImpl implements InternationalService {
                         dbPdfValueList.add(dbPdfValue);
                     }
 
+                    if (indicatorDetails != null){
+
+                        DbPdfValue d1 =getPdfValue(indicatorDetails.getPurposeAndIssues(), "Purpose and Issues:");
+                        DbPdfValue d2 =getPdfValue(indicatorDetails.getPreferredDataSources(), "Preferred Data Sources:");
+                        DbPdfValue d3 =getPdfValue(indicatorDetails.getMethodOfEstimation(), "Method of Estimation:");
+                        DbPdfValue d4 =getPdfValue(indicatorDetails.getProposedScoring(), "Proposed Scoring or Benchmarking:");
+                        DbPdfValue d5 =getPdfValue(indicatorDetails.getExpectedFrequencyDataDissemination(), "Expected Frequency of Data Dissemination:");
+                        DbPdfValue d6 =getPdfValue(indicatorDetails.getIndicatorReference(), "Indicator Reference Number(s):");
+                        DbPdfValue d7 =getPdfValue(indicatorDetails.getIndicatorSource(), "Indicator Source(s):");
+
+                        if (d1 != null) dbPdfValueList.add(d1);
+                        if (d2 != null) dbPdfValueList.add(d2);
+                        if (d3 != null) dbPdfValueList.add(d3);
+                        if (d4 != null) dbPdfValueList.add(d4);
+                        if (d5 != null) dbPdfValueList.add(d5);
+                        if (d6 != null) dbPdfValueList.add(d6);
+                        if (d7 != null) dbPdfValueList.add(d7);
+
+                    }
 
 
 
@@ -444,6 +486,13 @@ public class InternationalServiceImpl implements InternationalService {
 
     }
 
+    private DbPdfValue getPdfValue(Object object, String title){
+        if (object != null){
+            return new DbPdfValue(title, (String) object);
+        }
+        return null;
+    }
+
     private void generatePdf(DbMetadataValue dbMetadataValue) {
 
         try{
@@ -452,7 +501,22 @@ public class InternationalServiceImpl implements InternationalService {
             if (dbPdfData != null){
                 File file = formatterClass.generatePdfFile(dbPdfData);
                 String id = createFileResource(file);
+                String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
 
+                String publishedVersionNo = dbMetadataValue.getVersion();
+                //Get metadata json
+                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents/"+id+"/data";
+                dbMetadataValue.getMetadata().setReferenceSheet(fileUrl);
+
+                var response = GenericWebclient.putForSingleObjResponse(
+                        publishedBaseUrl+publishedVersionNo,
+                        dbMetadataValue,
+                        DbMetadataValue.class,
+                        Response.class);
+                System.out.println("------");
+                System.out.println("reference sheet");
+                System.out.println(response);
+                System.out.println("------");
 
             }
 

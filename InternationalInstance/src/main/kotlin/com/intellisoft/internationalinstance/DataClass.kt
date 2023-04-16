@@ -322,10 +322,15 @@ data class DbIndicatorDetails(
 
 )
 data class DbCreatedBy(
+    @JsonProperty("id")
     val id:Any?,
+    @JsonProperty("code")
     val code:Any?,
+    @JsonProperty("name")
     val name:Any?,
+    @JsonProperty("username")
     val username:Any?,
+    @JsonProperty("displayName")
     val displayName:Any?,
 )
 data class DbAssessmentQuestion(
