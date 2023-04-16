@@ -320,7 +320,7 @@ data class DbVersionDetails(
     )
 
 data class DbNotificationData(
-    val emailAddress:String,
+    val emailAddress:List<String>,
     val createdAt:String,
     val title: String,
     val description:String
@@ -354,4 +354,23 @@ data class DbResponseFileResource(
 data class DbResFileRes(
     @JsonProperty("id")
     val id:String?
+)
+data class DbNotificationSub(
+    val firstName: String,
+    val lastName: String?,
+    val email:String,
+    val phoneNumber:String?
+)
+data class DbSendNotification(
+    val sendAll:Boolean?,
+    val emailList:List<String>,
+    val title: String,
+    val message:String,
+    val sender: String
+)
+data class DbNotification(
+    val title: String,
+    val message:String,
+    val sender: String,
+    val createdAt:String
 )

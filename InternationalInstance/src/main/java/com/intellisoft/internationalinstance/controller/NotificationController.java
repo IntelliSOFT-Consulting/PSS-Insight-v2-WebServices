@@ -1,8 +1,6 @@
 package com.intellisoft.internationalinstance.controller;
 
-import com.intellisoft.internationalinstance.DbVersionData;
-import com.intellisoft.internationalinstance.FormatterClass;
-import com.intellisoft.internationalinstance.Results;
+import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
@@ -26,14 +24,44 @@ public class NotificationController {
     FormatterClass formatterClass = new FormatterClass();
 
     @PostMapping("subscribe")
-    public Response subscribe(@RequestBody NotificationSubscription notificationSubscription)  {
-        return notificationService.subscribe(notificationSubscription);
+    public ResponseEntity<?> subscribe(@RequestBody DbNotificationSub notificationSubscription)  {
+
+        Results results = notificationService.subscribe(notificationSubscription);
+        return formatterClass.getResponse(results);
     }
     @PutMapping("unsubscribe")
-    public Response unsubscribe(@RequestParam("email") String email)  {
-        return notificationService.unsubscribe(email);
+    public ResponseEntity<?> unsubscribe(@RequestParam("email") String email)  {
+
+        Results results = notificationService.unsubscribe(email);
+        return formatterClass.getResponse(results);
+
     }
 
+    @PostMapping("send")
+    public ResponseEntity<?> sendNotification(@RequestBody DbSendNotification dbSendNotification)  {
+
+        Results results = notificationService.sendNotification(dbSendNotification);
+        return formatterClass.getResponse(results);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getIndicatorForFrontEnd(
+            @RequestParam("email") String email,
+            @RequestParam(value = "limit", required = false) String limit,
+            @RequestParam(value = "pageNo", required = false) String pageNo
+            ) {
+
+        int limitNo = 10;
+        if (limit != null && !limit.equals("")){
+            limitNo = Integer.parseInt(limit);
+        }
+        int pageNumber = 1;
+        if (pageNo != null && !pageNo.equals("")){
+            pageNumber = Integer.parseInt(pageNo);
+        }
+        Results results = notificationService.getNotifications(limitNo, pageNumber, email);
+        return formatterClass.getResponse(results);
+    }
 
 
 

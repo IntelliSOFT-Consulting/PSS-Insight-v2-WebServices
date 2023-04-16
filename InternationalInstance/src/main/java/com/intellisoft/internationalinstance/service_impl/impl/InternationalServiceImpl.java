@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.NotificationEntity;
+import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
+import com.intellisoft.internationalinstance.db.repso.NotificationSubscriptionRepo;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
@@ -53,6 +55,7 @@ public class InternationalServiceImpl implements InternationalService {
     private final FormatterClass formatterClass = new FormatterClass();
     private final VersionRepos versionRepos;
     private final NotificationService notificationService;
+    private final NotificationSubscriptionRepo notificationSubscriptionRepo;
 
     @Override
     public Results getIndicators() {
@@ -327,10 +330,20 @@ public class InternationalServiceImpl implements InternationalService {
                                 "Version description: " + savedVersionEntity.getVersionDescription() + "\n" +
                                 "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
+                List<String> dbEmailList = new ArrayList<>();
+                //Get subscribed email addresses
+                List<NotificationSubscription> notificationSubscriptionList =
+                        notificationSubscriptionRepo.findAllByIsActive(true);
+                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+                    String emailAddress = notificationSubscription.getEmail();
+                    dbEmailList.add(emailAddress);
+                }
+
                 NotificationEntity notification = new NotificationEntity();
                 notification.setTitle("New Version Published.");
                 notification.setSender(savedVersionEntity.getPublishedBy());
                 notification.setMessage(message);
+                notification.setEmailList(dbEmailList);
                 notificationService.createNotification(notification);
 
                 //Create pdf

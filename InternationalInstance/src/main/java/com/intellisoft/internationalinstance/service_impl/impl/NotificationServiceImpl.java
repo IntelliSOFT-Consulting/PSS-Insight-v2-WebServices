@@ -1,8 +1,6 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
-import com.intellisoft.internationalinstance.DbNotificationData;
-import com.intellisoft.internationalinstance.DbResults;
-import com.intellisoft.internationalinstance.Results;
+import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.NotificationEntity;
 import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
@@ -17,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,72 +29,83 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public Response subscribe(NotificationSubscription notificationSubscription) {
+    public Results subscribe(DbNotificationSub notificationSubscription) {
         try{
+
+            NotificationSubscription subscription = new NotificationSubscription();
+            if (notificationSubscription.getLastName() != null) subscription.setLastName(notificationSubscription.getLastName());
+            if (notificationSubscription.getPhoneNumber() != null) subscription.setPhone(notificationSubscription.getPhoneNumber());
+            subscription.setFirstName(notificationSubscription.getFirstName());
+            subscription.setEmail(notificationSubscription.getEmail());
+
+
             var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
             if (savedSubscription.isEmpty())
-                notificationSubscriptionRepo.save(notificationSubscription);
+                notificationSubscriptionRepo.save(subscription);
             else {
                 savedSubscription.get().setIsActive(true);
-                savedSubscription.get().setPhone(notificationSubscription.getPhone());
+
+                if (notificationSubscription.getLastName() != null) savedSubscription.get().setLastName(notificationSubscription.getLastName());
+                if (notificationSubscription.getPhoneNumber() != null) savedSubscription.get().setPhone(notificationSubscription.getPhoneNumber());
+                savedSubscription.get().setPhone(notificationSubscription.getPhoneNumber());
                 savedSubscription.get().setFirstName(notificationSubscription.getFirstName());
-                savedSubscription.get().setLastName(notificationSubscription.getLastName());
+
                 notificationSubscriptionRepo.save(savedSubscription.get());
             }
-            return Response.builder()
-                    .message("Successfully subscribed")
-                    .httpStatus("Success")
-                    .httpStatusCode(200)
-                    .status("Success")
-                    .build();
+            return new Results(200, notificationSubscription);
         }
         catch (Exception e){
-            return Response.builder()
-                    .message("Unable to subscribe user")
-                    .httpStatus("Failed")
-                    .httpStatusCode(400)
-                    .status("Failed")
-                    .build();
+            e.printStackTrace();
+            return new Results(400, "Saving resource not possible.");
         }
     }
 
     @Override
-    public Response unsubscribe(String email) {
+    public Results unsubscribe(String email) {
         var savedSubscription = notificationSubscriptionRepo.findByEmail(email);
         if (savedSubscription.isEmpty())
-            return Response.builder()
-                    .message("You have not subscribed")
-                    .httpStatus("Success")
-                    .httpStatusCode(400)
-                    .status("Failed")
-                    .build();
+            return new Results(400, "Resource not found.");
 
         savedSubscription.get().setIsActive(false);
         notificationSubscriptionRepo.save(savedSubscription.get());
 
-        return Response.builder()
-                .message("Successfully unsubscribed")
-                .httpStatus("Success")
-                .httpStatusCode(200)
-                .status("Success")
-                .build();
+        return new Results(200,
+                savedSubscription.get().getEmail() + " has been unsubscribed successfully.");
     }
 
     @Override
-    public Results getNotifications(int no, int size, String status, String emailAddress) {
+    public Results getNotifications(int no, int size,String emailAddress) {
 
         Optional<NotificationSubscription> subscriptionOptional =
                 notificationSubscriptionRepo.findByEmail(emailAddress);
         if (subscriptionOptional.isEmpty()){
+            return new Results(400, "We don't have a record of the email address.");
+        }
+        if (!subscriptionOptional.get().getIsActive()){
             return new Results(400, "The user is not subscribed to the notifications.");
         }
 
-        Pageable pageable = PageRequest.of(no, size);
-        Page<NotificationEntity> page = notificationEntityRepo.findAll(pageable);
-        List<NotificationEntity> notificationEntities = page.getContent();
+        List<DbNotification> dbNotificationList = new ArrayList<>();
+        List<NotificationEntity> notificationEntityList = notificationEntityRepo.findByEmailAddress(emailAddress);
+        for (NotificationEntity notification: notificationEntityList){
+            DbNotification dbNotification = new DbNotification(
+                    notification.getTitle(),
+                    notification.getMessage(),
+                    notification.getSender(),
+                    String.valueOf(notification.getCreatedAt())
+            );
+            dbNotificationList.add(dbNotification);
+        }
+        /**
+         * TODO: add pagination for this
+         */
+
+//        Pageable pageable = PageRequest.of(no, size);
+//        Page<NotificationEntity> page = notificationEntityRepo.findByEmailAddressPage(emailAddress, pageable);
+//        List<NotificationEntity> notificationEntities = page.getContent();
         DbResults dbResults = new DbResults(
-                notificationEntities.size(),
-                notificationEntities
+                dbNotificationList.size(),
+                dbNotificationList
         );
 
         return new Results(200, dbResults);
@@ -106,24 +116,91 @@ public class NotificationServiceImpl implements NotificationService {
 
         try{
             NotificationEntity notification = notificationEntityRepo.save(notificationEntity);
+            List<String> emailList = notification.getEmailList();
 
-            DbNotificationData dbNotificationData = new DbNotificationData(
-                    "",
-                    String.valueOf(notification.getCreatedAt()),
-                    notification.getTitle(),
-                    notification.getMessage()
-            );
+            if (!emailList.isEmpty()){
+                DbNotificationData dbNotificationData = new DbNotificationData(
+                        emailList,
+                        String.valueOf(notification.getCreatedAt()),
+                        notification.getTitle(),
+                        notification.getMessage()
+                );
+                javaMailSenderService.sendEmailBackground(dbNotificationData);
+                return new Results(200, notification);
+            }else {
+                return new Results(400, "Email list is empty.");
 
-            javaMailSenderService.sendEmailBackground(dbNotificationData);
+            }
 
-
-            return new Results(200, notification);
         }catch (Exception e){
             return new Results(400, "Failed saving notification.");
 
         }
 
     }
+
+    @Override
+    public Results sendNotification(DbSendNotification dbSendNotification) {
+
+        try {
+
+            String message = dbSendNotification.getMessage();
+            String title = dbSendNotification.getTitle();
+            String sender = dbSendNotification.getSender();
+
+            //There should be a list with the email addresses.
+            List<String> emailList = dbSendNotification.getEmailList();
+            List<String> dbEmailList = new ArrayList<>();
+
+            boolean sendAll = Boolean.TRUE.equals(dbSendNotification.getSendAll());
+            if (!sendAll){
+                // Check if the user wants to send to specific people
+                if(!emailList.isEmpty()){
+                    // Check if the email list is provided
+                    return new Results(400, "If the send all is not selected, the email list cannot be empty");
+                }else {
+                    dbEmailList = emailList;
+                }
+            }else {
+                List<NotificationSubscription> notificationSubscriptionList =
+                        notificationSubscriptionRepo.findAllByIsActive(true);
+                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+                    String emailAddress = notificationSubscription.getEmail();
+                    dbEmailList.add(emailAddress);
+                }
+            }
+
+            if (!dbEmailList.isEmpty()){
+                //Save to entity
+                NotificationEntity notificationEntity = new NotificationEntity();
+                notificationEntity.setTitle(title);
+                notificationEntity.setMessage(message);
+                notificationEntity.setEmailList(dbEmailList);
+                notificationEntity.setSender(sender);
+                notificationEntityRepo.save(notificationEntity);
+
+                //Send email address
+                DbNotificationData dbNotificationData = new DbNotificationData(
+                        dbEmailList,
+                        String.valueOf(notificationEntity.getCreatedAt()),
+                        notificationEntity.getTitle(),
+                        notificationEntity.getMessage()
+                );
+                javaMailSenderService.sendEmailBackground(dbNotificationData);
+
+                return new Results(200, new DbDetails("Notification has been sent"));
+            }else {
+                return new Results(400, "We can't find any email list");
+
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return new Results(400, "There was an issue sending the email address.");
+        }
+
+    }
+
 
 
 }

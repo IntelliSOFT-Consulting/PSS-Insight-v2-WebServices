@@ -56,7 +56,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
             String htmlContent = new String(sendEmailClassPath.getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8);
 
-            List<String> emailAddressList = getEmailAddress();
+            List<String> emailAddressList = dbNotificationData.getEmailAddress();
             for (String emailAddress: emailAddressList){
 
                 String title = dbNotificationData.getTitle();
@@ -86,16 +86,16 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
     }
 
-    private List<String> getEmailAddress(){
-        List<String> stringList = new ArrayList<>();
-        List<NotificationSubscription> emailAddressList = notificationSubscriptionRepo.findAll();
-        for (NotificationSubscription notificationSubscription: emailAddressList){
-            boolean isActive = notificationSubscription.getIsActive();
-            if (isActive){
-                String emailAddress = notificationSubscription.getEmail();
-                stringList.add(emailAddress);
-            }
-        }
-        return stringList;
-    }
+//    private List<String> getEmailAddress(){
+//        List<String> stringList = new ArrayList<>();
+//        List<NotificationSubscription> emailAddressList = notificationSubscriptionRepo.findAll();
+//        for (NotificationSubscription notificationSubscription: emailAddressList){
+//            boolean isActive = notificationSubscription.getIsActive();
+//            if (isActive){
+//                String emailAddress = notificationSubscription.getEmail();
+//                stringList.add(emailAddress);
+//            }
+//        }
+//        return stringList;
+//    }
 }

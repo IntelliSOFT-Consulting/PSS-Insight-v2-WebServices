@@ -85,7 +85,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                           String surveyId,
                           String customAppUrl ){
 
-        String password = formatterClass.getOtp();
+        String password = formatterClass.getOtp().trim();
 
         SurveyRespondents surveyRespondents = new SurveyRespondents();
         surveyRespondents.setSurveyId(surveyId);
