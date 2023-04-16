@@ -30,6 +30,24 @@ public class NotificationController {
 
     }
 
+    @GetMapping("/list")
+    public ResponseEntity<?> getIndicatorForFrontEnd(
+            @RequestParam("email") String email,
+            @RequestParam(value = "limit", required = false) String limit,
+            @RequestParam(value = "pageNo", required = false) String pageNo
+    ) {
+
+        int limitNo = 10;
+        if (limit != null && !limit.equals("")){
+            limitNo = Integer.parseInt(limit);
+        }
+        int pageNumber = 1;
+        if (pageNo != null && !pageNo.equals("")){
+            pageNumber = Integer.parseInt(pageNo);
+        }
+        Results results = notificationService.getNotifications(limitNo, pageNumber, email);
+        return formatterClass.getResponse(results);
+    }
 
 
 

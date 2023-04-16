@@ -374,3 +374,7 @@ data class DbNotification(
     val sender: String,
     val createdAt:String
 )
+data class DbEmailData(
+    val email: String,
+    val isRead: Boolean
+)

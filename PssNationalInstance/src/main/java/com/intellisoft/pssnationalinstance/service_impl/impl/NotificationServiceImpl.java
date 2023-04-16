@@ -54,7 +54,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Results getNotifications(int no, int size, String status, String emailAddress) {
-        return null;
+    public Results getNotifications(int no, int size, String emailAddress) {
+        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"list?email="+emailAddress;
+        return getIntResults(internationalBaseApi);
     }
 }
