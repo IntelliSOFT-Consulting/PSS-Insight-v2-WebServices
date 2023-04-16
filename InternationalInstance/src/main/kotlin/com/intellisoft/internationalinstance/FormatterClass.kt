@@ -287,21 +287,9 @@ class FormatterClass {
         val pat = Pattern.compile(emailRegex)
         return pat.matcher(emailAddress).matches()
     }
-
-    fun getOpenMrsDate(time: String): String? {
-
-        return try {
-
-            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-            val output = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-            val d = sdf.parse(time)
-            output.format(d)
-
-        }catch (e: Exception){
-            null
-        }
-
-
+    fun getTodayDate():String{
+        val currentDate = Date()
+        return currentDate.toString()
     }
 
 

@@ -59,7 +59,7 @@ data class DbMetadataValue(
     @JsonProperty("versionDescription")
     val versionDescription: String?,
     @JsonProperty("metadata")
-    val metadata: DbMetadataJsonData
+    var metadata: DbMetadataJsonData
 )
 
 data class DbMetadataJsonData(
@@ -91,7 +91,13 @@ data class DbMetadataJsonData(
     @JsonProperty("indicatorDescriptions")
     var indicatorDescriptions: Any?,
     @JsonProperty("publishedVersion")
-    var publishedVersion: Any?
+    var publishedVersion: Any?,
+
+    @JsonProperty("indicatorDetails")
+    var indicatorDetails: DbIndicatorDetails?,
+
+    @JsonProperty("referenceSheet")
+    var referenceSheet: Any?,
 )
 
 data class DbPublishedVersion(
@@ -275,6 +281,56 @@ data class DbProgramsData(
     var indicatorDescriptions: Any?,
     @JsonProperty("publishedGroups")
     var publishedGroups: Any?,
+
+    @JsonProperty("indicatorDetails")
+    var indicatorDetails: DbIndicatorDetails?,
+    @JsonProperty("publishedVersion")
+    var publishedVersion: Any?
+)
+
+data class DbIndicatorDetails(
+    @JsonProperty("date")
+    var date: Any?,
+    @JsonProperty("indicatorName")
+    var indicatorName: Any?,
+    @JsonProperty("indicatorCode")
+    var indicatorCode: Any?,
+    @JsonProperty("dataType")
+    var dataType: Any?,
+    @JsonProperty("topic")
+    var topic: Any?,
+    @JsonProperty("definition")
+    var definition: Any?,
+    @JsonProperty("assessmentQuestions")
+    var assessmentQuestions: List<DbAssessmentQuestion>,
+    @JsonProperty("purposeAndIssues")
+    var purposeAndIssues: Any?,
+    @JsonProperty("preferredDataSources")
+    var preferredDataSources: Any?,
+    @JsonProperty("methodOfEstimation")
+    var methodOfEstimation: Any?,
+    @JsonProperty("proposedScoring")
+    var proposedScoring: Any?,
+    @JsonProperty("expectedFrequencyDataDissemination")
+    var expectedFrequencyDataDissemination: Any?,
+    @JsonProperty("indicatorReference")
+    var indicatorReference: Any?,
+    @JsonProperty("indicatorSource")
+    var indicatorSource: Any?,
+    @JsonProperty("createdBy")
+    var createdBy: DbCreatedBy?,
+
+)
+data class DbCreatedBy(
+    val id:Any?,
+    val code:Any?,
+    val name:Any?,
+    val username:Any?,
+    val displayName:Any?,
+)
+data class DbAssessmentQuestion(
+    val valueType: Any?,
+    val name: Any?
 )
 data class DbDataValuesData(
     val code: String,
@@ -304,8 +360,8 @@ data class DbIndicatorDescription(
     val Indicator_Code: String?
 )
 data class DbIndicatorDescriptionData(
-    val Description: String?,
-    val Indicator_Code: String?
+    val description: String?,
+    val indicatorCode: String?
 )
 data class DbVersionDetails(
     val id: Long,
