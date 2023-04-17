@@ -2,7 +2,7 @@ package com.intellisoft.pssnationalinstance.util;
 
 public class AppConstants {
     public static final String APP_NAME = "International Instance";
-    public static final String INTERNATIONAL_BASE_API="http://172.104.91.116:7001/api/v1/";
+    public static final String INTERNATIONAL_BASE_API="http://172.104.91.116:7009/api/v1/";
 
     public static final String INTERNATIONAL_NOTIFICATION=INTERNATIONAL_BASE_API+"notification/";
     public static final String INTERNATIONAL_BASE_URL="http://pssinternational.intellisoftkenya.com/api/";
