@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.NotificationEntity;
+import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.VersionEntity;
+import com.intellisoft.internationalinstance.db.repso.NotificationSubscriptionRepo;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
@@ -35,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
 
@@ -53,6 +56,7 @@ public class InternationalServiceImpl implements InternationalService {
     private final FormatterClass formatterClass = new FormatterClass();
     private final VersionRepos versionRepos;
     private final NotificationService notificationService;
+    private final NotificationSubscriptionRepo notificationSubscriptionRepo;
 
     @Override
     public Results getIndicators() {
@@ -327,10 +331,20 @@ public class InternationalServiceImpl implements InternationalService {
                                 "Version description: " + savedVersionEntity.getVersionDescription() + "\n" +
                                 "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
+                List<String> dbEmailList = new ArrayList<>();
+                //Get subscribed email addresses
+                List<NotificationSubscription> notificationSubscriptionList =
+                        notificationSubscriptionRepo.findAllByIsActive(true);
+                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+                    String emailAddress = notificationSubscription.getEmail();
+                    dbEmailList.add(emailAddress);
+                }
+
                 NotificationEntity notification = new NotificationEntity();
                 notification.setTitle("New Version Published.");
                 notification.setSender(savedVersionEntity.getPublishedBy());
                 notification.setMessage(message);
+                notification.setEmailList(dbEmailList);
                 notificationService.createNotification(notification);
 
                 //Create pdf
@@ -346,6 +360,29 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     private DbPdfData getPdfData(DbMetadataValue dbMetadataValue){
+
+        DbIndicatorDetails indicatorDetails = null;
+        DbIndicatorDetails dbIndicatorDetails = dbMetadataValue.getMetadata().getIndicatorDetails();
+        if (dbIndicatorDetails != null){
+            indicatorDetails = dbIndicatorDetails;
+        }else {
+            String version = dbMetadataValue.getVersion();
+            if (version != null){
+                String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+                int pastVersion = Integer.parseInt(version) - 1;
+                DbMetadataValue dbMetadataValuePast =
+                        getMetadata(publishedBaseUrl+pastVersion);
+                if (dbMetadataValuePast != null){
+                    DbMetadataJsonData metadataJsonData = dbMetadataValuePast.getMetadata();
+                    DbIndicatorDetails jsonDataIndicatorDetails = metadataJsonData.getIndicatorDetails();
+                    if (jsonDataIndicatorDetails != null){
+                        indicatorDetails = jsonDataIndicatorDetails;
+                    }
+                }
+            }
+        }
+
+
 
         String title = "Pharmaceutical Products and Services";
         String versionName = dbMetadataValue.getVersion();
@@ -402,6 +439,25 @@ public class InternationalServiceImpl implements InternationalService {
                         dbPdfValueList.add(dbPdfValue);
                     }
 
+                    if (indicatorDetails != null){
+
+                        DbPdfValue d1 =getPdfValue(indicatorDetails.getPurposeAndIssues(), "Purpose and Issues:");
+                        DbPdfValue d2 =getPdfValue(indicatorDetails.getPreferredDataSources(), "Preferred Data Sources:");
+                        DbPdfValue d3 =getPdfValue(indicatorDetails.getMethodOfEstimation(), "Method of Estimation:");
+                        DbPdfValue d4 =getPdfValue(indicatorDetails.getProposedScoring(), "Proposed Scoring or Benchmarking:");
+                        DbPdfValue d5 =getPdfValue(indicatorDetails.getExpectedFrequencyDataDissemination(), "Expected Frequency of Data Dissemination:");
+                        DbPdfValue d6 =getPdfValue(indicatorDetails.getIndicatorReference(), "Indicator Reference Number(s):");
+                        DbPdfValue d7 =getPdfValue(indicatorDetails.getIndicatorSource(), "Indicator Source(s):");
+
+                        if (d1 != null) dbPdfValueList.add(d1);
+                        if (d2 != null) dbPdfValueList.add(d2);
+                        if (d3 != null) dbPdfValueList.add(d3);
+                        if (d4 != null) dbPdfValueList.add(d4);
+                        if (d5 != null) dbPdfValueList.add(d5);
+                        if (d6 != null) dbPdfValueList.add(d6);
+                        if (d7 != null) dbPdfValueList.add(d7);
+
+                    }
 
 
 
@@ -430,6 +486,13 @@ public class InternationalServiceImpl implements InternationalService {
 
     }
 
+    private DbPdfValue getPdfValue(Object object, String title){
+        if (object != null){
+            return new DbPdfValue(title, (String) object);
+        }
+        return null;
+    }
+
     private void generatePdf(DbMetadataValue dbMetadataValue) {
 
         try{
@@ -438,7 +501,22 @@ public class InternationalServiceImpl implements InternationalService {
             if (dbPdfData != null){
                 File file = formatterClass.generatePdfFile(dbPdfData);
                 String id = createFileResource(file);
+                String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
 
+                String publishedVersionNo = dbMetadataValue.getVersion();
+                //Get metadata json
+                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents/"+id+"/data";
+                dbMetadataValue.getMetadata().setReferenceSheet(fileUrl);
+
+                var response = GenericWebclient.putForSingleObjResponse(
+                        publishedBaseUrl+publishedVersionNo,
+                        dbMetadataValue,
+                        DbMetadataValue.class,
+                        Response.class);
+                System.out.println("------");
+                System.out.println("reference sheet");
+                System.out.println(response);
+                System.out.println("------");
 
             }
 
@@ -493,6 +571,64 @@ public class InternationalServiceImpl implements InternationalService {
         return "";
     }
 
+    @Override
+    public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
+
+        /**
+         * TODO: Check on how to create indicators into the datastore,
+           Remember to add comments and uploads
+         */
+
+//        String indicatorName = (String) dbIndicatorDetails.getIndicatorName();
+//        String indicatorCode = (String) dbIndicatorDetails.getIndicatorCode();
+//        String dataType = (String) dbIndicatorDetails.getDataType();
+//        String topic = (String) dbIndicatorDetails.getTopic();
+//        String definition = (String) dbIndicatorDetails.getDefinition();
+//        List<DbAssessmentQuestion> assessmentQuestions = dbIndicatorDetails.getAssessmentQuestions();
+//        String purposeAndIssues = (String) dbIndicatorDetails.getPurposeAndIssues();
+//        String preferredDataSources = (String) dbIndicatorDetails.getPreferredDataSources();
+//        String methodOfEstimation = (String) dbIndicatorDetails.getMethodOfEstimation();
+//        String proposedScoring = (String) dbIndicatorDetails.getProposedScoring();
+//        String expectedFrequencyDataDissemination = (String) dbIndicatorDetails.getExpectedFrequencyDataDissemination();
+//        String indicatorReference = (String) dbIndicatorDetails.getIndicatorReference();
+//        DbCreatedBy createdBy = dbIndicatorDetails.getCreatedBy();
+
+        try{
+
+            String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+            int publishedVersionNo = getVersions(publishedBaseUrl);
+
+            //Get metadata json
+            DbMetadataValue dbMetadataValue =  getMetadata(publishedBaseUrl+publishedVersionNo);
+            if (dbMetadataValue == null){
+                return new Results(400, "There was an issue getting the published version.");
+            }
+
+            dbIndicatorDetails.setDate(formatterClass.getTodayDate());
+
+            DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
+            dbMetadataJsonData.setIndicatorDetails(dbIndicatorDetails);
+
+            dbMetadataValue.setMetadata(dbMetadataJsonData);
+
+            var response = GenericWebclient.putForSingleObjResponse(
+                    publishedBaseUrl+publishedVersionNo,
+                    dbMetadataValue,
+                    DbMetadataValue.class,
+                    Response.class);
+
+            if (response.getHttpStatusCode() == 200){
+                return new Results(200, new DbDetails("The indicators values have been added."));
+            }
+            return new Results(400, "There was an issue adding the resource");
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return new Results(400, "Please try again after some time");
+
+        }
+    }
+
 
     public String getDescriptionByCode(String indicatorCode, List<Map<String, String>> indicatorDescriptionsList) {
 
@@ -536,6 +672,32 @@ public class InternationalServiceImpl implements InternationalService {
             }
         }
         return null;
+    }
+
+    private DbMetadataValue getMetadata(String publishedBaseUrl){
+
+        try{
+
+            DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(
+                    publishedBaseUrl, DbMetadataValue.class);
+            if (dbMetadataValue != null){
+                return dbMetadataValue;
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private int getVersions(String url) throws URISyntaxException {
+        var response = GenericWebclient.getForSingleObjResponse(
+                url,
+                List.class);
+        if (!response.isEmpty()){
+            return formatterClass.getNextVersion(response);
+        }else {
+            return 1;
+        }
     }
 
     private List<DbDataElements> getDataElements(String url){

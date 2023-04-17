@@ -6,6 +6,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,6 +23,8 @@ public class NotificationEntity {
     private String title;
     private String message;
     private String sender;
+    @ElementCollection
+    private List<String> emailList;
     @CreationTimestamp
     private Date createdAt;
     @UpdateTimestamp

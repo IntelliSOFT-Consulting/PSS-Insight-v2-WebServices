@@ -3,6 +3,12 @@ package com.intellisoft.pssnationalinstance
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class Results(val code: Int, val details: Any?)
+data class DbResultsApi(
+    @JsonProperty("code")
+    val code: Int,
+    @JsonProperty("details")
+    val details: Any?
+)
 
 data class DbResults(
     val count: Int,
@@ -436,4 +442,10 @@ data class DbSurveyRespondentDataDerails(
     val customUrl: String,
     val status: String?
 
+)
+data class DbNotificationSub(
+    val firstName: String,
+    val lastName: String?,
+    val email:String,
+    val phoneNumber:String?
 )

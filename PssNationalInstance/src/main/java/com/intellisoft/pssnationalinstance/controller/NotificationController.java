@@ -1,16 +1,9 @@
-package com.intellisoft.internationalinstance.controller;
+package com.intellisoft.pssnationalinstance.controller;
 
-import com.intellisoft.internationalinstance.*;
-import com.intellisoft.internationalinstance.db.NotificationSubscription;
-import com.intellisoft.internationalinstance.model.Response;
-import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
-import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
-import com.intellisoft.internationalinstance.service_impl.service.VersionService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import com.intellisoft.pssnationalinstance.DbNotificationSub;
+import com.intellisoft.pssnationalinstance.FormatterClass;
+import com.intellisoft.pssnationalinstance.Results;
+import com.intellisoft.pssnationalinstance.service_impl.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,19 +30,12 @@ public class NotificationController {
 
     }
 
-    @PostMapping("send")
-    public ResponseEntity<?> sendNotification(@RequestBody DbSendNotification dbSendNotification)  {
-
-        Results results = notificationService.sendNotification(dbSendNotification);
-        return formatterClass.getResponse(results);
-    }
-
     @GetMapping("/list")
     public ResponseEntity<?> getIndicatorForFrontEnd(
             @RequestParam("email") String email,
             @RequestParam(value = "limit", required = false) String limit,
             @RequestParam(value = "pageNo", required = false) String pageNo
-            ) {
+    ) {
 
         int limitNo = 10;
         if (limit != null && !limit.equals("")){
