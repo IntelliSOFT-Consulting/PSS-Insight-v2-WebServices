@@ -587,7 +587,7 @@ public class InternationalServiceImpl implements InternationalService {
                                         DbFileData.class,
                                         DbFileResponse.class);
                                 System.out.println("-----file");
-                                System.out.println(response);
+                                System.out.println(response.getResponse().getUid());
                                 System.out.println("-----");
 
                                 if (response.getHttpStatusCode() == 201){
