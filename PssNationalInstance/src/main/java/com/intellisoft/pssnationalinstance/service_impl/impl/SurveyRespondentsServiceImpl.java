@@ -327,12 +327,22 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 //            }
 
             DbResponseDetails dbResponseDetailsValues =
-                    new DbResponseDetails(
-                            null,
-                            null,
-                            null);
+                    new DbResponseDetails(null, null, null);
 
             if (respondentDetails != null){
+
+                DbMetadataJson publishedData = nationalTemplateService.getPublishedMetadataJson();
+                DbPrograms dbPrograms = publishedData.getMetadata();
+                //Get the reference sheet
+                String refSheet = "";
+                if (dbPrograms != null){
+                    Object referenceSheet = dbPrograms.getReferenceSheet();
+                    if (referenceSheet != null){
+                        refSheet = (String) referenceSheet;
+                    }
+                }
+
+
                 DbRespondentsDetails dbRespondentsDetails =
                         new DbRespondentsDetails(
                                 Long.parseLong(respondentId),
@@ -342,7 +352,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                                 surveyName,
                                 surveyDesc,
                                 landingPage,
-                                null
+                                refSheet
                         );
                 dbResponseDetailsValues.setRespondentDetails(dbRespondentsDetails);
             }

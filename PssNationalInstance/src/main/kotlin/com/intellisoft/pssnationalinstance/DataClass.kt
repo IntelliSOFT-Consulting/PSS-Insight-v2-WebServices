@@ -60,6 +60,8 @@ data class DbPrograms(
     val indicatorDescriptions: Any?,
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
+    @JsonProperty("referenceSheet")
+    var referenceSheet: Any?,
 )
 
 

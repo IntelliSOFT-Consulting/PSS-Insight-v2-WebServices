@@ -113,7 +113,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results createNotification(NotificationEntity notificationEntity) {
-
+        System.out.println("************ 3");
         try{
             NotificationEntity notification = notificationEntityRepo.save(notificationEntity);
             List<String> emailList = notification.getEmailList();
@@ -133,6 +133,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
         }catch (Exception e){
+            System.out.println("************ 3 error");
             return new Results(400, "Failed saving notification.");
 
         }

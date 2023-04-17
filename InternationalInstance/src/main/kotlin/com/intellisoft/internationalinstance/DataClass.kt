@@ -334,7 +334,9 @@ data class DbCreatedBy(
     val displayName:Any?,
 )
 data class DbAssessmentQuestion(
+    @JsonProperty("valueType")
     val valueType: Any?,
+    @JsonProperty("name")
     val name: Any?
 )
 data class DbDataValuesData(
@@ -435,7 +437,20 @@ data class DbNotification(
     val sender: String,
     val createdAt:String
 )
-data class DbEmailData(
-    val email: String,
-    val isRead: Boolean
+data class DbFileData(
+    val name: String,
+    val type: String,
+    val attachment: Boolean,
+    val external: Boolean,
+    val url: String,
+)
+data class DbFileResponse(
+    @JsonProperty("httpStatusCode")
+    val httpStatusCode: Int,
+    @JsonProperty("response")
+    val response: DbResp?
+)
+data class DbResp(
+    @JsonProperty("uid")
+    val uid: String
 )
