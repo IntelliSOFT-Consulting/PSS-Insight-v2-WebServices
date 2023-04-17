@@ -645,6 +645,9 @@ public class InternationalServiceImpl implements InternationalService {
             dbIndicatorDetails.setDate(formatterClass.getTodayDate());
 
             DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
+
+            dbMetadataJsonData.getIndicatorDetails();
+
             dbMetadataJsonData.setIndicatorDetails(dbIndicatorDetails);
 
             dbMetadataValue.setMetadata(dbMetadataJsonData);
