@@ -1,10 +1,14 @@
 package com.intellisoft.internationalinstance
 
 
+import com.intellisoft.internationalinstance.db.VersionEntity
+import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl
+import com.intellisoft.internationalinstance.util.GenericWebclient
 import com.itextpdf.text.*
 import com.itextpdf.text.pdf.PdfPCell
 import com.itextpdf.text.pdf.PdfPTable
 import com.itextpdf.text.pdf.PdfWriter
+import kotlinx.coroutines.*
 import org.springframework.http.ResponseEntity
 import java.io.File
 import java.io.FileOutputStream
@@ -15,14 +19,84 @@ import java.util.regex.Pattern
 
 class FormatterClass {
 
+    fun startBackGroundTask(
+        url: String,
+        versionDescription: String,
+        savedVersionEntity: VersionEntity,
+        internationalService: InternationalServiceImpl,
+        indicatorList:List<String>
+        ){
+        GlobalScope.launch {
+            doBackGroundTask(
+                url,
+                versionDescription,
+                savedVersionEntity,
+                internationalService,
+                indicatorList)
+        }
+    }
+
+
+    suspend fun doBackGroundTask(
+        url: String,
+        versionDescription: String,
+        savedVersionEntity: VersionEntity,
+        internationalService: InternationalServiceImpl,
+        indicatorList:List<String>
+    ) {
+        withContext(Dispatchers.IO) {
+            // Run some background task here
+            val dbIndicatorsValueListNew = ArrayList<DbIndicatorsValue>()
+            val dbIndicatorsValueList: List<DbIndicatorsValue> = internationalService.indicatorsValues
+
+            for (dbIndicatorsValue in dbIndicatorsValueList){
+
+                val dbIndicatorDataValuesList = ArrayList<DbIndicatorDataValues?>()
+                val categoryName = dbIndicatorsValue.categoryName as String?
+
+                val indicatorDataValuesList = dbIndicatorsValue.indicators
+                for (dbIndicatorDataValues in indicatorDataValuesList){
+                    val categoryId = dbIndicatorDataValues?.categoryId as String?
+                    if (indicatorList.contains(categoryId)) {
+                        dbIndicatorDataValuesList.add(dbIndicatorDataValues)
+                    }
+                }
+
+                if (!dbIndicatorDataValuesList.isEmpty()) {
+                    val dbIndicatorsValueNew = DbIndicatorsValue(
+                        categoryName,
+                        dbIndicatorDataValuesList
+                    )
+                    dbIndicatorsValueListNew.add(dbIndicatorsValueNew)
+                }
+            }
+            val dbResults = DbResults(
+                dbIndicatorsValueListNew.size,
+                dbIndicatorsValueListNew
+            )
+
+            val dbMetadataJsonData = GenericWebclient
+                .getForSingleObjResponse<DbMetadataJsonData, Exception>(
+                    url, DbMetadataJsonData::class.java
+                )
+            dbMetadataJsonData.publishedVersion = dbResults
+            val versionNo = (internationalService.internationalVersions + 1).toString()
+
+            val dbMetadataJson = DbMetadataValue(
+                versionNo,
+                versionDescription,
+                dbMetadataJsonData
+            )
+            internationalService.pushMetadata(dbMetadataJson, savedVersionEntity)
+
+        }
+    }
 
     fun generatePdfFile(dbPdfData: DbPdfData):File {
         val pdfFile = File("file.pdf")
         val document = Document(PageSize.A4, 50f, 50f, 50f, 50f)
         PdfWriter.getInstance(document, FileOutputStream(pdfFile))
         document.open()
-
-        // Add title
 
         // Add title
         val titleFont = Font(Font.FontFamily.HELVETICA, 36f, Font.BOLD, BaseColor.WHITE)

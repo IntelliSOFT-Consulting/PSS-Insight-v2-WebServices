@@ -34,6 +34,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -226,55 +227,62 @@ public class InternationalServiceImpl implements InternationalService {
         if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
         if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
         versionEntity.setStatus(status);
-
-
-        VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
+        VersionEntity savedVersionEntity =
+                versionRepos.save(versionEntity);
         if (isPublished){
 
             try{
                 String url = internationalUrl + programsUrl;
 
-                List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
+//                List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
+//
+//                List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
+//                for (DbIndicatorsValue dbIndicatorsValue: dbIndicatorsValueList){
+//
+//                    List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
+//                    String categoryName = (String) dbIndicatorsValue.getCategoryName();
+//
+//                    List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
+//                    for (DbIndicatorDataValues dbIndicatorDataValues: indicatorDataValuesList){
+//                        String categoryId = (String) dbIndicatorDataValues.getCategoryId();
+//                        if (indicatorList.contains(categoryId)){
+//                            dbIndicatorDataValuesList.add(dbIndicatorDataValues);
+//                        }
+//                    }
+//
+//                    if (!dbIndicatorDataValuesList.isEmpty()){
+//                        DbIndicatorsValue dbIndicatorsValueNew = new DbIndicatorsValue(
+//                                categoryName,
+//                                dbIndicatorDataValuesList
+//                        );
+//                        dbIndicatorsValueListNew.add(dbIndicatorsValueNew);
+//                    }
+//
+//                }
+//                DbResults dbResults = new DbResults(
+//                        dbIndicatorsValueListNew.size(),
+//                        dbIndicatorsValueListNew);
 
-                List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
-                for (DbIndicatorsValue dbIndicatorsValue: dbIndicatorsValueList){
-
-                    List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
-                    String categoryName = (String) dbIndicatorsValue.getCategoryName();
-
-                    List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
-                    for (DbIndicatorDataValues dbIndicatorDataValues: indicatorDataValuesList){
-                        String categoryId = (String) dbIndicatorDataValues.getCategoryId();
-                        if (indicatorList.contains(categoryId)){
-                            dbIndicatorDataValuesList.add(dbIndicatorDataValues);
-                        }
-                    }
-
-                    if (!dbIndicatorDataValuesList.isEmpty()){
-                        DbIndicatorsValue dbIndicatorsValueNew = new DbIndicatorsValue(
-                                categoryName,
-                                dbIndicatorDataValuesList
-                        );
-                        dbIndicatorsValueListNew.add(dbIndicatorsValueNew);
-                    }
-
-                }
-                DbResults dbResults = new DbResults(
-                        dbIndicatorsValueListNew.size(),
-                        dbIndicatorsValueListNew);
-
-                DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(
-                        url, DbMetadataJsonData.class);
-                dbMetadataJsonData.setPublishedVersion(dbResults);
-
-                String versionNo = String.valueOf(getInternationalVersions() + 1);
-
-                DbMetadataValue dbMetadataJson = new DbMetadataValue(
-                        versionNo,
+                formatterClass.startBackGroundTask(
+                        url,
                         versionDescription,
-                        dbMetadataJsonData);
+                        savedVersionEntity,
+                        this,
+                        indicatorList
+                );
 
-                pushMetadata(dbMetadataJson, savedVersionEntity);
+//                DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(
+//                        url, DbMetadataJsonData.class);
+//                dbMetadataJsonData.setPublishedVersion(dbResults);
+//
+//                String versionNo = String.valueOf(getInternationalVersions() + 1);
+//
+//                DbMetadataValue dbMetadataJson = new DbMetadataValue(
+//                        versionNo,
+//                        versionDescription,
+//                        dbMetadataJsonData);
+//
+//                pushMetadata(dbMetadataJson, savedVersionEntity);
 
             }catch (Exception e){
                 e.printStackTrace();
@@ -284,11 +292,13 @@ public class InternationalServiceImpl implements InternationalService {
 
         }
 
-        return new Results(200, versionEntity);
+        return new Results(200, new DbDetails("Version request is being processed."));
     }
 
-    @Async
-    void pushMetadata(DbMetadataValue dbMetadataJsonData, VersionEntity savedVersionEntity){
+    @Transactional
+    public void pushMetadata(
+            DbMetadataValue dbMetadataJsonData,
+            VersionEntity savedVersionEntity){
         String groupUrl = internationalUrl + groupsUrl;
         String indicatorDescriptionUrl = internationalUrl + indicatorUrl;
 
@@ -314,6 +324,7 @@ public class InternationalServiceImpl implements InternationalService {
                     dbMetadataJsonData,
                     DbMetadataValue.class,
                     Response.class);
+
             if (response.getHttpStatusCode() < 200) {
 //                throw new CustomException("Unable to create/update record on data store"+response);
 
@@ -328,7 +339,7 @@ public class InternationalServiceImpl implements InternationalService {
                                 savedVersionEntity.getPublishedBy() + " from the international instance. " +
                                 "The new template has the following details: " +
                                 "Version number: " + savedVersionEntity.getVersionName() + "\n" +
-                                "Version description: " + savedVersionEntity.getVersionDescription() + "\n" +
+                                "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" +
                                 "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
                 List<String> dbEmailList = new ArrayList<>();
@@ -373,6 +384,7 @@ public class InternationalServiceImpl implements InternationalService {
                 DbMetadataValue dbMetadataValuePast =
                         getMetadata(publishedBaseUrl+pastVersion);
                 if (dbMetadataValuePast != null){
+
                     DbMetadataJsonData metadataJsonData = dbMetadataValuePast.getMetadata();
                     DbIndicatorDetails jsonDataIndicatorDetails = metadataJsonData.getIndicatorDetails();
                     if (jsonDataIndicatorDetails != null){
@@ -383,6 +395,10 @@ public class InternationalServiceImpl implements InternationalService {
         }
 
 
+
+        /**
+         * TODO: Remember the indicator reference has not been saved
+         */
 
         String title = "Pharmaceutical Products and Services";
         String versionName = dbMetadataValue.getVersion();
@@ -521,6 +537,7 @@ public class InternationalServiceImpl implements InternationalService {
             }
 
         }catch (Exception e){
+            System.out.println("************ 4 error");
             e.printStackTrace();
         }
 
@@ -541,7 +558,6 @@ public class InternationalServiceImpl implements InternationalService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", new FileSystemResource(file));
 
-
             HttpEntity<MultiValueMap<String, Object>> requestEntity =
                     new HttpEntity<>(body, headers);
 
@@ -556,7 +572,29 @@ public class InternationalServiceImpl implements InternationalService {
                         if (responseEntity.getBody().getResponse().getFileResource() != null){
                             String id = responseEntity.getBody().getResponse().getFileResource().getId();
                             if (id != null){
-                                return id;
+                                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL+"documents";
+
+                                DbFileData dbFileData = new DbFileData(
+                                        id,
+                                        "UPLOAD_FILE",
+                                        true,
+                                        false,
+                                        id);
+
+                                var response = GenericWebclient.postForSingleObjResponse(
+                                        fileUrl,
+                                        dbFileData,
+                                        DbFileData.class,
+                                        DbFileResponse.class);
+                                System.out.println("-----file");
+                                System.out.println(response);
+                                System.out.println("-----");
+
+                                if (response.getHttpStatusCode() == 201){
+                                    if(response.getResponse() != null){
+                                        return response.getResponse().getUid();
+                                    }
+                                }
                             }
 
                         }
@@ -644,7 +682,7 @@ public class InternationalServiceImpl implements InternationalService {
         return null; // return null if no match is found
     }
 
-    private int getInternationalVersions() {
+    public int getInternationalVersions() {
 
         try{
             var response = GenericWebclient.getForSingleObjResponse(
