@@ -27,19 +27,6 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
          Remember to add comments and uploads
          */
 
-//        String indicatorName = (String) dbIndicatorDetails.getIndicatorName();
-//        String indicatorCode = (String) dbIndicatorDetails.getIndicatorCode();
-//        String dataType = (String) dbIndicatorDetails.getDataType();
-//        String topic = (String) dbIndicatorDetails.getTopic();
-//        String definition = (String) dbIndicatorDetails.getDefinition();
-//        List<DbAssessmentQuestion> assessmentQuestions = dbIndicatorDetails.getAssessmentQuestions();
-//        String purposeAndIssues = (String) dbIndicatorDetails.getPurposeAndIssues();
-//        String preferredDataSources = (String) dbIndicatorDetails.getPreferredDataSources();
-//        String methodOfEstimation = (String) dbIndicatorDetails.getMethodOfEstimation();
-//        String proposedScoring = (String) dbIndicatorDetails.getProposedScoring();
-//        String expectedFrequencyDataDissemination = (String) dbIndicatorDetails.getExpectedFrequencyDataDissemination();
-//        String indicatorReference = (String) dbIndicatorDetails.getIndicatorReference();
-//        DbCreatedBy createdBy = dbIndicatorDetails.getCreatedBy();
 
         try{
 
@@ -123,17 +110,179 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     @Override
     public Results getIndicatorValues(String uid) {
 
+        DbIndicatorDetails dbIndicatorDetails = getIndicator(uid);
+        if (dbIndicatorDetails != null){
+            return new Results(200, dbIndicatorDetails);
+        }
+
+        return new Results(400, "Resource not found");
+    }
+    private DbIndicatorDetails getIndicator(String uid){
         List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
         for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
 
             String uuid = (String) dbIndicatorDetails.getUuid();
             if (uid.equals(uuid)){
-                return new Results(200, dbIndicatorDetails);
+                return dbIndicatorDetails;
             }
 
         }
+        return null;
+    }
 
-        return new Results(400, "Resource not found");
+    @Override
+    public Results updateDictionary(DbIndicatorDetails dbIndicatorDetails) {
+
+        /**
+         * TODO: UPDATE ASSESSMENT QUESTIONS
+         */
+
+        try{
+
+            String indicatorName = (String) dbIndicatorDetails.getIndicatorName();
+            String indicatorCode = (String) dbIndicatorDetails.getIndicatorCode();
+            String dataType = (String) dbIndicatorDetails.getDataType();
+            String topic = (String) dbIndicatorDetails.getTopic();
+            String definition = (String) dbIndicatorDetails.getDefinition();
+            List<DbAssessmentQuestion> assessmentQuestions = dbIndicatorDetails.getAssessmentQuestions();
+            String purposeAndIssues = (String) dbIndicatorDetails.getPurposeAndIssues();
+            String preferredDataSources = (String) dbIndicatorDetails.getPreferredDataSources();
+            String methodOfEstimation = (String) dbIndicatorDetails.getMethodOfEstimation();
+            String proposedScoring = (String) dbIndicatorDetails.getProposedScoring();
+            String expectedFrequencyDataDissemination = (String) dbIndicatorDetails.getExpectedFrequencyDataDissemination();
+            String indicatorReference = (String) dbIndicatorDetails.getIndicatorReference();
+            DbCreatedBy createdBy = dbIndicatorDetails.getCreatedBy();
+
+
+            String uid = (String) dbIndicatorDetails.getUuid();
+            if (uid != null){
+                DbIndicatorDetails indicatorDetails = null;
+                List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
+                for (DbIndicatorDetails details : dbIndicatorDetailsList){
+
+                    String uuid = (String) details.getUuid();
+                    if (uid.equals(uuid)){
+                        indicatorDetails = details;
+                        dbIndicatorDetailsList.remove(details);
+                        break;
+                    }
+
+                }
+
+                if (indicatorDetails != null){
+
+                    if (indicatorName != null) indicatorDetails.setIndicatorName(indicatorName);
+                    if (indicatorCode != null) indicatorDetails.setIndicatorCode(indicatorCode);
+                    if (dataType != null) indicatorDetails.setDate(dataType);
+                    if (topic != null) indicatorDetails.setTopic(topic);
+                    if (definition != null) indicatorDetails.setDefinition(definition);
+                    if (purposeAndIssues != null) indicatorDetails.setPurposeAndIssues(purposeAndIssues);
+                    if (preferredDataSources != null) indicatorDetails.setPreferredDataSources(preferredDataSources);
+                    if (methodOfEstimation != null) indicatorDetails.setMethodOfEstimation(methodOfEstimation);
+                    if (proposedScoring != null) indicatorDetails.setProposedScoring(proposedScoring);
+                    if (expectedFrequencyDataDissemination != null) indicatorDetails.setExpectedFrequencyDataDissemination(expectedFrequencyDataDissemination);
+                    if (indicatorReference != null) indicatorDetails.setIndicatorReference(indicatorReference);
+
+                    String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+                    int publishedVersionNo = getVersions(publishedBaseUrl);
+
+                    //Get metadata json
+                    DbMetadataValue dbMetadataValue =  getMetadata(
+                            publishedBaseUrl+publishedVersionNo);
+                    if (dbMetadataValue == null){
+                        return new Results(400, "There was an issue getting the published version.");
+                    }
+
+                    DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
+
+                    List<DbIndicatorDetails> detailsList = new ArrayList<>();
+                    dbIndicatorDetailsList.add(indicatorDetails);
+                    detailsList.addAll(dbIndicatorDetailsList);
+
+                    dbMetadataJsonData.setIndicatorDetails(detailsList);
+
+                    dbMetadataValue.setMetadata(dbMetadataJsonData);
+
+                    var response = GenericWebclient.putForSingleObjResponse(
+                            publishedBaseUrl+publishedVersionNo,
+                            dbMetadataValue,
+                            DbMetadataValue.class,
+                            Response.class);
+                    if (response.getHttpStatusCode() == 200){
+                        return new Results(200, new DbDetails("The indicators values have been updated."));
+                    }
+                    return new Results(400, "There was an issue adding the resource");
+
+
+                }
+
+            }
+
+
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return new Results(400, "There was an issue processing the request. Please try again.");
+    }
+
+    @Override
+    public Results deleteDictionary(String uid) {
+
+        try{
+
+            String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+            int publishedVersionNo = getVersions(publishedBaseUrl);
+
+            //Get metadata json
+            DbMetadataValue dbMetadataValue =  getMetadata(
+                    publishedBaseUrl+publishedVersionNo);
+            if (dbMetadataValue == null){
+                return new Results(400, "There was an issue getting the published version.");
+            }
+            DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
+            List<DbIndicatorDetails> dbIndicatorDetailsList = dbMetadataJsonData.getIndicatorDetails();
+
+            if (dbIndicatorDetailsList != null){
+
+                for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
+                    String uuid = (String) dbIndicatorDetails.getUuid();
+                    if (uid.equals(uuid)){
+                        dbIndicatorDetailsList.remove(dbIndicatorDetails);
+                        break;
+                    }
+                }
+                dbMetadataJsonData.setIndicatorDetails(dbIndicatorDetailsList);
+
+                dbMetadataValue.setMetadata(dbMetadataJsonData);
+
+                var response = GenericWebclient.putForSingleObjResponse(
+                        publishedBaseUrl+publishedVersionNo,
+                        dbMetadataValue,
+                        DbMetadataValue.class,
+                        Response.class);
+                if (response.getHttpStatusCode() == 200){
+                    return new Results(200, new DbDetails("The indicator has been deleted."));
+                }
+                return new Results(400, "There was an issue adding the resource");
+
+
+
+            }
+
+
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+
+        return null;
     }
 
     private int getVersions(String url) throws URISyntaxException {

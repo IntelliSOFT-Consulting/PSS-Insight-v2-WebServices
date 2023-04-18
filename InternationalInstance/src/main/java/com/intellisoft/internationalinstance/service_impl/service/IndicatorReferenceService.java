@@ -7,4 +7,6 @@ public interface IndicatorReferenceService {
     Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails);
     Results listIndicatorDictionary();
     Results getIndicatorValues(String uid);
+    Results updateDictionary(DbIndicatorDetails dbIndicatorDetails);
+    Results deleteDictionary(String uid);
 }

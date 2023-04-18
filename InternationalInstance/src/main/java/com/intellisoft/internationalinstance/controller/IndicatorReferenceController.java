@@ -1,6 +1,7 @@
 package com.intellisoft.internationalinstance.controller;
 
 import com.intellisoft.internationalinstance.DbIndicatorDetails;
+import com.intellisoft.internationalinstance.DbVersionData;
 import com.intellisoft.internationalinstance.FormatterClass;
 import com.intellisoft.internationalinstance.Results;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
@@ -31,7 +32,7 @@ public class IndicatorReferenceController {
                     content = { @Content(examples = { @ExampleObject(value = "") }) }),
             @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
                     content = { @Content(examples = { @ExampleObject(value = "") }) }) })
-    @PostMapping("/indicator-reference")
+    @PostMapping("/add-indicator-reference")
     public ResponseEntity<?> addIndicatorDictionary(
             @RequestBody DbIndicatorDetails dbIndicatorDetails) {
 
@@ -50,6 +51,26 @@ public class IndicatorReferenceController {
     ){
         Results results = indicatorReference.getIndicatorValues(id);
         return formatterClass.getResponse(results);
+    }
+    @PutMapping(value = "/update-indicator-reference/{id}")
+    public ResponseEntity<?> updateVersions(
+            @RequestBody DbIndicatorDetails dbIndicatorDetails,
+            @PathVariable("id") String id ){
+
+        dbIndicatorDetails.setUuid(id);
+
+        Results results = indicatorReference.updateDictionary(dbIndicatorDetails);
+        return formatterClass.getResponse(results);
+
+
+    }
+    @DeleteMapping(value = "/delete-indicator-reference/{id}")
+    public ResponseEntity<?> deleteDictionary(@PathVariable("id") String id ){
+
+        Results results = indicatorReference.deleteDictionary(id);
+        return formatterClass.getResponse(results);
+
+
     }
 
 }
