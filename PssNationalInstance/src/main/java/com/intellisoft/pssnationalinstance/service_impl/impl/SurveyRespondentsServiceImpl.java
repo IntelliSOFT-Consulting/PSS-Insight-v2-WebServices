@@ -421,12 +421,12 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
                 //Remove these responses
                 for(String indicator: indicatorList){
-                    Optional<RespondentAnswers> optionalRespondentAnswers =
-                            respondentAnswersRepository.findByIndicatorIdAndRespondentId(indicator, respondentId);
-                    if (optionalRespondentAnswers.isPresent()){
-                        RespondentAnswers respondentAnswers = optionalRespondentAnswers.get();
-                        respondentAnswersRepository.deleteById(respondentAnswers.getId());
-                    }
+//                    Optional<RespondentAnswers> optionalRespondentAnswers =
+//                            respondentAnswersRepository.findByIndicatorIdAndRespondentId(indicator, respondentId);
+//                    if (optionalRespondentAnswers.isPresent()){
+//                        RespondentAnswers respondentAnswers = optionalRespondentAnswers.get();
+//                        respondentAnswersRepository.deleteById(respondentAnswers.getId());
+//                    }
                 }
             }
 
@@ -562,13 +562,21 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                         for (DbIndicatorDataValues dbIndicatorDataValues: dataValuesList){
                             String indicatorId = (String) dbIndicatorDataValues.getId();
                             //get responses
-                            Optional<RespondentAnswers> answersOptional = respondentAnswersRepository
+
+                            List<RespondentAnswers> respondentAnswersList = respondentAnswersRepository
                                     .findByIndicatorIdAndRespondentId(indicatorId, respondentId);
-                            if (answersOptional.isPresent()){
-                                RespondentAnswers respondentAnswers = answersOptional.get();
-                                String answer = respondentAnswers.getAnswer();
-                                String comments = respondentAnswers.getComments();
-                                String attachment = respondentAnswers.getAttachment();
+                            if (!respondentAnswersList.isEmpty()){
+
+                                String answer = "";
+                                String comments = "";
+                                String attachment = "";
+                                for (RespondentAnswers respondentAnswers: respondentAnswersList){
+                                    answer = respondentAnswers.getAnswer();
+                                    comments = respondentAnswers.getComments();
+                                    attachment = respondentAnswers.getAttachment();
+
+
+                                }
 
                                 DbDataEntryResponses dbIndicatorDataResponses =
                                         new DbDataEntryResponses(

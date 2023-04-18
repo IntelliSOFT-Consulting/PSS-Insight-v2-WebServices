@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RespondentAnswersRepository extends CrudRepository<RespondentAnswers, Long> {
-    Optional<RespondentAnswers> findByIndicatorIdAndRespondentId(String indicatorId, String respondentId);
+    List<RespondentAnswers> findByIndicatorIdAndRespondentId(String indicatorId, String respondentId);
     List<RespondentAnswers> findByRespondentIdAndStatus(String respondentId, String status);
 }
