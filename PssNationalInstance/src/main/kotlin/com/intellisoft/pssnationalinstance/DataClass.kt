@@ -91,6 +91,11 @@ data class DbMobileData(
     val publishedIndicators: Any?,
     val nationalInformation:Any?
 )
+data class DbPublishedVersionDetails(
+    var referenceSheet: String?,
+    var count: Any?,
+    var details: List<DbIndicators>,
+)
 data class DbPublishedVersion(
     @JsonProperty("count")
     var count: Any?,
