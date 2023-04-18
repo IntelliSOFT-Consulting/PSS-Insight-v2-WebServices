@@ -9,6 +9,7 @@ import com.itextpdf.text.pdf.PdfPCell
 import com.itextpdf.text.pdf.PdfPTable
 import com.itextpdf.text.pdf.PdfWriter
 import kotlinx.coroutines.*
+import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.http.ResponseEntity
 import java.io.File
 import java.io.FileOutputStream
@@ -18,6 +19,10 @@ import java.util.regex.Pattern
 
 
 class FormatterClass {
+
+    fun getUUid():String{
+        return RandomStringUtils.randomAlphanumeric(10)
+    }
 
     fun startBackGroundTask(
         url: String,

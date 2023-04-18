@@ -156,21 +156,5 @@ public class MyController {
         return formatterClass.getResponse(results);
     }
 
-    @Operation(
-            summary = "Add indicator dictionary",
-            description = "Post an indicator dictionary")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
-            @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
-            @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
-    @PostMapping("/indicator-reference")
-    public ResponseEntity<?> addIndicatorDictionary(
-            @RequestBody DbIndicatorDetails dbIndicatorDetails) {
-
-        Results results = internationalService.addIndicatorDictionary(dbIndicatorDetails);
-        return formatterClass.getResponse(results);
-    }
 
 }
