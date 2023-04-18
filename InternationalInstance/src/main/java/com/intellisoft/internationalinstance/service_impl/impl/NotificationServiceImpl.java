@@ -70,7 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationSubscriptionRepo.save(savedSubscription.get());
 
         return new Results(200,
-                savedSubscription.get().getEmail() + " has been unsubscribed successfully.");
+                new DbDetails(savedSubscription.get().getEmail() + " has been unsubscribed successfully."));
     }
 
     @Override
