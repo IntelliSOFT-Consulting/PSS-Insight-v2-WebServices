@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,11 +44,9 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
         try{
 
-            DbPublishedVersion publishedVersionValues =
-                    nationalPublishedIndicators();
-            if (publishedVersionValues != null){
-                return new Results(200, publishedVersionValues);
-            }
+            DbPublishedVersionDetails publishedVersionValues =
+                    getPublishedDetails();
+            return new Results(200, publishedVersionValues);
 
         } catch (Exception syntaxException){
             syntaxException.printStackTrace();
@@ -103,6 +102,29 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
         }
         return null;
+    }
+    private DbPublishedVersionDetails getPublishedDetails(){
+        DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, Collections.emptyList());
+        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+        DbMetadataJson dbMetadataJson =
+                internationalTemplateService.getPublishedData(publishedBaseUrl);
+        if (dbMetadataJson != null){
+            DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+            if (dbMetadataJson.getMetadata() != null){
+                String referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
+                details.setReferenceSheet(referenceSheet);
+            }
+            if (dbPrograms != null){
+                DbPublishedVersion dbPublishedVersion = dbPrograms.getPublishedVersion();
+                if (dbPublishedVersion != null){
+                    details.setDetails(dbPublishedVersion.getDetails());
+                }
+                if (dbPublishedVersion != null){
+                    details.setCount(dbPublishedVersion.getCount());
+                }
+            }
+        }
+        return details;
     }
 
     @Override
