@@ -63,9 +63,48 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     nationalPublishedIndicators();
             if (publishedVersionValues != null){
 
+                int no = 0;
+                List<DbIndicatorsApp> dbIndicatorsAppList = new ArrayList<>();
+                List<DbIndicators> dbIndicatorsList = publishedVersionValues.getDetails();
+                for (DbIndicators dbIndicators: dbIndicatorsList){
+                    String name = (String) dbIndicators.getCategoryName();
+
+                    List<DbIndicatorValuesApp> dbIndicatorValuesAppList = new ArrayList<>();
+                    List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
+                    for (DbIndicatorValues dbIndicatorValues: indicatorValuesList){
+                        String categoryName = (String) dbIndicatorValues.getCategoryName();
+                        String description = (String) dbIndicatorValues.getDescription();
+                        String categoryId = (String) dbIndicatorValues.getCategoryId();
+                        String indicatorName = (String) dbIndicatorValues.getIndicatorName();
+                        List<DbIndicatorDataValues> dataValuesList = dbIndicatorValues.getIndicatorDataValue();
+                        DbIndicatorValuesApp dbIndicatorValuesApp = new DbIndicatorValuesApp(
+                                name,
+                                description,
+                                categoryId,
+                                categoryName,
+                                indicatorName,
+                                dataValuesList);
+                        no = no + dataValuesList.size();
+
+                        dbIndicatorValuesAppList.add(dbIndicatorValuesApp);
+                    }
+
+                    DbIndicatorsApp dbIndicatorsApp = new DbIndicatorsApp(
+                            name,
+                            dbIndicatorValuesAppList
+                    );
+                    dbIndicatorsAppList.add(dbIndicatorsApp);
+
+                }
+
+                DbPublishedVersionApp dbPublishedVersionApp = new DbPublishedVersionApp(
+                        no,
+                        dbIndicatorsAppList
+                );
+
                 List<AboutUs> aboutUsList = aboutUsService.getAboutUs(true, 10, 1);
                 DbMobileData data = new DbMobileData(
-                        publishedVersionValues,
+                        dbPublishedVersionApp,
                         aboutUsList
                 );
                 return new Results(200, data);
