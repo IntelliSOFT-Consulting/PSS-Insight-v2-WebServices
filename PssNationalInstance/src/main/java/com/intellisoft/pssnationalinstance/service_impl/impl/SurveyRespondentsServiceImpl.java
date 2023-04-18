@@ -1,9 +1,11 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.ResendIndicators;
 import com.intellisoft.pssnationalinstance.db.RespondentAnswers;
 import com.intellisoft.pssnationalinstance.db.SurveyRespondents;
 import com.intellisoft.pssnationalinstance.db.Surveys;
+import com.intellisoft.pssnationalinstance.repository.ResendIndicatorsRepository;
 import com.intellisoft.pssnationalinstance.repository.RespondentAnswersRepository;
 import com.intellisoft.pssnationalinstance.repository.SurveyRespondentsRepo;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
@@ -35,6 +37,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     private final DataEntryService dataEntryService;
 
     private final JavaMailSenderService javaMailSenderService;
+    private final ResendIndicatorsRepository repository;
 
     @Override
     public Results addSurveyRespondent(DbSurveyRespondent dbSurveyRespondent) {
@@ -327,7 +330,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 //            }
 
             DbResponseDetails dbResponseDetailsValues =
-                    new DbResponseDetails(null, null, null);
+                    new DbResponseDetails(null, null, null, null);
 
             if (respondentDetails != null){
 
@@ -366,7 +369,17 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 }
 
             }
+
             if (questions != null){
+                Optional<ResendIndicators> optionalResendIndicators =
+                        repository.findBySurveyIdAndRespondentId(surveyId, respondentId);
+                if (optionalResendIndicators.isPresent()){
+                    ResendIndicators resendIndicators = optionalResendIndicators.get();
+                    List<String> stringList = resendIndicators.getResentIndicators();
+                    dbResponseDetailsValues.setResentQuestions(stringList);
+                }
+
+
                 DbResponseDetails dbResponseDetails =
                         getRespondentsQuestions(surveyId, respondentId);
                 if (dbResponseDetails != null){
@@ -375,6 +388,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                     );
                 }
             }
+
+
 
             return new Results(200, dbResponseDetailsValues);
 
@@ -420,14 +435,38 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             if (!indicatorList.isEmpty()){
 
                 //Remove these responses
-                for(String indicator: indicatorList){
+//                for(String indicator: indicatorList){
 //                    Optional<RespondentAnswers> optionalRespondentAnswers =
 //                            respondentAnswersRepository.findByIndicatorIdAndRespondentId(indicator, respondentId);
 //                    if (optionalRespondentAnswers.isPresent()){
 //                        RespondentAnswers respondentAnswers = optionalRespondentAnswers.get();
 //                        respondentAnswersRepository.deleteById(respondentAnswers.getId());
 //                    }
+//                }
+
+
+                SurveyRespondents respondents = optionalSurveyRespondents.get();
+                respondents.setExpiryTime(expiryDateTime);
+                respondents.setSurveyStatus(SurveyStatus.SENT.name());
+                respondents.setRespondentsStatus(SurveySubmissionStatus.PENDING.name());
+                respondentsRepo.save(respondents);
+
+                ResendIndicators resendIndicators = new ResendIndicators();
+                resendIndicators.setRespondentId(respondentId);
+                resendIndicators.setResentIndicators(indicatorList);
+                resendIndicators.setSurveyId(surveyId);
+
+                Optional<ResendIndicators> optionalResendIndicators =
+                        repository.findBySurveyIdAndRespondentId(surveyId, respondentId);
+                if (optionalResendIndicators.isPresent()){
+                    ResendIndicators resendIndicators1 = optionalResendIndicators.get();
+                    resendIndicators1.setResentIndicators(indicatorList);
+                    repository.save(resendIndicators1);
+                }else {
+                    repository.save(resendIndicators);
                 }
+
+
             }
 
             List<DbSurveyRespondentData> dbSurveyRespondentDataList = new ArrayList<>();
@@ -519,21 +558,6 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             Surveys surveys = optionalSurvey.get();
             indicatorList = surveys.getIndicators();
 
-            for (String indicator : indicatorList){
-
-                System.out.println("****");
-                System.out.println(indicator);
-
-//                Optional<RespondentAnswers> optionalRespondentAnswers =
-//                        respondentAnswersRepository.findById(Long.valueOf(indicator));
-//                if (optionalRespondentAnswers.isPresent()){
-//                    String status = optionalRespondentAnswers.get().getStatus();
-//                    if (status.equals(SurveyRespondentStatus.VERIFIED.name())){
-//                        indicatorList.remove(indicator);
-//                    }
-//                }
-
-            }
 
         }
 
@@ -601,8 +625,10 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             }
 
             return new DbResponseDetails(
+                    null,
                     newDbIndicatorsList,
-                    dataEntryResponsesList, null);
+                    dataEntryResponsesList,
+                    null);
         }
         return null;
     }
