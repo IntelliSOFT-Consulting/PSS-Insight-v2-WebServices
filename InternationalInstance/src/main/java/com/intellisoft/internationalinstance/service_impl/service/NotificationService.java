@@ -13,7 +13,7 @@ public interface NotificationService {
 
      Results getNotifications(int no, int size, String emailAddress);
 
-     Results createNotification(NotificationEntity notificationEntity);
+     void createNotification(NotificationEntity notificationEntity);
 
      Results sendNotification(DbSendNotification dbSendNotification);
 }

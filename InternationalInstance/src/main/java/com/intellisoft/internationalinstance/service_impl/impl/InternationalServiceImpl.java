@@ -89,8 +89,6 @@ public class InternationalServiceImpl implements InternationalService {
                     indicatorDescriptionUrl, String.class);
             JSONArray jsonArray = new JSONArray(indicatorDescription);
 
-
-
             if (dbGroupsData != null){
                 List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
 
@@ -234,35 +232,6 @@ public class InternationalServiceImpl implements InternationalService {
             try{
                 String url = internationalUrl + programsUrl;
 
-//                List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
-//
-//                List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
-//                for (DbIndicatorsValue dbIndicatorsValue: dbIndicatorsValueList){
-//
-//                    List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
-//                    String categoryName = (String) dbIndicatorsValue.getCategoryName();
-//
-//                    List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
-//                    for (DbIndicatorDataValues dbIndicatorDataValues: indicatorDataValuesList){
-//                        String categoryId = (String) dbIndicatorDataValues.getCategoryId();
-//                        if (indicatorList.contains(categoryId)){
-//                            dbIndicatorDataValuesList.add(dbIndicatorDataValues);
-//                        }
-//                    }
-//
-//                    if (!dbIndicatorDataValuesList.isEmpty()){
-//                        DbIndicatorsValue dbIndicatorsValueNew = new DbIndicatorsValue(
-//                                categoryName,
-//                                dbIndicatorDataValuesList
-//                        );
-//                        dbIndicatorsValueListNew.add(dbIndicatorsValueNew);
-//                    }
-//
-//                }
-//                DbResults dbResults = new DbResults(
-//                        dbIndicatorsValueListNew.size(),
-//                        dbIndicatorsValueListNew);
-
                 formatterClass.startBackGroundTask(
                         url,
                         versionDescription,
@@ -271,18 +240,28 @@ public class InternationalServiceImpl implements InternationalService {
                         indicatorList
                 );
 
-//                DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(
-//                        url, DbMetadataJsonData.class);
-//                dbMetadataJsonData.setPublishedVersion(dbResults);
-//
-//                String versionNo = String.valueOf(getInternationalVersions() + 1);
-//
-//                DbMetadataValue dbMetadataJson = new DbMetadataValue(
-//                        versionNo,
-//                        versionDescription,
-//                        dbMetadataJsonData);
-//
-//                pushMetadata(dbMetadataJson, savedVersionEntity);
+                String message =
+                        "A new template has been published by " +
+                                savedVersionEntity.getPublishedBy() + " from the international instance. " +
+                                "The new template has the following details: " +
+                                "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" +
+                                "Number of indicators: " + savedVersionEntity.getIndicators().size();
+
+                List<String> dbEmailList = new ArrayList<>();
+                //Get subscribed email addresses
+                List<NotificationSubscription> notificationSubscriptionList =
+                        notificationSubscriptionRepo.findAllByIsActive(true);
+                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+                    String emailAddress = notificationSubscription.getEmail();
+                    dbEmailList.add(emailAddress);
+                }
+
+                NotificationEntity notification = new NotificationEntity();
+                notification.setTitle("New Version Published.");
+                notification.setSender(savedVersionEntity.getPublishedBy());
+                notification.setMessage(message);
+                notification.setEmailList(dbEmailList);
+                notificationService.createNotification(notification);
 
             }catch (Exception e){
                 e.printStackTrace();
@@ -334,29 +313,7 @@ public class InternationalServiceImpl implements InternationalService {
                 savedVersionEntity.setStatus(PublishStatus.PUBLISHED.name());
                 versionRepos.save(savedVersionEntity);
 
-                String message =
-                        "A new template has been published by " +
-                                savedVersionEntity.getPublishedBy() + " from the international instance. " +
-                                "The new template has the following details: " +
-                                "Version number: " + savedVersionEntity.getVersionName() + "\n" +
-                                "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" +
-                                "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
-                List<String> dbEmailList = new ArrayList<>();
-                //Get subscribed email addresses
-                List<NotificationSubscription> notificationSubscriptionList =
-                        notificationSubscriptionRepo.findAllByIsActive(true);
-                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
-                    String emailAddress = notificationSubscription.getEmail();
-                    dbEmailList.add(emailAddress);
-                }
-
-                NotificationEntity notification = new NotificationEntity();
-                notification.setTitle("New Version Published.");
-                notification.setSender(savedVersionEntity.getPublishedBy());
-                notification.setMessage(message);
-                notification.setEmailList(dbEmailList);
-                notificationService.createNotification(notification);
 
                 //Create pdf
                 generatePdf(dbMetadataJsonData);
@@ -522,7 +479,7 @@ public class InternationalServiceImpl implements InternationalService {
                 String publishedVersionNo = dbMetadataValue.getVersion();
                 //Get metadata json
                 String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents/"+id+"/data";
-                dbMetadataValue.getMetadata().setReferenceSheet(fileUrl);
+                dbMetadataValue.getMetadata().setReferenceSheet(id);
 
                 var response = GenericWebclient.putForSingleObjResponse(
                         publishedBaseUrl+publishedVersionNo,

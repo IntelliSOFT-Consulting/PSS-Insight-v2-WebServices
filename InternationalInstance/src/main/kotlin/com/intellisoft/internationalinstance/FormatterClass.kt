@@ -3,6 +3,7 @@ package com.intellisoft.internationalinstance
 
 import com.intellisoft.internationalinstance.db.VersionEntity
 import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl
+import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService
 import com.intellisoft.internationalinstance.util.GenericWebclient
 import com.itextpdf.text.*
 import com.itextpdf.text.pdf.PdfPCell
@@ -22,6 +23,23 @@ class FormatterClass {
 
     fun getUUid():String{
         return RandomStringUtils.randomAlphanumeric(10)
+    }
+
+    fun sendEmailBackground(
+        javaMailSenderService: JavaMailSenderService,
+        dbNotificationData: DbNotificationData
+    ){
+        GlobalScope.launch {
+            sendBackgroundMail(javaMailSenderService, dbNotificationData)
+        }
+    }
+    private suspend fun sendBackgroundMail(
+        javaMailSenderService: JavaMailSenderService,
+        dbNotificationData: DbNotificationData
+    ){
+        withContext(Dispatchers.IO){
+            javaMailSenderService.sendEmailBackground(dbNotificationData)
+        }
     }
 
     fun startBackGroundTask(

@@ -124,7 +124,6 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         sendBackgroundEmail(dbRespondents, MailStatus.SEND.name());
 
     }
-    @Async
     void sendBackgroundEmail(DbRespondents dbRespondents, String status){
 
         try{

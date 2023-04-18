@@ -3,8 +3,10 @@ package com.intellisoft.internationalinstance.controller;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
+import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService;
 import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
 import com.intellisoft.internationalinstance.service_impl.service.VersionService;
+import com.intellisoft.internationalinstance.util.AppConstants;
 import com.itextpdf.text.*;
 
 import com.itextpdf.text.pdf.PdfPCell;
@@ -17,8 +19,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
@@ -36,6 +39,8 @@ public class MyController {
     private final VersionService versionService;
     FormatterClass formatterClass = new FormatterClass();
     private final InternationalService internationalService;
+    private final JavaMailSenderService javaMailSenderService;
+    private RestTemplate restTemplate = new RestTemplate();
 
     @Operation(
             summary = "Pull the international indicators from the metadata json ",
@@ -48,6 +53,7 @@ public class MyController {
                     content = { @Content(examples = { @ExampleObject(value = "") }) }) })
     @GetMapping("/indicators")
     public ResponseEntity<?> getIndicatorForFrontEnd() {
+
         Results results = internationalService.getIndicators();
         return formatterClass.getResponse(results);
     }
@@ -154,6 +160,22 @@ public class MyController {
     public ResponseEntity<?> deleteTemplate(@PathVariable("versionId") long versionId) {
         Results results = versionService.deleteTemplate(versionId);
         return formatterClass.getResponse(results);
+    }
+
+
+    @GetMapping("/view-file/{filename}")
+    public ResponseEntity<byte[]> getDocument(@PathVariable String filename) {
+        String url = AppConstants.DOCS_ENDPOINT + filename + "/data";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth("admin", "district");
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<byte[]> response = restTemplate.exchange(url,
+                HttpMethod.GET,
+                entity, byte[].class);
+        return ResponseEntity
+                .status(response.getStatusCode())
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(response.getBody());
     }
 
 
