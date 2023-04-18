@@ -446,7 +446,7 @@ data class DbSurveyRespondentDataDerails(
 
 )
 data class DbNotificationSub(
-    val firstName: String,
+    val firstName: String?,
     val lastName: String?,
     val email:String,
     val phoneNumber:String?

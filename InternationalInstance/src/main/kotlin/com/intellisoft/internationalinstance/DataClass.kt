@@ -94,7 +94,7 @@ data class DbMetadataJsonData(
     var publishedVersion: Any?,
 
     @JsonProperty("indicatorDetails")
-    var indicatorDetails: DbIndicatorDetails?,
+    var indicatorDetails: List<DbIndicatorDetails>?,
 
     @JsonProperty("referenceSheet")
     var referenceSheet: Any?,
@@ -283,12 +283,14 @@ data class DbProgramsData(
     var publishedGroups: Any?,
 
     @JsonProperty("indicatorDetails")
-    var indicatorDetails: DbIndicatorDetails?,
+    var indicatorDetails: List<DbIndicatorDetails>,
     @JsonProperty("publishedVersion")
     var publishedVersion: Any?
 )
 
 data class DbIndicatorDetails(
+    @JsonProperty("uuid")
+    var uuid: Any?,
     @JsonProperty("date")
     var date: Any?,
     @JsonProperty("indicatorName")
@@ -419,7 +421,7 @@ data class DbResFileRes(
     val id:String?
 )
 data class DbNotificationSub(
-    val firstName: String,
+    val firstName: String?,
     val lastName: String?,
     val email:String,
     val phoneNumber:String?

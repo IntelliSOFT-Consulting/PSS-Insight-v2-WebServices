@@ -15,6 +15,5 @@ public interface InternationalService {
     List<DbIndicatorsValue> getIndicatorsValues();
     String createFileResource(File file);
 
-    Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails);
 
 }
