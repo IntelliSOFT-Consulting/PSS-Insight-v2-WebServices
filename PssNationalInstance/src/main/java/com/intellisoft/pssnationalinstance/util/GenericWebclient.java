@@ -1,5 +1,6 @@
 package com.intellisoft.pssnationalinstance.util;
 
+import com.intellisoft.pssnationalinstance.exception.CustomException;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
@@ -69,6 +70,31 @@ public class GenericWebclient {
 
     }
 
+    @SafeVarargs
+    public  static<T ,V, E extends Exception> V putForSingleObjResponse(
+            String url,
+            T request,
+            Class<T> requestClass,
+            Class<V> responseClass,
+            E... exceptions) throws URISyntaxException {
+        log.info("REQUEST: {},{}", url,"request");
+        return myWebClient().put()
+                .uri(new URI(url))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(request), requestClass)
+                .retrieve()
+                .onStatus(HttpStatus::is5xxServerError,
+                        error->Mono.error(exceptions.length>=1?exceptions[0]:new RuntimeException("Internal server error occurred.")))
+                .onStatus(HttpStatus::is4xxClientError,
+                        error->Mono.error(exceptions.length>=2?exceptions[1]:new CustomException("Bad Request Error: "+error.bodyToMono(String.class))))
+                .bodyToMono(responseClass)
+                .onErrorResume(Mono::error)
+                .retryWhen(Retry.backoff(3,Duration.of(2, ChronoUnit.SECONDS))
+                        .onRetryExhaustedThrow(((retryBackoffSpec, retrySignal) -> new Throwable(retrySignal.failure())))).block();
+
+
+
+    }
 
 
     /**

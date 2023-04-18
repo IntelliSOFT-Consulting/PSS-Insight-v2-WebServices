@@ -21,14 +21,48 @@ public class NotificationServiceImpl implements NotificationService {
     public Results subscribe(DbNotificationSub notificationSubscription) {
 
         String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"subscribe";
+        return getPostResults(notificationSubscription, internationalBaseApi);
 
-        return getIntResults(internationalBaseApi);
+    }
+
+    private Results getPostResults(DbNotificationSub notificationSubscription, String internationalBaseApi)  {
+
+        try{
+            DbResultsApi dbResultsApi = GenericWebclient.postForSingleObjResponse(
+                    internationalBaseApi,
+                    notificationSubscription,
+                    DbNotificationSub.class,
+                    DbResultsApi.class);
+            if (dbResultsApi == null) {
+                return new Results(400, "There was an issue processing the request");
+            }
+
+            System.out.println("**** " + dbResultsApi);
+
+            if (dbResultsApi.getCode() == 200) {
+                return new Results(200, dbResultsApi.getDetails());
+            }else {
+                return new Results(400, dbResultsApi.getDetails());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return new Results(400, "There was an issue processing the request");
+
+        }
+
+
     }
 
     @Override
     public Results unsubscribe(String email) {
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"unsubscribe?email="+email;
-        return getIntResults(internationalBaseApi);
+        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"unsubscribe-email";
+        DbNotificationSub dbNotificationSub = new DbNotificationSub(
+                null,
+                null,
+                email,
+                null
+        );
+        return getPostResults(dbNotificationSub, internationalBaseApi);
     }
 
     @NotNull

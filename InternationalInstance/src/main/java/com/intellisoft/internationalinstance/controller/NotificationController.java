@@ -24,10 +24,12 @@ public class NotificationController {
     FormatterClass formatterClass = new FormatterClass();
 
     @PostMapping("subscribe")
-    public ResponseEntity<?> subscribe(@RequestBody DbNotificationSub notificationSubscription)  {
+    public Results subscribe(@RequestBody DbNotificationSub notificationSubscription)  {
 
         Results results = notificationService.subscribe(notificationSubscription);
-        return formatterClass.getResponse(results);
+        ResponseEntity<?> resp = formatterClass.getResponse(results);
+        return results;
+
     }
     @PutMapping("unsubscribe")
     public ResponseEntity<?> unsubscribe(@RequestParam("email") String email)  {
@@ -35,6 +37,13 @@ public class NotificationController {
         Results results = notificationService.unsubscribe(email);
         return formatterClass.getResponse(results);
 
+    }
+    @PostMapping("unsubscribe-email")
+    public ResponseEntity<?> unsubscribePost(@RequestBody DbNotificationSub notificationSubscription)  {
+
+        String email = notificationSubscription.getEmail();
+        Results results = notificationService.unsubscribe(email);
+        return formatterClass.getResponse(results);
     }
 
     @PostMapping("send")
@@ -45,7 +54,7 @@ public class NotificationController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getIndicatorForFrontEnd(
+    public Results getIndicatorForFrontEnd(
             @RequestParam("email") String email,
             @RequestParam(value = "limit", required = false) String limit,
             @RequestParam(value = "pageNo", required = false) String pageNo
@@ -60,7 +69,8 @@ public class NotificationController {
             pageNumber = Integer.parseInt(pageNo);
         }
         Results results = notificationService.getNotifications(limitNo, pageNumber, email);
-        return formatterClass.getResponse(results);
+//        return formatterClass.getResponse(results);
+        return results;
     }
 
 

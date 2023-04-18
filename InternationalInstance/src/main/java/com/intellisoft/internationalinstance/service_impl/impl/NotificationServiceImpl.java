@@ -35,14 +35,15 @@ public class NotificationServiceImpl implements NotificationService {
             NotificationSubscription subscription = new NotificationSubscription();
             if (notificationSubscription.getLastName() != null) subscription.setLastName(notificationSubscription.getLastName());
             if (notificationSubscription.getPhoneNumber() != null) subscription.setPhone(notificationSubscription.getPhoneNumber());
-            subscription.setFirstName(notificationSubscription.getFirstName());
+            if (notificationSubscription.getFirstName() != null) subscription.setFirstName(notificationSubscription.getFirstName());
+
             subscription.setEmail(notificationSubscription.getEmail());
 
 
             var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
-            if (savedSubscription.isEmpty())
+            if (savedSubscription.isEmpty()){
                 notificationSubscriptionRepo.save(subscription);
-            else {
+            } else {
                 savedSubscription.get().setIsActive(true);
 
                 if (notificationSubscription.getLastName() != null) savedSubscription.get().setLastName(notificationSubscription.getLastName());
@@ -52,6 +53,7 @@ public class NotificationServiceImpl implements NotificationService {
 
                 notificationSubscriptionRepo.save(savedSubscription.get());
             }
+
             return new Results(200, notificationSubscription);
         }
         catch (Exception e){
