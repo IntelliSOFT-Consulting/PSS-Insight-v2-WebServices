@@ -96,6 +96,23 @@ data class DbPublishedVersionDetails(
     var count: Any?,
     var details: List<DbIndicators>,
 )
+data class DbPublishedVersionApp(
+    var count: Any?,
+    var details: List<DbIndicatorsApp>,
+)
+data class DbIndicatorsApp(
+    var categoryName: Any?,
+    var indicators: List<DbIndicatorValuesApp?>,
+)
+data class DbIndicatorValuesApp(
+    var categoryName: Any?,
+    var description: Any?,
+    var categoryId: Any?,
+    var categoryCode: Any?,
+    var indicatorName: Any?,
+    var indicatorDataValue: List<DbIndicatorDataValues>,
+)
+
 data class DbPublishedVersion(
     @JsonProperty("count")
     var count: Any?,
