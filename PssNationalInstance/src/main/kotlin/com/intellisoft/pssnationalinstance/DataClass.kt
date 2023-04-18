@@ -343,6 +343,7 @@ data class DbRespondentSurvey(
     val attachment: String?
 )
 data class DbResponseDetails(
+    var resentQuestions:Any? = null,
     var questions: Any? = null,
     var responses: Any? = null,
     var respondentDetails: Any? = null
