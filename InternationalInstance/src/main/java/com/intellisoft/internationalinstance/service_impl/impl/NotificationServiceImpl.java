@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationEntityRepo notificationEntityRepo;
 
     private final JavaMailSenderService javaMailSenderService;
+    private final FormatterClass formatterClass = new FormatterClass();
 
 
     @Override
@@ -114,29 +116,26 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Results createNotification(NotificationEntity notificationEntity) {
-        System.out.println("************ 3");
+    public void createNotification(NotificationEntity notificationEntity) {
+
         try{
             NotificationEntity notification = notificationEntityRepo.save(notificationEntity);
             List<String> emailList = notification.getEmailList();
 
             if (!emailList.isEmpty()){
+                System.out.println("----- "+emailList);
+
                 DbNotificationData dbNotificationData = new DbNotificationData(
                         emailList,
                         String.valueOf(notification.getCreatedAt()),
                         notification.getTitle(),
                         notification.getMessage()
                 );
-                javaMailSenderService.sendEmailBackground(dbNotificationData);
-                return new Results(200, notification);
-            }else {
-                return new Results(400, "Email list is empty.");
-
+                formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
             }
-
         }catch (Exception e){
+            e.printStackTrace();
             System.out.println("************ 3 error");
-            return new Results(400, "Failed saving notification.");
 
         }
 
@@ -189,7 +188,7 @@ public class NotificationServiceImpl implements NotificationService {
                         notificationEntity.getTitle(),
                         notificationEntity.getMessage()
                 );
-                javaMailSenderService.sendEmailBackground(dbNotificationData);
+                formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
 
                 return new Results(200, new DbDetails("Notification has been sent"));
             }else {

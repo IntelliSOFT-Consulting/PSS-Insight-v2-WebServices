@@ -283,9 +283,12 @@ data class DbProgramsData(
     var publishedGroups: Any?,
 
     @JsonProperty("indicatorDetails")
-    var indicatorDetails: List<DbIndicatorDetails>,
+    var indicatorDetails: List<DbIndicatorDetails>?,
     @JsonProperty("publishedVersion")
-    var publishedVersion: Any?
+    var publishedVersion: Any?,
+
+    @JsonProperty("referenceSheet")
+    var referenceSheet: Any?,
 )
 
 data class DbIndicatorDetails(
@@ -380,7 +383,8 @@ data class DbVersionDetails(
     val createdBy: String?,
     val publishedBy: String?,
     val createdAt: Date,
-    var indicators: Any?
+    var indicators: Any?,
+    var referenceSheet: Any?
 
     )
 

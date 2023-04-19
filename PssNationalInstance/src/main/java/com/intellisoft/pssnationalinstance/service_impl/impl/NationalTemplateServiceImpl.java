@@ -71,6 +71,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
                     List<DbIndicatorValuesApp> dbIndicatorValuesAppList = new ArrayList<>();
                     List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
+                    no = no + indicatorValuesList.size();
                     for (DbIndicatorValues dbIndicatorValues: indicatorValuesList){
                         String categoryName = (String) dbIndicatorValues.getCategoryName();
                         String description = (String) dbIndicatorValues.getDescription();
@@ -84,7 +85,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                                 categoryName,
                                 indicatorName,
                                 dataValuesList);
-                        no = no + dataValuesList.size();
+
 
                         dbIndicatorValuesAppList.add(dbIndicatorValuesApp);
                     }

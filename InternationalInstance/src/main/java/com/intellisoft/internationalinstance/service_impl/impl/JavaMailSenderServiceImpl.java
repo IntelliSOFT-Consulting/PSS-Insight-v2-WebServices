@@ -12,6 +12,7 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
+import com.sendgrid.helpers.mail.objects.Personalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,6 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
     private final NotificationSubscriptionRepo notificationSubscriptionRepo;
 
 
-    @Async
     public void sendEmailBackground(DbNotificationData dbNotificationData) {
 
         try{
@@ -56,6 +57,47 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
             String htmlContent = new String(sendEmailClassPath.getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8);
 
+//            Personalization personalization = new Personalization();
+//            personalization.addTo(new Email("dnjau@intellisoftkenya.com"));
+//            personalization.setSubject(subject);
+
+//            Mail mail = new Mail();
+//            mail.setFrom(from);
+//
+//            mail.setSubject(subject);
+
+//            htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
+//            htmlContent = htmlContent.replace("[TITLE]", title);
+//            htmlContent = htmlContent.replace("[DESCRIPTION]", description);
+//
+//            mail.addContent(htmlContent);
+//            mail.addPersonalization(personalization);
+//            try {
+//                request.setMethod(Method.POST);
+//                request.setEndpoint("mail/send");
+//                request.setBody(mail.build());
+//                Response response = sg.api(request);
+//                System.out.println(response.getStatusCode());
+//                System.out.println(response.getBody());
+//                System.out.println(response.getHeaders());
+//            } catch (IOException ex) {
+//                ex.printStackTrace();
+//            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
             List<String> emailAddressList = dbNotificationData.getEmailAddress();
             for (String emailAddress: emailAddressList){
 
@@ -66,7 +108,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
                 htmlContent = htmlContent.replace("[TITLE]", title);
                 htmlContent = htmlContent.replace("[DESCRIPTION]", description);
 
-                Email to = new Email(emailAddress);
+                Email to = new Email(emailAddress.trim());
                 Content content = new Content("text/html", htmlContent);
                 Mail mail = new Mail(from, subject, to, content);
                 request.setMethod(Method.POST);
@@ -81,6 +123,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
 
         }catch (Exception e){
+            System.out.println("========");
             e.printStackTrace();
         }
 

@@ -18,6 +18,8 @@ public class AboutUs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(length = 8000)
     private String aboutUs;
     private String contactUs;
     @CreationTimestamp

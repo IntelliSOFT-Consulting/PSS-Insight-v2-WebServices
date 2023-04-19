@@ -86,20 +86,48 @@ public class VersionServiceImpl implements VersionService {
 
             }
 
+            String versionName = versionEntity.getVersionName();
+            String url = AppConstants.DATA_STORE_ENDPOINT+versionName;
+            DbMetadataJson dbMetadataJson = getIndicators(url);
+            String referenceSheet = "";
+            if (dbMetadataJson != null)
+                referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
+
+
             DbVersionDetails details = new DbVersionDetails(
                     versionEntity.getId(),
-                    versionEntity.getVersionName(),
+                    versionName,
                     versionEntity.getVersionDescription(),
                     versionEntity.getStatus(),
                     versionEntity.getCreatedBy(),
                     versionEntity.getPublishedBy(),
                     versionEntity.getCreatedAt(),
-                    dbIndicatorsValueList);
+                    dbIndicatorsValueList,
+                    referenceSheet
+                    );
+
+
             dbVersionDetailsList.add(details);
 
         }
 
         return dbVersionDetailsList;
+
+    }
+    public DbMetadataJson getIndicators(String url) {
+
+        try {
+
+            //Get the dataStore values from the international
+            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
+                    url, DbMetadataJson.class);
+
+            dbMetadataJson.getMetadata();
+            return dbMetadataJson;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
 
     }
 
