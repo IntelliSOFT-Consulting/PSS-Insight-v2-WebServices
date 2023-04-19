@@ -94,10 +94,13 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         try{
             String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
             int publishedVersionNo = getVersions(publishedBaseUrl);
+
             //Get metadata json
             DbMetadataValue dbMetadataValue =  getMetadata(publishedBaseUrl+publishedVersionNo);
             if (dbMetadataValue != null){
-                return dbMetadataValue.getMetadata().getIndicatorDetails();
+                if (dbMetadataValue.getMetadata().getIndicatorDetails() != null){
+                    return dbMetadataValue.getMetadata().getIndicatorDetails();
+                }
             }
 
         }catch (Exception e){
