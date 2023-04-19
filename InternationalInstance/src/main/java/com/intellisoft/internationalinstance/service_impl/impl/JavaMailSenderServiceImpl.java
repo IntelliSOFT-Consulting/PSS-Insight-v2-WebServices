@@ -57,14 +57,14 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
             String htmlContent = new String(sendEmailClassPath.getInputStream().readAllBytes(),
                     StandardCharsets.UTF_8);
 
-            Personalization personalization = new Personalization();
-            personalization.addTo(new Email("dnjau@intellisoftkenya.com"));
-            personalization.setSubject(subject);
+//            Personalization personalization = new Personalization();
+//            personalization.addTo(new Email("dnjau@intellisoftkenya.com"));
+//            personalization.setSubject(subject);
 
-            Mail mail = new Mail();
-            mail.setFrom(from);
-
-            mail.setSubject(subject);
+//            Mail mail = new Mail();
+//            mail.setFrom(from);
+//
+//            mail.setSubject(subject);
 
 //            htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
 //            htmlContent = htmlContent.replace("[TITLE]", title);
@@ -98,27 +98,27 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
 
 //
-//            List<String> emailAddressList = dbNotificationData.getEmailAddress();
-//            for (String emailAddress: emailAddressList){
-//
-//                String title = dbNotificationData.getTitle();
-//                String description = dbNotificationData.getDescription();
-//
-//                htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
-//                htmlContent = htmlContent.replace("[TITLE]", title);
-//                htmlContent = htmlContent.replace("[DESCRIPTION]", description);
-//
-//                Email to = new Email(emailAddress);
-//                Content content = new Content("text/html", htmlContent);
-//                Mail mail = new Mail(from, subject, to, content);
-//                request.setMethod(Method.POST);
-//                request.setEndpoint("mail/send");
-//                request.setBody(mail.build());
-//                Response response = sg.api(request);
-//                System.out.println("------");
-//                System.out.println(response.getStatusCode());
-//                System.out.println(response.getBody());
-//            }
+            List<String> emailAddressList = dbNotificationData.getEmailAddress();
+            for (String emailAddress: emailAddressList){
+
+                String title = dbNotificationData.getTitle();
+                String description = dbNotificationData.getDescription();
+
+                htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
+                htmlContent = htmlContent.replace("[TITLE]", title);
+                htmlContent = htmlContent.replace("[DESCRIPTION]", description);
+
+                Email to = new Email(emailAddress.trim());
+                Content content = new Content("text/html", htmlContent);
+                Mail mail = new Mail(from, subject, to, content);
+                request.setMethod(Method.POST);
+                request.setEndpoint("mail/send");
+                request.setBody(mail.build());
+                Response response = sg.api(request);
+                System.out.println("------");
+                System.out.println(response.getStatusCode());
+                System.out.println(response.getBody());
+            }
 
 
 

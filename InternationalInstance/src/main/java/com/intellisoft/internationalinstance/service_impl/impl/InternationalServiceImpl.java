@@ -240,28 +240,8 @@ public class InternationalServiceImpl implements InternationalService {
                         indicatorList
                 );
 
-                String message =
-                        "A new template has been published by " +
-                                savedVersionEntity.getPublishedBy() + " from the international instance. " +
-                                "The new template has the following details: " +
-                                "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" +
-                                "Number of indicators: " + savedVersionEntity.getIndicators().size();
+                sendNotification(savedVersionEntity);
 
-                List<String> dbEmailList = new ArrayList<>();
-                //Get subscribed email addresses
-                List<NotificationSubscription> notificationSubscriptionList =
-                        notificationSubscriptionRepo.findAllByIsActive(true);
-                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
-                    String emailAddress = notificationSubscription.getEmail();
-                    dbEmailList.add(emailAddress);
-                }
-
-                NotificationEntity notification = new NotificationEntity();
-                notification.setTitle("New Version Published.");
-                notification.setSender(savedVersionEntity.getPublishedBy());
-                notification.setMessage(message);
-                notification.setEmailList(dbEmailList);
-                notificationService.createNotification(notification);
 
             }catch (Exception e){
                 e.printStackTrace();
@@ -272,6 +252,31 @@ public class InternationalServiceImpl implements InternationalService {
         }
 
         return new Results(200, new DbDetails("Version request is being processed."));
+    }
+
+    private void sendNotification(VersionEntity savedVersionEntity) {
+        String message =
+                "A new template has been published by " +
+                        savedVersionEntity.getPublishedBy() + " from the international instance. " +
+                        "The new template has the following details: " +
+                        "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" +
+                        "Number of indicators: " + savedVersionEntity.getIndicators().size();
+
+        List<String> dbEmailList = new ArrayList<>();
+        //Get subscribed email addresses
+        List<NotificationSubscription> notificationSubscriptionList =
+                notificationSubscriptionRepo.findAllByIsActive(true);
+        for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+            String emailAddress = notificationSubscription.getEmail();
+            dbEmailList.add(emailAddress);
+        }
+
+        NotificationEntity notification = new NotificationEntity();
+        notification.setTitle("New Version Published.");
+        notification.setSender(savedVersionEntity.getPublishedBy());
+        notification.setMessage(message);
+        notification.setEmailList(dbEmailList);
+        notificationService.createNotification(notification);
     }
 
     @Transactional

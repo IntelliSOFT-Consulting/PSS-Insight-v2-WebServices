@@ -115,7 +115,7 @@ public class NotificationServiceImpl implements NotificationService {
         return new Results(200, dbResults);
     }
 
-     @Override
+    @Override
     public void createNotification(NotificationEntity notificationEntity) {
 
         try{
