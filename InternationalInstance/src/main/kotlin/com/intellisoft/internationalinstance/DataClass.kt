@@ -226,7 +226,8 @@ data class DbVersionData(
     var versionId: Long?)
 enum class PublishStatus {
     DRAFT,
-    PUBLISHED
+    PUBLISHED,
+    AWAITING_PUBLISHING
 }
 enum class IndicatorDropDowns {
     SELECTION,
