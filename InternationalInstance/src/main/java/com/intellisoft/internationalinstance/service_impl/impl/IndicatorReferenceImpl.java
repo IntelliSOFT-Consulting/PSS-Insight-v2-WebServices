@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -286,6 +287,45 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
 
         return null;
+    }
+
+    @Override
+    public Results getTopics() {
+
+        String[] myTopics = {
+                "Selection",
+                "Procurement",
+                "Distribution",
+                "Use",
+                "Coordination and leadership",
+                "Pharmaceutical Laws and Regulations",
+                "Ethics, Transparency, and Accountability",
+                "Inspection and Enforcement",
+                "Product Assessment and Registration",
+                "Quality and Safety Surveillance",
+                "Innovation, Research & Development",
+                "Intellectual Property & Trade",
+                "Costing & Pricing",
+                "Financial Risk Protection",
+                "Expenditure Tracking & Monitoring",
+                "Human Resource Development ",
+                "Human Resource Management",
+                "Information Policy and Data Standardization"
+        };
+        List<String> topicList = new ArrayList<>(Arrays.asList(myTopics));
+        DbResults dbResults1 = new DbResults(topicList.size(), topicList);
+
+        String[] dropDowns = {
+                IndicatorDropDowns.TEXT.name(),
+                IndicatorDropDowns.SELECTION.name(),
+                IndicatorDropDowns.NUMBER.name(),
+        };
+        List<String> dropList = new ArrayList<>(Arrays.asList(dropDowns));
+        DbResults dbResults2 = new DbResults(dropList.size(), dropList);
+
+
+        DbIndicatorTypes dbIndicatorTypes = new DbIndicatorTypes(dbResults1, dbResults2);
+        return new Results(200, dbIndicatorTypes);
     }
 
     private int getVersions(String url) throws URISyntaxException {

@@ -9,4 +9,5 @@ public interface IndicatorReferenceService {
     Results getIndicatorValues(String uid);
     Results updateDictionary(DbIndicatorDetails dbIndicatorDetails);
     Results deleteDictionary(String uid);
+    Results getTopics();
 }
