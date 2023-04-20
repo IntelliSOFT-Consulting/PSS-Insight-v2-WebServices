@@ -91,7 +91,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         return new Results(400, "There was an issue with the request. Try again later.");
     }
 
-    private List<DbIndicatorDic> getIndicatorList(){
+    private List<DbIndicatorDetails> getIndicatorList(){
         try{
             String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
             int publishedVersionNo = getVersions(publishedBaseUrl);
@@ -100,16 +100,37 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             DbMetadataValue dbMetadataValue =  getMetadata(publishedBaseUrl+publishedVersionNo);
             if (dbMetadataValue != null){
 
-                List<DbIndicatorDic> dbIndicatorDicList = new ArrayList<>();
+                List<DbIndicatorDetails> dbIndicatorDicList = new ArrayList<>();
                 List<DbDataElements> dbDataElementsList = dbMetadataValue.getMetadata().getDataElements();
                 for (DbDataElements dataElements: dbDataElementsList){
                     String name = (String) dataElements.getName();
                     String code = dataElements.getCode();
                     String id = (String) dataElements.getId();
+                    String created = (String) dataElements.getCreated();
+                    String valueType = (String) dataElements.getValueType();
+                    Object createdBy = dataElements.getCreatedBy();
+
                     if (!code.contains("_Comments") && !code.contains("_Uploads")){
+
+                        DbIndicatorDetails dbIndicatorDetails = new DbIndicatorDetails(
+                          id,created,name, code,valueType,
+                                null,
+                                null,
+                                Collections.emptyList(),
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+
+                        );
+
                         DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
                                 name, code, id, true);
-                        dbIndicatorDicList.add(dbIndicatorDic);
+                        dbIndicatorDicList.add(dbIndicatorDetails);
                     }
                 }
 
@@ -118,14 +139,17 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                     List<DbIndicatorDetails> indicatorDetailsList =
                             dbMetadataValue.getMetadata().getIndicatorDetails();
-                    for (DbIndicatorDetails dbIndicatorDetails: indicatorDetailsList){
-                        String name = (String) dbIndicatorDetails.getIndicatorName();
-                        String code = (String) dbIndicatorDetails.getIndicatorCode();
-                        String id = (String) dbIndicatorDetails.getUuid();
-                        DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
-                                name, code, id, false);
-                        dbIndicatorDicList.add(dbIndicatorDic);
+                    if(indicatorDetailsList != null){
+                        dbIndicatorDicList.addAll(indicatorDetailsList);
                     }
+//                    for (DbIndicatorDetails dbIndicatorDetails: indicatorDetailsList){
+//                        String name = (String) dbIndicatorDetails.getIndicatorName();
+//                        String code = (String) dbIndicatorDetails.getIndicatorCode();
+//                        String id = (String) dbIndicatorDetails.getUuid();
+//                        DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
+//                                name, code, id, false);
+//                        dbIndicatorDicList.add(dbIndicatorDic);
+//                    }
 
                 }
                 return dbIndicatorDicList;
@@ -149,15 +173,15 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         return new Results(400, "Resource not found");
     }
     private DbIndicatorDetails getIndicator(String uid){
-//        List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
-//        for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
-//
-//            String uuid = (String) dbIndicatorDetails.getUuid();
-//            if (uid.equals(uuid)){
-//                return dbIndicatorDetails;
-//            }
-//
-//        }
+        List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
+        for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
+
+            String uuid = (String) dbIndicatorDetails.getUuid();
+            if (uid.equals(uuid)){
+                return dbIndicatorDetails;
+            }
+
+        }
         return null;
     }
 
@@ -188,17 +212,17 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             String uid = (String) dbIndicatorDetails.getUuid();
             if (uid != null){
                 DbIndicatorDetails indicatorDetails = null;
-//                List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
-//                for (DbIndicatorDetails details : dbIndicatorDetailsList){
-//
-//                    String uuid = (String) details.getUuid();
-//                    if (uid.equals(uuid)){
-//                        indicatorDetails = details;
-//                        dbIndicatorDetailsList.remove(details);
-//                        break;
-//                    }
-//
-//                }
+                List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
+                for (DbIndicatorDetails details : dbIndicatorDetailsList){
+
+                    String uuid = (String) details.getUuid();
+                    if (uid.equals(uuid)){
+                        indicatorDetails = details;
+                        dbIndicatorDetailsList.remove(details);
+                        break;
+                    }
+
+                }
 
                 if (indicatorDetails != null){
 

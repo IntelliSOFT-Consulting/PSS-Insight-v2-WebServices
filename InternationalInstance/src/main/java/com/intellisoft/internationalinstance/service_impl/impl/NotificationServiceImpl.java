@@ -181,7 +181,7 @@ public class NotificationServiceImpl implements NotificationService {
             boolean sendAll = Boolean.TRUE.equals(dbSendNotification.getSendAll());
             if (!sendAll){
                 // Check if the user wants to send to specific people
-                if(!emailList.isEmpty()){
+                if(emailList.isEmpty()){
                     // Check if the email list is provided
                     return new Results(400, "If the send all is not selected, the email list cannot be empty");
                 }else {
