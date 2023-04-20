@@ -78,6 +78,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public Results getNotificationDetails(String id) {
+
+        Optional<NotificationSubscription> optionalNotificationSubscription =
+                notificationSubscriptionRepo.findById(Long.valueOf(id));
+        return optionalNotificationSubscription.map(notificationSubscription ->
+                new Results(200, notificationSubscription)).orElseGet(() ->
+                new Results(400, "Resource not found"));
+
+    }
+
+    @Override
     public Results getNotifications(int no, int size,String emailAddress) {
 
         Optional<NotificationSubscription> subscriptionOptional =
@@ -112,6 +123,19 @@ public class NotificationServiceImpl implements NotificationService {
                 dbNotificationList
         );
 
+        return new Results(200, dbResults);
+    }
+
+    @Override
+    public Results getSubscribedList(int no, int size) {
+
+        Pageable pageable = PageRequest.of(no, size);
+        List<NotificationSubscription> dbNotificationList = notificationSubscriptionRepo.findAllByIsActive(true);
+//        List<NotificationSubscription> dbNotificationList = notificationSubscriptionRepo.findAllByIsActive(true,pageable);
+        DbResults dbResults = new DbResults(
+                dbNotificationList.size(),
+                dbNotificationList
+        );
         return new Results(200, dbResults);
     }
 

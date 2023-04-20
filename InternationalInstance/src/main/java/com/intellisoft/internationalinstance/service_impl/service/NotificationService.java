@@ -10,8 +10,10 @@ import com.intellisoft.internationalinstance.model.Response;
 public interface NotificationService {
      Results subscribe(DbNotificationSub notificationSubscription);
      Results unsubscribe(String email);
+     Results getNotificationDetails(String id);
 
      Results getNotifications(int no, int size, String emailAddress);
+     Results getSubscribedList(int no, int size);
 
      void createNotification(NotificationEntity notificationEntity);
 
