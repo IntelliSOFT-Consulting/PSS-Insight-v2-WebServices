@@ -47,8 +47,9 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
         try{
 
             String sendGridApi = "S"+api2+api3+api4+api5+"DmxOJa2vBRI";
-
             Email from = new Email(emailAddressAdmin+"23@gmail.com");
+
+
             String subject = "PSS Survey";
             SendGrid sg = new SendGrid(sendGridApi);
             Request request = new Request();
@@ -108,7 +109,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
                 htmlContent = htmlContent.replace("[TITLE]", title);
                 htmlContent = htmlContent.replace("[DESCRIPTION]", description);
 
-                Email to = new Email(emailAddress.trim());
+                Email to = new Email(emailAddress);
                 Content content = new Content("text/html", htmlContent);
                 Mail mail = new Mail(from, subject, to, content);
                 request.setMethod(Method.POST);
