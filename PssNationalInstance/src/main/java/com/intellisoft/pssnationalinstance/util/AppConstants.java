@@ -16,4 +16,7 @@ public class AppConstants {
     public static final String EVENTS_ENDPOINT =NATIONAL_BASE_URL+"events";
     public static final String FILES_RESOURCES_ENDPOINT =NATIONAL_BASE_URL+"fileResources";
     public static final String DOCUMENT_RESOURCES_ENDPOINT =NATIONAL_BASE_URL+"documents/";
+
+    public static final String INTERNATIONAL_DOCS_ENDPOINT =INTERNATIONAL_BASE_URL+"documents/";
+
 }
