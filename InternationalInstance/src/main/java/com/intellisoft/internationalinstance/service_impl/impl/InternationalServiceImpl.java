@@ -230,10 +230,8 @@ public class InternationalServiceImpl implements InternationalService {
         if (isPublished){
 
             try{
-
-
                 savedVersionEntity.setStatus(PublishStatus.AWAITING_PUBLISHING.name());
-               versionRepos.save(versionEntity);
+                versionRepos.save(versionEntity);
 
                 String url = internationalUrl + programsUrl;
 
@@ -244,7 +242,7 @@ public class InternationalServiceImpl implements InternationalService {
                         this,
                         indicatorList
                 );
-//
+
                 sendNotification(versionEntity);
 
 
@@ -273,7 +271,10 @@ public class InternationalServiceImpl implements InternationalService {
                 notificationSubscriptionRepo.findAllByIsActive(true);
         for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
             String emailAddress = notificationSubscription.getEmail();
-            dbEmailList.add(emailAddress);
+            String email = emailAddress.replaceAll("\\s", "");
+            boolean isEmail = formatterClass.isEmailValid(email);
+            if(isEmail) dbEmailList.add(email);
+
         }
 
         NotificationEntity notification = new NotificationEntity();
@@ -281,6 +282,11 @@ public class InternationalServiceImpl implements InternationalService {
         notification.setSender(savedVersionEntity.getPublishedBy());
         notification.setMessage(message);
         notification.setEmailList(dbEmailList);
+
+        /**
+         * TODO: Check for configurations
+         */
+
         notificationService.createNotification(notification);
     }
 
@@ -336,29 +342,6 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     private DbPdfData getPdfData(DbMetadataValue dbMetadataValue){
-
-//        List<DbIndicatorDetails> indicatorDetailsList;
-//        List<DbIndicatorDetails> dbIndicatorDetailsList = dbMetadataValue.getMetadata().getIndicatorDetails();
-////        if (dbIndicatorDetails != null){
-//            indicatorDetails = dbIndicatorDetails;
-//        }else {
-//            String version = dbMetadataValue.getVersion();
-//            if (version != null){
-//                String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
-//                int pastVersion = Integer.parseInt(version) - 1;
-//                DbMetadataValue dbMetadataValuePast =
-//                        getMetadata(publishedBaseUrl+pastVersion);
-//                if (dbMetadataValuePast != null){
-//
-//                    DbMetadataJsonData metadataJsonData = dbMetadataValuePast.getMetadata();
-//                    DbIndicatorDetails jsonDataIndicatorDetails = metadataJsonData.getIndicatorDetails();
-//                    if (jsonDataIndicatorDetails != null){
-//                        indicatorDetails = jsonDataIndicatorDetails;
-//                    }
-//                }
-//            }
-//        }
-
 
 
         /**
