@@ -173,7 +173,12 @@ data class DbDataElements(
     val aggregationLevels: Any?,
 
 )
-
+data class DbIndicatorDic(
+    val name: String,
+    val code: String,
+    val id: String,
+    val isInternational: Boolean,
+)
 
 data class DbProgramsList(
     @JsonProperty("programs")
