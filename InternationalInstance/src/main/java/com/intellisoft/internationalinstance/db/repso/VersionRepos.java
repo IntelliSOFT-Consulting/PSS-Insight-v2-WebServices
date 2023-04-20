@@ -19,7 +19,11 @@ public interface VersionRepos extends JpaRepository<VersionEntity, Long> {
     Optional<VersionEntity> findById(Long aLong);
 
     Page<VersionEntity> findByStatus(String status, Pageable pageable);
-    List<VersionEntity> findByStatus(String status);
     List<VersionEntity> findAll(Specification<VersionEntity> spec, Pageable pageable);
-    List<VersionEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    Page<VersionEntity> findAllByStatus(String status, Pageable pageable);
+    Page<VersionEntity> findAll(Pageable pageable);
+
+    long count();
+
 }
