@@ -17,6 +17,8 @@ import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
@@ -37,9 +39,19 @@ public class VersionServiceImpl implements VersionService {
 
         List<VersionEntity> versionEntityList;
         if (status.equals("ALL")){
-            versionEntityList = versionRepos.findAll();
+            Specification<VersionEntity> spec = Specification.where(
+                    (root, query, cb) -> cb.equal(root.get("status"), status));
+            Sort sort = Sort.by("createdAt").descending().and(Sort.by("status"));
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            versionEntityList = versionRepos.findAllByOrderByCreatedAtDesc(pageable);
         }else {
-            versionEntityList = versionRepos.findByStatus(status);
+            Specification<VersionEntity> spec = Specification.where(
+                    (root, query, cb) -> cb.equal(root.get("status"), status));
+            Sort sort = Sort.by("createdAt").descending().and(Sort.by("status"));
+            Pageable pageable = PageRequest.of(page, size, sort);
+
+            versionEntityList = versionRepos.findAll(spec,pageable);
         }
 
 

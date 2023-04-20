@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,7 +91,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         return new Results(400, "There was an issue with the request. Try again later.");
     }
 
-    private List<DbIndicatorDetails> getIndicatorList(){
+    private List<DbIndicatorDic> getIndicatorList(){
         try{
             String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
             int publishedVersionNo = getVersions(publishedBaseUrl);
@@ -98,9 +99,36 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             //Get metadata json
             DbMetadataValue dbMetadataValue =  getMetadata(publishedBaseUrl+publishedVersionNo);
             if (dbMetadataValue != null){
-                if (dbMetadataValue.getMetadata().getIndicatorDetails() != null){
-                    return dbMetadataValue.getMetadata().getIndicatorDetails();
+
+                List<DbIndicatorDic> dbIndicatorDicList = new ArrayList<>();
+                List<DbDataElements> dbDataElementsList = dbMetadataValue.getMetadata().getDataElements();
+                for (DbDataElements dataElements: dbDataElementsList){
+                    String name = (String) dataElements.getName();
+                    String code = dataElements.getCode();
+                    String id = (String) dataElements.getId();
+                    if (!code.contains("_Comments") && !code.contains("_Uploads")){
+                        DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
+                                name, code, id, true);
+                        dbIndicatorDicList.add(dbIndicatorDic);
+                    }
                 }
+
+
+                if (dbMetadataValue.getMetadata().getIndicatorDetails() != null){
+
+                    List<DbIndicatorDetails> indicatorDetailsList =
+                            dbMetadataValue.getMetadata().getIndicatorDetails();
+                    for (DbIndicatorDetails dbIndicatorDetails: indicatorDetailsList){
+                        String name = (String) dbIndicatorDetails.getIndicatorName();
+                        String code = (String) dbIndicatorDetails.getIndicatorCode();
+                        String id = (String) dbIndicatorDetails.getUuid();
+                        DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
+                                name, code, id, false);
+                        dbIndicatorDicList.add(dbIndicatorDic);
+                    }
+
+                }
+                return dbIndicatorDicList;
             }
 
         }catch (Exception e){
@@ -121,15 +149,15 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         return new Results(400, "Resource not found");
     }
     private DbIndicatorDetails getIndicator(String uid){
-        List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
-        for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
-
-            String uuid = (String) dbIndicatorDetails.getUuid();
-            if (uid.equals(uuid)){
-                return dbIndicatorDetails;
-            }
-
-        }
+//        List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
+//        for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
+//
+//            String uuid = (String) dbIndicatorDetails.getUuid();
+//            if (uid.equals(uuid)){
+//                return dbIndicatorDetails;
+//            }
+//
+//        }
         return null;
     }
 
@@ -160,17 +188,17 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             String uid = (String) dbIndicatorDetails.getUuid();
             if (uid != null){
                 DbIndicatorDetails indicatorDetails = null;
-                List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
-                for (DbIndicatorDetails details : dbIndicatorDetailsList){
-
-                    String uuid = (String) details.getUuid();
-                    if (uid.equals(uuid)){
-                        indicatorDetails = details;
-                        dbIndicatorDetailsList.remove(details);
-                        break;
-                    }
-
-                }
+//                List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
+//                for (DbIndicatorDetails details : dbIndicatorDetailsList){
+//
+//                    String uuid = (String) details.getUuid();
+//                    if (uid.equals(uuid)){
+//                        indicatorDetails = details;
+//                        dbIndicatorDetailsList.remove(details);
+//                        break;
+//                    }
+//
+//                }
 
                 if (indicatorDetails != null){
 
@@ -199,8 +227,8 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                     DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
 
                     List<DbIndicatorDetails> detailsList = new ArrayList<>();
-                    dbIndicatorDetailsList.add(indicatorDetails);
-                    detailsList.addAll(dbIndicatorDetailsList);
+//                    dbIndicatorDetailsList.add(indicatorDetails);
+//                    detailsList.addAll(dbIndicatorDetailsList);
 
                     dbMetadataJsonData.setIndicatorDetails(detailsList);
 
@@ -286,6 +314,45 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
 
         return null;
+    }
+
+    @Override
+    public Results getTopics() {
+
+        String[] myTopics = {
+                "Selection",
+                "Procurement",
+                "Distribution",
+                "Use",
+                "Coordination and leadership",
+                "Pharmaceutical Laws and Regulations",
+                "Ethics, Transparency, and Accountability",
+                "Inspection and Enforcement",
+                "Product Assessment and Registration",
+                "Quality and Safety Surveillance",
+                "Innovation, Research & Development",
+                "Intellectual Property & Trade",
+                "Costing & Pricing",
+                "Financial Risk Protection",
+                "Expenditure Tracking & Monitoring",
+                "Human Resource Development ",
+                "Human Resource Management",
+                "Information Policy and Data Standardization"
+        };
+        List<String> topicList = new ArrayList<>(Arrays.asList(myTopics));
+        DbResults dbResults1 = new DbResults(topicList.size(), topicList);
+
+        String[] dropDowns = {
+                IndicatorDropDowns.TEXT.name(),
+                IndicatorDropDowns.SELECTION.name(),
+                IndicatorDropDowns.NUMBER.name(),
+        };
+        List<String> dropList = new ArrayList<>(Arrays.asList(dropDowns));
+        DbResults dbResults2 = new DbResults(dropList.size(), dropList);
+
+
+        DbIndicatorTypes dbIndicatorTypes = new DbIndicatorTypes(dbResults1, dbResults2);
+        return new Results(200, dbIndicatorTypes);
     }
 
     private int getVersions(String url) throws URISyntaxException {

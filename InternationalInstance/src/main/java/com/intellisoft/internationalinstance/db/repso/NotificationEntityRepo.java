@@ -15,4 +15,5 @@ public interface NotificationEntityRepo extends JpaRepository<NotificationEntity
     Page<NotificationEntity> findByEmailAddressPage(@Param("emailAddress") String emailAddress, Pageable pageable);
     @Query("SELECT n FROM NotificationEntity n WHERE :emailAddress MEMBER OF n.emailList")
     List<NotificationEntity> findByEmailAddress(@Param("emailAddress") String emailAddress);
+    List<NotificationEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

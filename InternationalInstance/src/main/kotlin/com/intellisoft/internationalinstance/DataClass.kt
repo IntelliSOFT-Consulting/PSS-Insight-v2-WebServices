@@ -173,7 +173,12 @@ data class DbDataElements(
     val aggregationLevels: Any?,
 
 )
-
+data class DbIndicatorDic(
+    val name: String,
+    val code: String,
+    val id: String,
+    val isInternational: Boolean,
+)
 
 data class DbProgramsList(
     @JsonProperty("programs")
@@ -206,6 +211,10 @@ data class DbSaveTemplate(
     @JsonProperty("httpStatusCode")
     val httpStatusCode: Int?,
 )
+data class DbIndicatorTypes(
+    val topics:Any?,
+    val valueType: Any?
+)
 data class DbVersionData(
     val versionDescription: String?,
     val isPublished: Boolean,
@@ -218,6 +227,12 @@ data class DbVersionData(
 enum class PublishStatus {
     DRAFT,
     PUBLISHED
+}
+enum class IndicatorDropDowns {
+    SELECTION,
+    TEXT,
+    NUMBER,
+
 }
 data class DbIndicatorValues(
     val versionName:String,

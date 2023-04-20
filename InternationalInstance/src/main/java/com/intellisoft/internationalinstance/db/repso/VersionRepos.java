@@ -3,6 +3,8 @@ package com.intellisoft.internationalinstance.db.repso;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,4 +20,6 @@ public interface VersionRepos extends JpaRepository<VersionEntity, Long> {
 
     Page<VersionEntity> findByStatus(String status, Pageable pageable);
     List<VersionEntity> findByStatus(String status);
+    List<VersionEntity> findAll(Specification<VersionEntity> spec, Pageable pageable);
+    List<VersionEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

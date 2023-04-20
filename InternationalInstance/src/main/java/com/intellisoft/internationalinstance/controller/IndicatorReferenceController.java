@@ -69,8 +69,12 @@ public class IndicatorReferenceController {
 
         Results results = indicatorReference.deleteDictionary(id);
         return formatterClass.getResponse(results);
+    }
 
-
+    @GetMapping("/list-topics")
+    public ResponseEntity<?> getTopics(){
+        Results results = indicatorReference.getTopics();
+        return formatterClass.getResponse(results);
     }
 
 }
