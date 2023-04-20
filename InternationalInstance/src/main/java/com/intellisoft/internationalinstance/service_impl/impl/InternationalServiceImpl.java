@@ -230,6 +230,11 @@ public class InternationalServiceImpl implements InternationalService {
         if (isPublished){
 
             try{
+
+
+                savedVersionEntity.setStatus(PublishStatus.AWAITING_PUBLISHING.name());
+               versionRepos.save(versionEntity);
+
                 String url = internationalUrl + programsUrl;
 
                 formatterClass.startBackGroundTask(
@@ -239,8 +244,8 @@ public class InternationalServiceImpl implements InternationalService {
                         this,
                         indicatorList
                 );
-
-                sendNotification(savedVersionEntity);
+//
+                sendNotification(versionEntity);
 
 
             }catch (Exception e){
@@ -317,8 +322,6 @@ public class InternationalServiceImpl implements InternationalService {
                 savedVersionEntity.setVersionName(versionNumber);
                 savedVersionEntity.setStatus(PublishStatus.PUBLISHED.name());
                 versionRepos.save(savedVersionEntity);
-
-
 
                 //Create pdf
                 generatePdf(dbMetadataJsonData);
