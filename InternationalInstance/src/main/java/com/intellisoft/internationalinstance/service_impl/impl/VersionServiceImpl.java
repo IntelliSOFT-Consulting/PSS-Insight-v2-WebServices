@@ -37,31 +37,44 @@ public class VersionServiceImpl implements VersionService {
     @Override
     public Results getTemplates(int page, int size, String status) {
 
-        List<VersionEntity> versionEntityList;
-        if (status.equals("ALL")){
-            Specification<VersionEntity> spec = Specification.where(
-                    (root, query, cb) -> cb.equal(root.get("status"), status));
-            Sort sort = Sort.by("createdAt").descending().and(Sort.by("status"));
-            Pageable pageable = PageRequest.of(page, size, sort);
-
-            versionEntityList = versionRepos.findAllByOrderByCreatedAtDesc(pageable);
-        }else {
-            Specification<VersionEntity> spec = Specification.where(
-                    (root, query, cb) -> cb.equal(root.get("status"), status));
-            Sort sort = Sort.by("createdAt").descending().and(Sort.by("status"));
-            Pageable pageable = PageRequest.of(page, size, sort);
-
-            versionEntityList = versionRepos.findAll(spec,pageable);
-        }
+        List<VersionEntity> versionEntityList = getPagedList(page, size, "", "", status);;
 
 
         List<DbVersionDetails> dbVersionDetailsList = getSelectedIndicators(versionEntityList);
 
         DbResults dbResults = new DbResults(
-                dbVersionDetailsList.size(),
+                (int) versionRepos.count(),
                 dbVersionDetailsList);
 
         return new Results(200, dbResults);
+    }
+
+    private List<VersionEntity> getPagedList(
+            int pageNo,
+            int pageSize,
+            String sortField,
+            String sortDirection,
+            String status) {
+        String sortPageField = "";
+        String sortPageDirection = "";
+
+        if (sortField.equals("")){sortPageField = "createdAt"; }else {sortPageField = sortField;}
+        if (sortDirection.equals("")){sortPageDirection = "DESC"; }else {sortPageDirection = sortField;}
+
+        Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
+        Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
+        Page<VersionEntity> page;
+        if (status.equals("ALL")){
+            page = versionRepos.findAll(pageable);
+        }else {
+           page = versionRepos.findAllByStatus(
+                    status, pageable);
+        }
+
+
+
+        return page.getContent();
     }
 
     private List<DbVersionDetails> getSelectedIndicators(List<VersionEntity> versionEntityList){
