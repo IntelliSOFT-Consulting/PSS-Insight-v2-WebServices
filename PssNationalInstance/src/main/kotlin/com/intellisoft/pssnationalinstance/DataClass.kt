@@ -91,11 +91,7 @@ data class DbMobileData(
     val publishedIndicators: Any?,
     val nationalInformation:Any?
 )
-data class DbPublishedVersionDetails(
-    var referenceSheet: String?,
-    var count: Any?,
-    var details: List<DbIndicators>,
-)
+
 data class DbPublishedVersionApp(
     var count: Any?,
     var details: List<DbIndicatorsApp>,
@@ -112,7 +108,11 @@ data class DbIndicatorValuesApp(
     var indicatorName: Any?,
     var indicatorDataValue: List<DbIndicatorDataValues>,
 )
-
+data class DbPublishedVersionDetails(
+    var referenceSheet: String?,
+    var count: Any?,
+    var details: List<DbIndicators>,
+)
 data class DbPublishedVersion(
     @JsonProperty("count")
     var count: Any?,

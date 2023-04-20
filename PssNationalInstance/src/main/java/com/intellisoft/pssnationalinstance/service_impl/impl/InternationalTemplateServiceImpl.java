@@ -35,7 +35,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
                 int versionNo = getVersions(publishedBaseUrl);
                 DbTemplateDetails dbTemplateDetails =
-                        new DbTemplateDetails(versionNo, interNationalPublishedIndicators);
+                        new DbTemplateDetails(versionNo, getInterNationalPublishedIndicators());
                 dbTemplateDetailsList.add(dbTemplateDetails);
             }
 
@@ -52,12 +52,32 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
     }
 
+    public DbPublishedVersionDetails getInterNationalPublishedIndicators(){
+        String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+        DbMetadataJson dbMetadataJson = getPublishedData(publishedBaseUrl);
+        if (dbMetadataJson != null){
+            DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+            if (dbPrograms != null){
+                String url = (String) dbPrograms.getReferenceSheet();
+
+
+                return new DbPublishedVersionDetails(
+                        url,
+                        dbPrograms.getPublishedVersion().getCount(),
+                        dbPrograms.getPublishedVersion().getDetails()
+                );
+            }
+        }
+        return null;
+    }
+
     public DbPublishedVersion interNationalPublishedIndicators(){
         String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
         DbMetadataJson dbMetadataJson = getPublishedData(publishedBaseUrl);
         if (dbMetadataJson != null){
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
             if (dbPrograms != null){
+
                 return dbPrograms.getPublishedVersion();
             }
         }
@@ -75,7 +95,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         }
     }
 
-    public DbTemplateDetails getRecentPublishedData(String url){
+    private DbTemplateDetails getRecentPublishedData(String url){
         try {
             //Get latest international version
             int publishedVersionNo = getVersions(url);
@@ -88,9 +108,16 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                 if (dbMetadataJson.getMetadata() != null){
 
                     DbPublishedVersion indicators = dbMetadataJson.getMetadata().getPublishedVersion();
+                    String refSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
+
+                    DbPublishedVersionDetails dbPublishedVersionDetails = new DbPublishedVersionDetails(
+                            refSheet,
+                            indicators.getCount(),
+                            indicators.getDetails());
+
                     return new DbTemplateDetails(
                             recentVersionNo,
-                            indicators);
+                            dbPublishedVersionDetails);
                 }
             }
 

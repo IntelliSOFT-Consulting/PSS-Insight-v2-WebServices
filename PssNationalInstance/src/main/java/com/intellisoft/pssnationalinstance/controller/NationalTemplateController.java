@@ -3,6 +3,7 @@ package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.*;
+import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Email;
@@ -14,8 +15,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -41,6 +43,7 @@ public class NationalTemplateController {
     private final IndicatorEditsService indicatorEditsService;
     private final VersionEntityService versionEntityService;
     private final PeriodConfigurationService periodConfigurationService;
+    private RestTemplate restTemplate = new RestTemplate();
 
 
     /**
@@ -183,6 +186,21 @@ public class NationalTemplateController {
     public ResponseEntity<?> getNationalDetails() {
         Results results = nationalTemplateService.getNationalDetails();
         return formatterClass.getResponse(results);
+    }
+
+    @GetMapping("/view-file/{filename}")
+    public ResponseEntity<byte[]> getDocument(@PathVariable String filename) {
+        String url = AppConstants.INTERNATIONAL_DOCS_ENDPOINT + filename + "/data";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth("admin", "district");
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<byte[]> response = restTemplate.exchange(url,
+                HttpMethod.GET,
+                entity, byte[].class);
+        return ResponseEntity
+                .status(response.getStatusCode())
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(response.getBody());
     }
 
 
