@@ -476,3 +476,11 @@ data class DbResp(
     @JsonProperty("uid")
     val uid: String
 )
+data class DbEmailConfiguration(
+    val serverType: String,
+    val serverName: String,
+    val ports: String,
+    val username:String,
+    val from:String,
+    val password:String
+)

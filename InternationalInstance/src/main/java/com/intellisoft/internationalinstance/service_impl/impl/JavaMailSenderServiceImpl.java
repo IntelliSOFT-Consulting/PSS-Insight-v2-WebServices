@@ -2,9 +2,12 @@ package com.intellisoft.internationalinstance.service_impl.impl;
 
 import com.intellisoft.internationalinstance.DbNotificationData;
 import com.intellisoft.internationalinstance.FormatterClass;
+import com.intellisoft.internationalinstance.db.MailConfiguration;
 import com.intellisoft.internationalinstance.db.NotificationSubscription;
 import com.intellisoft.internationalinstance.db.repso.NotificationSubscriptionRepo;
+import com.intellisoft.internationalinstance.service_impl.service.ConfigurationService;
 import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService;
+import com.intellisoft.internationalinstance.util.MailConfigurationImpl;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.Response;
@@ -16,9 +19,14 @@ import com.sendgrid.helpers.mail.objects.Personalization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
+import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +39,9 @@ import java.util.List;
 public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
     private final FormatterClass formatterClass = new FormatterClass();
+    private final TemplateEngine templateEngine;
+
+    private final MailConfigurationImpl mailConfigurationImpl;
     @Value("${API2}")
     private String api2;
     private String api3 = "_3A.WaLPg3rVm6je";
@@ -40,86 +51,50 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
     private String api5;
     private String emailAddressAdmin = "pssnotifications";
     private final NotificationSubscriptionRepo notificationSubscriptionRepo;
+    private final ConfigurationService periodConfigurationService;
 
 
     public void sendEmailBackground(DbNotificationData dbNotificationData) {
 
         try{
 
-            String sendGridApi = "S"+api2+api3+api4+api5+"DmxOJa2vBRI";
-            Email from = new Email(emailAddressAdmin+"23@gmail.com");
+            JavaMailSender mailSender = mailConfigurationImpl.javaMailSender();
+            MailConfiguration mailConfiguration =
+                    periodConfigurationService.getMailConfiguration();
 
+            if (mailConfiguration != null && mailSender != null){
+                String subject = "PSS Survey";
 
-            String subject = "PSS Survey";
-            SendGrid sg = new SendGrid(sendGridApi);
-            Request request = new Request();
+                String from = mailConfiguration.getFromEmail();
 
-            ClassPathResource sendEmailClassPath = new ClassPathResource("templates/email.html");
-            String htmlContent = new String(sendEmailClassPath.getInputStream().readAllBytes(),
-                    StandardCharsets.UTF_8);
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-//            Personalization personalization = new Personalization();
-//            personalization.addTo(new Email("dnjau@intellisoftkenya.com"));
-//            personalization.setSubject(subject);
+                helper.setSubject(subject);
+                helper.setFrom(from);
 
-//            Mail mail = new Mail();
-//            mail.setFrom(from);
-//
-//            mail.setSubject(subject);
+                Context context = new Context();
 
-//            htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
-//            htmlContent = htmlContent.replace("[TITLE]", title);
-//            htmlContent = htmlContent.replace("[DESCRIPTION]", description);
-//
-//            mail.addContent(htmlContent);
-//            mail.addPersonalization(personalization);
-//            try {
-//                request.setMethod(Method.POST);
-//                request.setEndpoint("mail/send");
-//                request.setBody(mail.build());
-//                Response response = sg.api(request);
-//                System.out.println(response.getStatusCode());
-//                System.out.println(response.getBody());
-//                System.out.println(response.getHeaders());
-//            } catch (IOException ex) {
-//                ex.printStackTrace();
-//            }
+                List<String> emailAddressList = dbNotificationData.getEmailAddress();
+                for (String emailAddress: emailAddressList) {
 
+                    String title = dbNotificationData.getTitle();
+                    String description = dbNotificationData.getDescription();
 
+                    context.setVariable("GREETING", "Dear "+formatterClass.extractName(emailAddress)+",");
+                    context.setVariable("TITLE", title);
+                    context.setVariable("DESCRIPTION", description);
 
+                    String content = templateEngine.process("email", context);
+                    helper.setTo(emailAddress);
+                    helper.setText(content, true);
 
+                    mailSender.send(message);
 
-
-
-
-
-
-
-
-
-
-//
-            List<String> emailAddressList = dbNotificationData.getEmailAddress();
-            for (String emailAddress: emailAddressList){
-
-                String title = dbNotificationData.getTitle();
-                String description = dbNotificationData.getDescription();
-
-                htmlContent = htmlContent.replace("[EMAIL_ADDRESS]", formatterClass.extractName(emailAddress));
-                htmlContent = htmlContent.replace("[TITLE]", title);
-                htmlContent = htmlContent.replace("[DESCRIPTION]", description);
-
-                Email to = new Email(emailAddress);
-                Content content = new Content("text/html", htmlContent);
-                Mail mail = new Mail(from, subject, to, content);
-                request.setMethod(Method.POST);
-                request.setEndpoint("mail/send");
-                request.setBody(mail.build());
-                Response response = sg.api(request);
-                System.out.println("------");
-                System.out.println(response.getStatusCode());
-                System.out.println(response.getBody());
+                }
             }
+
+
 
 
 
@@ -129,17 +104,4 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
         }
 
     }
-
-//    private List<String> getEmailAddress(){
-//        List<String> stringList = new ArrayList<>();
-//        List<NotificationSubscription> emailAddressList = notificationSubscriptionRepo.findAll();
-//        for (NotificationSubscription notificationSubscription: emailAddressList){
-//            boolean isActive = notificationSubscription.getIsActive();
-//            if (isActive){
-//                String emailAddress = notificationSubscription.getEmail();
-//                stringList.add(emailAddress);
-//            }
-//        }
-//        return stringList;
-//    }
 }
