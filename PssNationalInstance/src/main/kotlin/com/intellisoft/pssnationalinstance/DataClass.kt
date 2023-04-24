@@ -61,7 +61,7 @@ data class DbPrograms(
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
     @JsonProperty("referenceSheet")
-    var referenceSheet: Any?,
+    var referenceSheet: Any?
 )
 
 
@@ -473,4 +473,12 @@ data class DbNotificationSub(
     val lastName: String?,
     val email:String,
     val phoneNumber:String?
+)
+data class DbEmailConfiguration(
+    val serverType: String,
+    val serverName: String,
+    val ports: String,
+    val username:String,
+    val from:String,
+    val password:String
 )

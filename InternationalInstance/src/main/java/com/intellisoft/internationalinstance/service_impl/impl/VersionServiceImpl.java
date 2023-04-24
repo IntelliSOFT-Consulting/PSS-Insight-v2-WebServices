@@ -72,8 +72,6 @@ public class VersionServiceImpl implements VersionService {
                     status, pageable);
         }
 
-
-
         return page.getContent();
     }
 
