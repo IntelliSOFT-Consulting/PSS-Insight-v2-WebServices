@@ -101,7 +101,7 @@ jobs:
       - name: Build National Instance
         run: |
           cd PssNationalInstance
-          mvn clean package -Dspring.profiles.active=server
+          mvn clean package
 
       - name: Build & push National Docker image
         run: |
