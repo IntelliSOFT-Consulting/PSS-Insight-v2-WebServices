@@ -24,14 +24,6 @@ public class SurveyRespondentsController {
     private final SurveyRespondentsService surveyRespondentsService;
     FormatterClass formatterClass = new FormatterClass();
 
-    @Value("${API2}")
-    private String api2;
-    private String api3 = "_3A.WaLPg3rVm6je";
-    @Value("${API4}")
-    private String api4;
-    @Value("${API5}")
-    private String api5;
-    private String emailAddressAdmin = "pssnotifications";
 
     @PostMapping("/add")
     public ResponseEntity<?> addSurveyRespondent(

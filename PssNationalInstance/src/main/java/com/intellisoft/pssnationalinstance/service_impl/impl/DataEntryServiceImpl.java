@@ -30,6 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DataEntryServiceImpl implements DataEntryService {
 
+
     private final FormatterClass formatterClass = new FormatterClass();
     private final DataEntryRepository dataEntryRepository;
     private final DataEntryResponsesRepository dataEntryResponsesRepository;

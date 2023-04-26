@@ -1,0 +1,9 @@
+version: '3'
+services:
+  national:
+    image: dnjau/pss_national:vlocal
+    ports:
+      - "7001:7001"
+    restart: always
+
+# docker-compose -f docker-compose-app.yaml up
