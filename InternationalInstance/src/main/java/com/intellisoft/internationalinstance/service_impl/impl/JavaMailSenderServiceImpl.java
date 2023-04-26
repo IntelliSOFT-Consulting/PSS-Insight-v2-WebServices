@@ -17,6 +17,7 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -39,18 +40,10 @@ import java.util.List;
 public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
     private final FormatterClass formatterClass = new FormatterClass();
+
     private final TemplateEngine templateEngine;
 
     private final MailConfigurationImpl mailConfigurationImpl;
-    @Value("${API2}")
-    private String api2;
-    private String api3 = "_3A.WaLPg3rVm6je";
-    @Value("${API4}")
-    private String api4;
-    @Value("${API5}")
-    private String api5;
-    private String emailAddressAdmin = "pssnotifications";
-    private final NotificationSubscriptionRepo notificationSubscriptionRepo;
     private final ConfigurationService periodConfigurationService;
 
 
