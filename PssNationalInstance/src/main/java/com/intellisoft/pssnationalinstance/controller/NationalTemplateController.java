@@ -36,6 +36,11 @@ public class NationalTemplateController {
     private final PeriodConfigurationService periodConfigurationService;
     private RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
+
 
     /**
      * Update the national instance with the international data from the international data
@@ -181,9 +186,10 @@ public class NationalTemplateController {
 
     @GetMapping("/view-file/{filename}")
     public ResponseEntity<byte[]> getDocument(@PathVariable String filename) {
+
         String url = AppConstants.INTERNATIONAL_DOCS_ENDPOINT + filename + "/data";
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth("admin", "district");
+        headers.setBasicAuth(username, password);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<byte[]> response = restTemplate.exchange(url,
                 HttpMethod.GET,

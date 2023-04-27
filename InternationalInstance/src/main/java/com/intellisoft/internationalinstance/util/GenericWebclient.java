@@ -1,10 +1,13 @@
 package com.intellisoft.internationalinstance.util;
 
+import com.intellisoft.internationalinstance.FormatterClass;
 import com.intellisoft.internationalinstance.exception.CustomException;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import kotlin.Triple;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -29,6 +32,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Log4j2
 public class GenericWebclient {
 
+
+    private final FormatterClass formatterClass = new FormatterClass();
     private static final long TIMEOUT = 120000;
     private static final int CONNECT_TIMEOUT = 120000;
     /**
@@ -170,13 +175,18 @@ public class GenericWebclient {
                         conn.addHandlerLast(new ReadTimeoutHandler(TIMEOUT, TimeUnit.MILLISECONDS))
                                 .addHandlerLast(new WriteTimeoutHandler(TIMEOUT, TimeUnit.MILLISECONDS)));
 
+        Triple<String, String, String> valueData = new FormatterClass().getValue();
+        String username = valueData.getFirst();
+        String password = valueData.getSecond();
+        String internationalUrl = valueData.getThird();
+
         return WebClient.builder()
                 .codecs(configurer -> configurer
                         .defaultCodecs()
                         .maxInMemorySize(16 * 1024 * 1024))
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader("Authorization", "Basic " + Base64Utils
-                        .encodeToString(("admin" + ":" + "district").getBytes(UTF_8)))
+                        .encodeToString((username + ":" + password).getBytes(UTF_8)))
                 .build();
 
 

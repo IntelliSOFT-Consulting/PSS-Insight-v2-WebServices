@@ -37,10 +37,11 @@ public class ProgramsServiceImpl implements ProgramsService {
 
     private HttpEntity<String> getHeaders(){
 
+        String auth = username + ":" + password;
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Basic " +
-                Base64Utils.encodeToString("admin:district".getBytes()));
+                Base64Utils.encodeToString(auth.getBytes()));
 
         return new HttpEntity<>(headers);
 
@@ -257,7 +258,7 @@ public class ProgramsServiceImpl implements ProgramsService {
 
             // Create the request headers
             HttpHeaders headers = new HttpHeaders();
-            String auth = "admin:district";
+            String auth = username+":"+password;
             byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
             String authHeader = "Basic " + new String(encodedAuth);
             headers.add("Authorization", authHeader);

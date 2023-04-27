@@ -1,9 +1,11 @@
 package com.intellisoft.pssnationalinstance.util;
 
+import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.exception.CustomException;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import kotlin.Triple;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -169,13 +171,18 @@ public class GenericWebclient {
                         conn.addHandlerLast(new ReadTimeoutHandler(TIMEOUT, TimeUnit.MILLISECONDS))
                                 .addHandlerLast(new WriteTimeoutHandler(TIMEOUT, TimeUnit.MILLISECONDS)));
 
+        Triple<String, String, String> valueData = new FormatterClass().getValueDetails();
+        String username = valueData.getFirst();
+        String password = valueData.getSecond();
+        String internationalUrl = valueData.getThird();
+
         return WebClient.builder()
                 .codecs(configurer -> configurer
                         .defaultCodecs()
                         .maxInMemorySize(16 * 1024 * 1024))
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader("Authorization", "Basic " + Base64Utils
-                        .encodeToString(("admin" + ":" + "district").getBytes(UTF_8)))
+                        .encodeToString((username + ":" + password).getBytes(UTF_8)))
                 .build();
 
 

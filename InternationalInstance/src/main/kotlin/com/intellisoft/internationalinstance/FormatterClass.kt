@@ -21,6 +21,18 @@ import java.util.regex.Pattern
 
 class FormatterClass {
 
+    fun getValue(): Triple<String, String, String> {
+        val props = Properties()
+        val inputStream = javaClass.classLoader
+            .getResourceAsStream("application.properties")
+        props.load(inputStream)
+        val username = props.getProperty("dhis.username")
+        val password = props.getProperty("dhis.password")
+        val internationalUrl = props.getProperty("dhis.international")
+
+        return Triple(username, password, internationalUrl)
+    }
+
     fun getUUid():String{
         return RandomStringUtils.randomAlphanumeric(10)
     }

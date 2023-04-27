@@ -46,6 +46,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InternationalServiceImpl implements InternationalService {
 
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
+
     @Value("${dhis.international}")
     private String internationalUrl;
     @Value("${dhis.programs}")
@@ -497,7 +502,7 @@ public class InternationalServiceImpl implements InternationalService {
 
             RestTemplate restTemplate = new RestTemplate();
             String authHeader = "Basic " + Base64.getEncoder().encodeToString((
-                    "admin" + ":" + "district").getBytes());
+                    username + ":" + password).getBytes());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             headers.add("Authorization", authHeader);
