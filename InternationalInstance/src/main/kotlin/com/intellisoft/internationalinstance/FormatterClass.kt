@@ -21,7 +21,8 @@ import java.util.regex.Pattern
 
 class FormatterClass {
 
-    fun getValue(): Triple<String, String, String> {
+
+    fun getValue(): DbApplicationValues{
         val props = Properties()
         val inputStream = javaClass.classLoader
             .getResourceAsStream("application.properties")
@@ -29,8 +30,10 @@ class FormatterClass {
         val username = props.getProperty("dhis.username")
         val password = props.getProperty("dhis.password")
         val internationalUrl = props.getProperty("dhis.international")
+        val program = props.getProperty("dhis.program")
+        val template = props.getProperty("dhis.template")
 
-        return Triple(username, password, internationalUrl)
+        return DbApplicationValues(internationalUrl, username, password, program, template)
     }
 
     fun getUUid():String{

@@ -28,8 +28,8 @@ public class ProgramsServiceImpl implements ProgramsService {
 
     private HttpEntity<String> getHeaders(){
 
-        String username = formatterClass.getValue().getFirst();
-        String password = formatterClass.getValue().getSecond();
+        String username = formatterClass.getValue().getUsername();
+        String password = formatterClass.getValue().getPassword();
 
         String auth = username + ":" + password;
 

@@ -484,3 +484,10 @@ data class DbEmailConfiguration(
     val from:String,
     val password:String
 )
+data class DbApplicationValues(
+    val internationalUrl :String?,
+    val username :String?,
+    val password :String?,
+    val program :String?,
+    val masterTemplate :String?,
+)

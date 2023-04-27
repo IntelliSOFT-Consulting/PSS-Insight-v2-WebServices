@@ -1,5 +1,6 @@
 package com.intellisoft.internationalinstance.util;
 
+import com.intellisoft.internationalinstance.DbApplicationValues;
 import com.intellisoft.internationalinstance.FormatterClass;
 import com.intellisoft.internationalinstance.exception.CustomException;
 import io.netty.channel.ChannelOption;
@@ -175,10 +176,9 @@ public class GenericWebclient {
                         conn.addHandlerLast(new ReadTimeoutHandler(TIMEOUT, TimeUnit.MILLISECONDS))
                                 .addHandlerLast(new WriteTimeoutHandler(TIMEOUT, TimeUnit.MILLISECONDS)));
 
-        Triple<String, String, String> valueData = new FormatterClass().getValue();
-        String username = valueData.getFirst();
-        String password = valueData.getSecond();
-        String internationalUrl = valueData.getThird();
+        DbApplicationValues valueData = new FormatterClass().getValue();
+        String username = valueData.getUsername();
+        String password = valueData.getPassword();
 
         return WebClient.builder()
                 .codecs(configurer -> configurer
