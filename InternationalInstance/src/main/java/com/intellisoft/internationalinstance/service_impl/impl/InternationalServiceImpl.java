@@ -51,14 +51,6 @@ public class InternationalServiceImpl implements InternationalService {
     @Value("${dhis.password}")
     private String password;
 
-    @Value("${dhis.international}")
-    private String internationalUrl;
-    @Value("${dhis.programs}")
-    private String programsUrl;
-    @Value("${dhis.groups}")
-    private String groupsUrl;
-    @Value("${dhis.indicator}")
-    private String indicatorUrl;
     private final FormatterClass formatterClass = new FormatterClass();
     private final VersionRepos versionRepos;
     private final NotificationService notificationService;
@@ -82,14 +74,14 @@ public class InternationalServiceImpl implements InternationalService {
         try{
             List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
 
-            String url = internationalUrl + programsUrl;
+            String url = AppConstants.METADATA_JSON_ENDPOINT;
             List<DbDataElements> dbDataElementsList = getDataElements(url);
 
-            String groupUrl = internationalUrl + groupsUrl;
+            String groupUrl = AppConstants.METADATA_GROUPINGS;
             DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(
                     groupUrl, DbGroupsData.class);
 
-            String indicatorDescriptionUrl = internationalUrl + indicatorUrl;
+            String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
             String indicatorDescription = GenericWebclient.getForSingleObjResponse(
                     indicatorDescriptionUrl, String.class);
             JSONArray jsonArray = new JSONArray(indicatorDescription);
@@ -238,7 +230,7 @@ public class InternationalServiceImpl implements InternationalService {
                 savedVersionEntity.setStatus(PublishStatus.AWAITING_PUBLISHING.name());
                 versionRepos.save(versionEntity);
 
-                String url = internationalUrl + programsUrl;
+                String url = AppConstants.METADATA_JSON_ENDPOINT;
 
                 formatterClass.startBackGroundTask(
                         url,
@@ -299,8 +291,8 @@ public class InternationalServiceImpl implements InternationalService {
     public void pushMetadata(
             DbMetadataValue dbMetadataJsonData,
             VersionEntity savedVersionEntity){
-        String groupUrl = internationalUrl + groupsUrl;
-        String indicatorDescriptionUrl = internationalUrl + indicatorUrl;
+        String groupUrl = AppConstants.METADATA_GROUPINGS;
+        String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
 
         try{
 

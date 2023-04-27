@@ -2,6 +2,7 @@ package com.intellisoft.internationalinstance.service_impl.impl;
 
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.service_impl.service.ProgramsService;
+import com.intellisoft.internationalinstance.util.AppConstants;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,24 +19,17 @@ public class ProgramsServiceImpl implements ProgramsService {
 
     @Autowired
     private RestTemplate restTemplate;
-
-    @Value("${dhis.international}")
-    private String internationalUrl;
-
-    @Value("${dhis.template}")
-    private String master_template;
+    private FormatterClass formatterClass = new FormatterClass();
 
     @Value("${dhis.username}")
     private String username;
     @Value("${dhis.password}")
     private String password;
 
-    @Value("${dhis.programs}")
-    private String programsUrl;
-    @Value("${dhis.datastore}")
-    private String dataStore;
-
     private HttpEntity<String> getHeaders(){
+
+        String username = formatterClass.getValue().getFirst();
+        String password = formatterClass.getValue().getSecond();
 
         String auth = username + ":" + password;
 
@@ -53,7 +47,7 @@ public class ProgramsServiceImpl implements ProgramsService {
         Results results;
 
 
-        ResponseEntity<DbProgramsList> response = restTemplate.exchange(internationalUrl+programsUrl,
+        ResponseEntity<DbProgramsList> response = restTemplate.exchange(AppConstants.METADATA_JSON_ENDPOINT,
                 HttpMethod.GET, getHeaders(), DbProgramsList.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
@@ -103,10 +97,7 @@ public class ProgramsServiceImpl implements ProgramsService {
 
     private ResponseEntity<String[]> getNamespaceData(){
 
-
-        String nameSpaceUrl = internationalUrl + dataStore;
-
-        return restTemplate.exchange(nameSpaceUrl,
+        return restTemplate.exchange(AppConstants.DATA_STORE_ENDPOINT_VALUE,
                 HttpMethod.GET, getHeaders(), String[].class);
 
     }
@@ -138,7 +129,7 @@ public class ProgramsServiceImpl implements ProgramsService {
 
     private ResponseEntity<String[]> getVersionsData(String namespace){
 
-        String versionUrl = internationalUrl + dataStore + namespace;
+        String versionUrl = AppConstants.DATA_STORE_ENDPOINT_VALUE + namespace;
         ResponseEntity<String[]> response = restTemplate.exchange(versionUrl,
                 HttpMethod.GET, getHeaders(), String[].class);
         return response;
@@ -147,7 +138,8 @@ public class ProgramsServiceImpl implements ProgramsService {
     @Override
     public Results getTemplates(int limitNo) {
 
-        String dataStoreUrl = internationalUrl + dataStore;
+        String master_template = AppConstants.MASTER_TEMPLATE;
+        String dataStoreUrl = AppConstants.DATA_STORE_ENDPOINT_VALUE;
         List<DbTemplateData> dbTemplateDataList = new ArrayList<>();
 
         /**
@@ -243,10 +235,10 @@ public class ProgramsServiceImpl implements ProgramsService {
         String program = dbTemplateData.getProgram();
         String description = dbTemplateData.getDescription();
 
-        String templateUrl = internationalUrl + dataStore + master_template + "/" + key;
+        String templateUrl = AppConstants.DATA_STORE_ENDPOINT + key;
 
         // Get the metadata json
-        ResponseEntity<JSONObject> metadataJson = restTemplate.exchange(internationalUrl+programsUrl,
+        ResponseEntity<JSONObject> metadataJson = restTemplate.exchange(AppConstants.METADATA_JSON_ENDPOINT,
                 HttpMethod.GET, getHeaders(), JSONObject.class);
 
         if (metadataJson.getStatusCode() == HttpStatus.OK) {
