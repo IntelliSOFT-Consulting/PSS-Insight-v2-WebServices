@@ -6,7 +6,7 @@ The folder should have the following:
 Configurations
 
 Dockerfile
-national_script.sh
+international_script.sh
 README.md
 ```
 
@@ -46,7 +46,7 @@ The backend application can be started using the following commands:
 - For a first time use, start with:
 
 ```shell
-chmod +x national_script.sh 
+chmod +x international_script.sh 
 ```
 
 ```

@@ -4,7 +4,7 @@ services:
     image: postgres:14.1-alpine
     restart: always
     env_file:
-      - variables.env
+      - .env
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
       interval: 30s
@@ -12,16 +12,13 @@ services:
       retries: 5
       start_period: 80s
     ports:
-      - '5438:5432'
-    container_name: national_db
+      - '5432:5432'
+    container_name: international_db
     volumes:
-      - national_db:/var/lib/postgresql/data/national_db
-      - file_db:/var/lib/postgresql/data/file_db
-
+      - db:/var/lib/postgresql/data
 volumes:
-  national_db:
-    driver: local
-  file_db:
+  db:
     driver: local
 
-# docker-compose -f docker-compose-postgres.yaml up
+# Change the port!
+# docker-compose -f docker-compose-postres.yaml up
