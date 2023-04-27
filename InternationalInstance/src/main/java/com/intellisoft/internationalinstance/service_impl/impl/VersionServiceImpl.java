@@ -2,9 +2,7 @@ package com.intellisoft.internationalinstance.service_impl.impl;
 
 import com.google.common.collect.Lists;
 import com.intellisoft.internationalinstance.*;
-import com.intellisoft.internationalinstance.db.Indicators;
 import com.intellisoft.internationalinstance.db.VersionEntity;
-import com.intellisoft.internationalinstance.db.repso.IndicatorsRepo;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
 import com.intellisoft.internationalinstance.service_impl.service.VersionService;
@@ -28,9 +26,7 @@ import java.util.*;
 @Log4j2
 @RequiredArgsConstructor
 public class VersionServiceImpl implements VersionService {
-    private final IndicatorsRepo indicatorsRepo;
     private final VersionRepos versionRepos;
-    private final FormatterClass formatterClass = new FormatterClass();
     private final InternationalService internationalService;
 
 
@@ -206,51 +202,5 @@ public class VersionServiceImpl implements VersionService {
     }
 
 
-    private List<VersionEntity> getPagedTemplates(
-            int pageNo,
-            int pageSize,
-            String status
-    ) {
-
-        System.out.println("______" + status);
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<VersionEntity> page = versionRepos.findByStatus(status, pageable);
-
-        return page.getContent();
-    }
-
-    /**
-     * Get data from MASTER TEMPLATE from DHIS Datastore and save into local db
-     * @return
-     * @throws URISyntaxException
-     */
-    private List<Indicators> getDataFromRemote() throws URISyntaxException {
-
-        List<Indicators> indicators = new LinkedList<>();
-
-        var  res =GenericWebclient.getForSingleObjResponse(
-                AppConstants.METADATA_GROUPINGS, String.class);
-
-        JSONObject jsObject = new JSONObject(res);
-//        JSONArray dataElements = jsObject.getJSONArray("dataElements");
-        JSONArray dataElements = jsObject.getJSONArray("dataElementGroups");
-        dataElements.forEach(element->{
-            String  id = ((JSONObject)element).getString("id");
-
-            Indicators indicator = new Indicators();
-            indicator.setIndicatorId(id);
-            indicator.setMetadata(element.toString());
-
-            boolean isIndicator = indicatorsRepo.existsByIndicatorId(id);
-            if (!isIndicator){
-                indicators.add(indicator);
-            }
-
-        });
-
-
-        return Lists.newArrayList(indicatorsRepo.saveAll(indicators));
-
-    }
 
 }
