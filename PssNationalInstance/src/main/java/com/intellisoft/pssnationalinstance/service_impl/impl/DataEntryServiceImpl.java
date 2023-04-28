@@ -6,8 +6,10 @@ import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.DataEntry;
 import com.intellisoft.pssnationalinstance.db.DataEntryResponses;
 import com.intellisoft.pssnationalinstance.db.PeriodConfiguration;
+import com.intellisoft.pssnationalinstance.db.Surveys;
 import com.intellisoft.pssnationalinstance.repository.DataEntryRepository;
 import com.intellisoft.pssnationalinstance.repository.DataEntryResponsesRepository;
+import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
@@ -37,7 +39,8 @@ public class DataEntryServiceImpl implements DataEntryService {
     private final NationalTemplateService nationalTemplateService;
     private final PeriodConfigurationService periodConfigurationService;
     private final InternationalTemplateService internationalTemplateService;
-    private final SurveysService surveysService;
+    private final SurveysRepo surveysRepo;
+
 
     @Override
     public Results addDataEntry(DbDataEntryData dbDataEntryData) {
@@ -250,8 +253,15 @@ public class DataEntryServiceImpl implements DataEntryService {
 
     }
 
-    private void updateSurveyDetails(String surveyId) {
-        surveysService.updateSurvey(surveyId);
+    public void updateSurveyDetails(String surveyId) {
+
+        Optional<Surveys> optionalSurveys = surveysRepo.findById(Long.valueOf(surveyId));
+        if (optionalSurveys.isPresent()) {
+            Surveys surveys = optionalSurveys.get();
+            surveys.setStatus(SurveySubmissionStatus.VERIFIED.name());
+            surveysRepo.save(surveys);
+        }
+
     }
 
     @Override

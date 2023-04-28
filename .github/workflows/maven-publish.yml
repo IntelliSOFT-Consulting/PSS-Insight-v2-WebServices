@@ -43,7 +43,7 @@ jobs:
       - name: Build International Instance
         run: |
           cd InternationalInstance
-          mvn clean package -Dspring.profiles.active=server
+          mvn clean package 
 
       - name: Build & push International Docker image
         run: |
