@@ -48,41 +48,41 @@ jobs:
       - name: Build & push International Docker image
         run: |
           cd InternationalInstance
-          echo 'QW]uk)9rrD+H-J2' | docker login -u ${{ env.DOCKER_USERNAME }} --password-stdin
+          echo '${{ env.DOCKER_PASSWORD }}' | docker login -u ${{ env.DOCKER_USERNAME }} --password-stdin
           docker buildx create --use --name workflowBuilder
           docker buildx build --platform=linux/amd64,linux/arm64 -t ${{ env.IMAGE_NAME_INTERNATIONAL }} --push .
           docker logout
 
-#      - name: Setup SSH keys
-#        uses: webfactory/ssh-agent@v0.7.0
-#        with:
-#          ssh-private-key: ${{ env.SSH_PASS_INTERNATIONAL }}
-#
-#
-#      - name: Remote ssh to server and update international instance
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ env.SSH_HOST_INTERNATIONAL }}
-#          username: ${{ env.SSH_USER_INTERNATIONAL }}
-#          port: ${{ env.SSH_PORT }}
-#          key: ${{ env.SSH_PASS_INTERNATIONAL }}
-#          script_stop: true
-#          script: |
-#            if docker ps -a --format '{{.Names}}' | grep -q ${{ env.CONTAINER_NAME_INTERNATIONAL }}; then
-#              echo "Check 1"
-#              docker stop ${{ env.CONTAINER_NAME_INTERNATIONAL }}
-#              docker rm ${{ env.CONTAINER_NAME_INTERNATIONAL }}
-#            fi
-#            docker pull --quiet ${{ env.IMAGE_NAME_INTERNATIONAL }}
-#            if [ $? -eq 0 ]; then
-#              echo "Docker image ${{ env.IMAGE_NAME_INTERNATIONAL }} pulled successfully"
-#            else
-#              echo "Error: Failed to pull Docker image ${{ env.IMAGE_NAME_INTERNATIONAL }}"
-#              exit 1
-#            fi
-#            docker run -d --name ${{ env.CONTAINER_NAME_INTERNATIONAL }} -p 7009:7009 ${{ env.IMAGE_NAME_INTERNATIONAL }}
-#            docker logout
-#            sleep 10
+      - name: Setup SSH keys
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ env.SSH_PASS_INTERNATIONAL }}
+
+
+      - name: Remote ssh to server and update international instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST_INTERNATIONAL }}
+          username: ${{ env.SSH_USER_INTERNATIONAL }}
+          port: ${{ env.SSH_PORT }}
+          key: ${{ env.SSH_PASS_INTERNATIONAL }}
+          script_stop: true
+          script: |
+            if docker ps -a --format '{{.Names}}' | grep -q ${{ env.CONTAINER_NAME_INTERNATIONAL }}; then
+              echo "Check 1"
+              docker stop ${{ env.CONTAINER_NAME_INTERNATIONAL }}
+              docker rm ${{ env.CONTAINER_NAME_INTERNATIONAL }}
+            fi
+            docker pull --quiet ${{ env.IMAGE_NAME_INTERNATIONAL }}
+            if [ $? -eq 0 ]; then
+              echo "Docker image ${{ env.IMAGE_NAME_INTERNATIONAL }} pulled successfully"
+            else
+              echo "Error: Failed to pull Docker image ${{ env.IMAGE_NAME_INTERNATIONAL }}"
+              exit 1
+            fi
+            docker run -d --name ${{ env.CONTAINER_NAME_INTERNATIONAL }} -p 7009:7009 ${{ env.IMAGE_NAME_INTERNATIONAL }}
+            docker logout
+            sleep 10
   
   
 
@@ -106,37 +106,37 @@ jobs:
       - name: Build & push National Docker image
         run: |
           cd PssNationalInstance
-          echo ${{ env.DOCKER_PASSWORD }} | docker login -u ${{ env.DOCKER_USERNAME }} --password-stdin
+          echo '${{ env.DOCKER_PASSWORD }}' | docker login -u ${{ env.DOCKER_USERNAME }} --password-stdin
           docker buildx create --use --name workflowBuilder
           docker buildx build --platform=linux/amd64,linux/arm64 -t ${{ env.IMAGE_NAME_NATIONAL }} --push .
           docker logout
 
-#      - name: Setup SSH keys
-#        uses: webfactory/ssh-agent@v0.5.0
-#        with:
-#          ssh-private-key: ${{ env.SSH_PASS_NATIONAL }}
+      - name: Setup SSH keys
+        uses: webfactory/ssh-agent@v0.5.0
+        with:
+          ssh-private-key: ${{ env.SSH_PASS_NATIONAL }}
 
-#      - name: Remote ssh to server and update National instance
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ env.SSH_HOST_NATIONAL }}
-#          username: ${{ env.SSH_USER_NATIONAL }}
-#          port: ${{ env.SSH_PORT }}
-#          key: ${{ env.SSH_PASS_NATIONAL }}
-#          script_stop: true
-#          script: |
-#            if docker ps -a --format '{{.Names}}' | grep -q ${{ env.CONTAINER_NAME_NATIONAL }}; then
-#              echo "Check 1"
-#              docker stop ${{ env.CONTAINER_NAME_NATIONAL }}
-#              docker rm ${{ env.CONTAINER_NAME_NATIONAL }}
-#            fi
-#            docker pull --quiet ${{ env.IMAGE_NAME_NATIONAL }}
-#            if [ $? -eq 0 ]; then
-#              echo "Docker image ${{ env.IMAGE_NAME_NATIONAL }} pulled successfully"
-#            else
-#              echo "Error: Failed to pull Docker image ${{ env.IMAGE_NAME_NATIONAL }}"
-#              exit 1
-#            fi
-#            docker run -d --name ${{ env.CONTAINER_NAME_NATIONAL }} -p 7001:7001 ${{ env.IMAGE_NAME_NATIONAL }}
-#            docker logout
-#            sleep 10
+      - name: Remote ssh to server and update National instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST_NATIONAL }}
+          username: ${{ env.SSH_USER_NATIONAL }}
+          port: ${{ env.SSH_PORT }}
+          key: ${{ env.SSH_PASS_NATIONAL }}
+          script_stop: true
+          script: |
+            if docker ps -a --format '{{.Names}}' | grep -q ${{ env.CONTAINER_NAME_NATIONAL }}; then
+              echo "Check 1"
+              docker stop ${{ env.CONTAINER_NAME_NATIONAL }}
+              docker rm ${{ env.CONTAINER_NAME_NATIONAL }}
+            fi
+            docker pull --quiet ${{ env.IMAGE_NAME_NATIONAL }}
+            if [ $? -eq 0 ]; then
+              echo "Docker image ${{ env.IMAGE_NAME_NATIONAL }} pulled successfully"
+            else
+              echo "Error: Failed to pull Docker image ${{ env.IMAGE_NAME_NATIONAL }}"
+              exit 1
+            fi
+            docker run -d --name ${{ env.CONTAINER_NAME_NATIONAL }} -p 7001:7001 ${{ env.IMAGE_NAME_NATIONAL }}
+            docker logout
+            sleep 10
