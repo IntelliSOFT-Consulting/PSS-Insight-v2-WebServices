@@ -13,10 +13,8 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="FileService" target="11" />
-      <module name="InternationalInstance" target="11" />
       <module name="MailServer" target="11" />
       <module name="NationalInstance" target="11" />
-      <module name="PssNationalInstance" target="11" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
