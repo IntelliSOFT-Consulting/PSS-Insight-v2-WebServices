@@ -513,6 +513,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }
 
         DbDataEntryData dbDataEntryData = new DbDataEntryData(
+                null,
                 orgUnit,
                 selectedPeriod,
                 true,
