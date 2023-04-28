@@ -254,6 +254,20 @@ public class SurveysServiceImpl implements SurveysService {
 
     }
 
+    @Override
+    public Results updateSurvey(String surveyId) {
+
+        Optional<Surveys> optionalSurveys = surveysRepo.findById(Long.valueOf(surveyId));
+        if (optionalSurveys.isPresent()) {
+            Surveys surveys = optionalSurveys.get();
+            surveys.setStatus(SurveySubmissionStatus.VERIFIED.name());
+            surveysRepo.save(surveys);
+            return new Results(200 ,surveys);
+        }
+
+        return new Results(400, "Resource not found");
+    }
+
     public DbPublishedVersion getPublishedData(String url) {
 
         try {
