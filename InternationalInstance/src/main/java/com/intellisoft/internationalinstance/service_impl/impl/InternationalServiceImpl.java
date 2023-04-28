@@ -125,12 +125,27 @@ public class InternationalServiceImpl implements InternationalService {
                     String description = "";
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        String Indicator_Code = jsonObject.getString("Indicator_Code");
-                        String Description = jsonObject.getString("Description");
-                        if(categoryName.equals(Indicator_Code)){
-                            description = Description;
-                            break;
+                        if (jsonObject.has("Indicator_Code")){
+                            String Indicator_Code = jsonObject.getString("Indicator_Code");
+                            if(categoryName.equals(Indicator_Code)){
+                                if (jsonObject.has("Description")){
+                                    description = jsonObject.getString("Description");
+                                }
+
+                                break;
+                            }
                         }
+                        if (jsonObject.has("indicator_Code")){
+                            String Indicator_Code = jsonObject.getString("indicator_Code");
+                            if(categoryName.equals(Indicator_Code)){
+                                if (jsonObject.has("description")){
+                                    description = jsonObject.getString("description");
+                                }
+
+                                break;
+                            }
+                        }
+
                     }
 
 //                    for (int i = 0; i < indicatorDescriptionList.size(); i++){

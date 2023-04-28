@@ -37,6 +37,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     private final NationalTemplateService nationalTemplateService;
     private final PeriodConfigurationService periodConfigurationService;
     private final InternationalTemplateService internationalTemplateService;
+    private final SurveysService surveysService;
 
     @Override
     public Results addDataEntry(DbDataEntryData dbDataEntryData) {
@@ -214,11 +215,20 @@ public class DataEntryServiceImpl implements DataEntryService {
                     System.out.println(json);
                     System.out.println("--------");
 
-                    var response = GenericWebclient.postForSingleObjResponse(
+                    DbEvents response = GenericWebclient.postForSingleObjResponse(
                             AppConstants.EVENTS_ENDPOINT,
                             dataEntry,
                             DbDataEntry.class,
-                            String.class);
+                            DbEvents.class);
+                    if (response.getHttpStatusCode() == 200){
+                        String surveyId = dbDataEntryData.getSurveyId();
+                        if (surveyId != null){
+                            updateSurveyDetails(surveyId);
+                        }
+
+                    }
+
+
 
                     System.out.println("************");
                     System.out.println(response);
@@ -238,6 +248,10 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         }
 
+    }
+
+    private void updateSurveyDetails(String surveyId) {
+        surveysService.updateSurvey(surveyId);
     }
 
     @Override
@@ -372,7 +386,10 @@ public class DataEntryServiceImpl implements DataEntryService {
                         dataEntryResponsesList.add(dbDataEntryResponses);
                     }
 
+                    String surveyId = dbDataEntryData.getSurveyId();
+
                     DbDataEntryData dbDataEntryResponse = new DbDataEntryData(
+                            surveyId,
                             dataEntry1.getOrgUnit(),
                             dataEntry1.getSelectedPeriod(),
                             true,

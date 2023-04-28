@@ -379,12 +379,13 @@ data class DbConfirmSurvey(
     val indicators : List<String>,
 )
 data class DbDataEntryData(
-    val orgUnit: String,
-    val selectedPeriod: String?,
-    val isPublished: Boolean,
-    val dataEntryPersonId: String,
-    val dataEntryDate: String?,
-    val responses: List<DbDataEntryResponses>,
+        val surveyId:String? = null,
+        val orgUnit: String,
+        val selectedPeriod: String?,
+        val isPublished: Boolean,
+        val dataEntryPersonId: String,
+        val dataEntryDate: String?,
+        val responses: List<DbDataEntryResponses>,
 )
 data class DbDataEntryResponses(
     val indicator: String,
@@ -436,6 +437,10 @@ data class DbDocumentFile(
     val httpStatusCode:Any?,
     @JsonProperty("response")
     val response:DbFileResponse?
+)
+data class DbEvents(
+    @JsonProperty("httpStatusCode")
+    val httpStatusCode:Int
 )
 data class DbFileResponse(
     @JsonProperty("uid")
