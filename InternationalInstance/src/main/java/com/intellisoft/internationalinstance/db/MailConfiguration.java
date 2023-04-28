@@ -6,26 +6,29 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder
 @Entity
-@Table(name = "metadata_json")
+@Table(name = "mail_configuration")
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MetadataJson {
+public class MailConfiguration {
 
     @Id
-    private String id;
-
-    private String code;
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String serverType;
+    private String serverName;
+    private String ports;
+    private String username;
+    private String fromEmail;
+    private Boolean isActive;
+    @Column(length = 8000)
+    private String password;
     @CreationTimestamp
     private Date createdAt;
     @UpdateTimestamp
     private Date updatedAt;
-    @Column(length = 8000)
-    private String metadata;
 }

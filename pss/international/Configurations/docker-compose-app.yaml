@@ -1,0 +1,9 @@
+version: '3'
+services:
+  national:
+    image: intellisoftdev/dhis_pss_international:vlocal
+    ports:
+      - "7009:7009"
+    restart: always
+
+# docker-compose -f docker-compose-app.yaml up

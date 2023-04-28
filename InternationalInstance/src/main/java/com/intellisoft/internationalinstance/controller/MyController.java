@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -41,6 +42,11 @@ public class MyController {
     private final InternationalService internationalService;
     private final JavaMailSenderService javaMailSenderService;
     private RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
 
     @Operation(
             summary = "Pull the international indicators from the metadata json ",
@@ -167,7 +173,7 @@ public class MyController {
     public ResponseEntity<byte[]> getDocument(@PathVariable String filename) {
         String url = AppConstants.DOCS_ENDPOINT + filename + "/data";
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth("admin", "district");
+        headers.setBasicAuth(username, password);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<byte[]> response = restTemplate.exchange(url,
                 HttpMethod.GET,

@@ -1,6 +1,8 @@
 package com.intellisoft.pssnationalinstance
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
 data class Results(val code: Int, val details: Any?)
 data class DbResultsApi(
@@ -61,7 +63,7 @@ data class DbPrograms(
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
     @JsonProperty("referenceSheet")
-    var referenceSheet: Any?,
+    var referenceSheet: Any?
 )
 
 
@@ -474,3 +476,12 @@ data class DbNotificationSub(
     val email:String,
     val phoneNumber:String?
 )
+data class DbEmailConfiguration(
+    val serverType: String,
+    val serverName: String,
+    val ports: String,
+    val username:String,
+    val from:String,
+    val password:String
+)
+

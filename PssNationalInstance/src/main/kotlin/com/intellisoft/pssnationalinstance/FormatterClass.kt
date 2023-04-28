@@ -1,8 +1,5 @@
 package com.intellisoft.pssnationalinstance
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.ResponseEntity
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -12,7 +9,24 @@ import java.util.*
 
 class FormatterClass {
 
+    fun getValue(): String {
+        val props = Properties()
+        val inputStream = javaClass.classLoader
+            .getResourceAsStream("application.properties")
+        props.load(inputStream);
+        return props.getProperty("server-url")
+    }
+    fun getValueDetails(): Triple<String, String, String> {
+        val props = Properties()
+        val inputStream = javaClass.classLoader
+            .getResourceAsStream("application.properties")
+        props.load(inputStream)
+        val username = props.getProperty("dhis.username")
+        val password = props.getProperty("dhis.password")
+        val internationalUrl = props.getProperty("dhis.international")
 
+        return Triple(username, password, internationalUrl)
+    }
 
 
     fun getNewDays(): String {

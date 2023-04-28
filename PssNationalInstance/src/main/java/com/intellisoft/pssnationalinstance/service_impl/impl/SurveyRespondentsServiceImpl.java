@@ -118,7 +118,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         List<DbSurveyRespondentData> dbSurveyRespondentDataList = new ArrayList<>();
         DbSurveyRespondentData dbSurveyRespondentData = new DbSurveyRespondentData(
-                emailAddress, expiryDateTime, loginUrl, password);
+                 emailAddress, expiryDateTime, loginUrl, password);
         dbSurveyRespondentDataList.add(dbSurveyRespondentData);
         DbRespondents dbRespondents = new DbRespondents(dbSurveyRespondentDataList);
         sendBackgroundEmail(dbRespondents, MailStatus.SEND.name());

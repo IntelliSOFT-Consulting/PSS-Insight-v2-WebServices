@@ -1,5 +1,6 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
@@ -7,12 +8,12 @@ import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import reactor.core.publisher.Flux;
 
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -33,43 +34,62 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
             String uuid = formatterClass.getUUid();
             dbIndicatorDetails.setUuid(uuid);
-            String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
-            int publishedVersionNo = getVersions(publishedBaseUrl);
+            String url = AppConstants.INDICATOR_DESCRIPTIONS;
 
-            //Get metadata json
-            DbMetadataValue dbMetadataValue =  getMetadata(publishedBaseUrl+publishedVersionNo);
-            if (dbMetadataValue == null){
-                return new Results(400, "There was an issue getting the published version.");
+            String code = dbIndicatorDetails.getIndicator_Code();
+
+            Flux<DbIndicatorDescription> responseFlux = GenericWebclient.getForCollectionResponse(
+                    url,
+                    DbIndicatorDescription.class
+            );
+            List<DbIndicatorDescription> responseList = responseFlux.collectList().block();
+
+
+            if (responseList != null){
+
+                if (!responseList.isEmpty()){
+                    List<DbIndicatorDetails> detailsList = new ArrayList<>();
+
+                    for(DbIndicatorDescription dbIndicatorDescription: responseList){
+                        String indicatorCode = dbIndicatorDescription.getIndicator_Code();
+                        String Description = dbIndicatorDescription.getDescription();
+
+                        if (indicatorCode != null && code != null ){
+                            if (code.equals(indicatorCode)){
+
+                                // Update Record
+                                dbIndicatorDetails.setDescription(Description);
+                                dbIndicatorDetails.setIndicator_Code(indicatorCode);
+                                detailsList.add(dbIndicatorDetails);
+
+                            }
+                        }else {
+                            DbIndicatorDetails indicatorDetails = new DbIndicatorDetails(
+                                    Description, indicatorCode,
+                                    null,null,null,
+                                    null,null,null,
+                                    null,null,null,
+                                    null,null,null,
+                                    null,null,null,
+                                    null
+                            );
+                            detailsList.add(indicatorDetails);
+                        }
+
+                    }
+                    //Post record
+                    var response = GenericWebclient.putForSingleObjResponse(
+                            url,
+                            detailsList,
+                            List.class,
+                            Response.class);
+                    if (response.getHttpStatusCode() == 200){
+                        return new Results(200, new DbDetails("The indicators values have been updated."));
+                    }
+
+                }
             }
-
-            dbIndicatorDetails.setDate(formatterClass.getTodayDate());
-
-            DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
-
-            List<DbIndicatorDetails> detailsList = new ArrayList<>();
-            List<DbIndicatorDetails> dbIndicatorDetailsList = dbMetadataJsonData.getIndicatorDetails();
-            if (dbIndicatorDetailsList != null){
-                dbIndicatorDetailsList.add(dbIndicatorDetails);
-                detailsList.addAll(dbIndicatorDetailsList);
-            }else {
-                detailsList.add(dbIndicatorDetails);
-            }
-
-
-            dbMetadataJsonData.setIndicatorDetails(detailsList);
-
-            dbMetadataValue.setMetadata(dbMetadataJsonData);
-
-            var response = GenericWebclient.putForSingleObjResponse(
-                    publishedBaseUrl+publishedVersionNo,
-                    dbMetadataValue,
-                    DbMetadataValue.class,
-                    Response.class);
-
-            if (response.getHttpStatusCode() == 200){
-                return new Results(200, new DbDetails("The indicators values have been added."));
-            }
-            return new Results(400, "There was an issue adding the resource");
+            return new Results(400, "There was an issue processing your request.");
 
         }catch (Exception e){
             e.printStackTrace();
@@ -93,65 +113,29 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private List<DbIndicatorDetails> getIndicatorList(){
         try{
-            String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
-            int publishedVersionNo = getVersions(publishedBaseUrl);
-
+            String url = AppConstants.INDICATOR_DESCRIPTIONS;
             //Get metadata json
-            DbMetadataValue dbMetadataValue =  getMetadata(publishedBaseUrl+publishedVersionNo);
-            if (dbMetadataValue != null){
+            Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(
+                    url,
+                    DbIndicatorDetails.class
+            );
+            List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
+
+
+            if (responseList != null){
 
                 List<DbIndicatorDetails> dbIndicatorDicList = new ArrayList<>();
-                List<DbDataElements> dbDataElementsList = dbMetadataValue.getMetadata().getDataElements();
-                for (DbDataElements dataElements: dbDataElementsList){
-                    String name = (String) dataElements.getName();
-                    String code = dataElements.getCode();
-                    String id = (String) dataElements.getId();
-                    String created = (String) dataElements.getCreated();
-                    String valueType = (String) dataElements.getValueType();
-                    Object createdBy = dataElements.getCreatedBy();
 
-                    if (!code.contains("_Comments") && !code.contains("_Uploads")){
+                for (DbIndicatorDetails dataElements: responseList){
 
-                        DbIndicatorDetails dbIndicatorDetails = new DbIndicatorDetails(
-                          id,created,name, code,valueType,
-                                null,
-                                null,
-                                Collections.emptyList(),
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
+                    String Description = dataElements.getDescription();
+                    String Indicator_Code = dataElements.getIndicator_Code();
 
-                        );
 
-                        DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
-                                name, code, id, true);
-                        dbIndicatorDicList.add(dbIndicatorDetails);
-                    }
+                    dbIndicatorDicList.add(dataElements);
                 }
 
 
-                if (dbMetadataValue.getMetadata().getIndicatorDetails() != null){
-
-                    List<DbIndicatorDetails> indicatorDetailsList =
-                            dbMetadataValue.getMetadata().getIndicatorDetails();
-                    if(indicatorDetailsList != null){
-                        dbIndicatorDicList.addAll(indicatorDetailsList);
-                    }
-//                    for (DbIndicatorDetails dbIndicatorDetails: indicatorDetailsList){
-//                        String name = (String) dbIndicatorDetails.getIndicatorName();
-//                        String code = (String) dbIndicatorDetails.getIndicatorCode();
-//                        String id = (String) dbIndicatorDetails.getUuid();
-//                        DbIndicatorDic dbIndicatorDic = new DbIndicatorDic(
-//                                name, code, id, false);
-//                        dbIndicatorDicList.add(dbIndicatorDic);
-//                    }
-
-                }
                 return dbIndicatorDicList;
             }
 

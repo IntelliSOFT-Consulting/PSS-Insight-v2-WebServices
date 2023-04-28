@@ -115,4 +115,11 @@ public class PeriodConfigurationController {
         return formatterClass.getResponse(results);
     }
 
+    @PostMapping("save-mail")
+    public ResponseEntity<?> addMailConfiguration(
+            @RequestBody DbEmailConfiguration dbEmailConfiguration){
+        Results results = periodConfigurationService.saveMailConfiguration(dbEmailConfiguration);
+        return formatterClass.getResponse(results);
+    }
+
 }

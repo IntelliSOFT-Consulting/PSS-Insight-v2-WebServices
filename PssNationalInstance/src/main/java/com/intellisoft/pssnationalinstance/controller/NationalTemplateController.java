@@ -29,21 +29,17 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class NationalTemplateController {
 
-    @Value("${API2}")
-    private String api2;
-    private String api3 = "_3A.WaLPg3rVm6je";
-    @Value("${API4}")
-    private String api4;
-    @Value("${API5}")
-    private String api5;
-    private String emailAddressAdmin = "pssnotifications";
-
     private final NationalTemplateService nationalTemplateService;
     private final FormatterClass formatterClass = new FormatterClass();
     private final IndicatorEditsService indicatorEditsService;
     private final VersionEntityService versionEntityService;
     private final PeriodConfigurationService periodConfigurationService;
     private RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
 
 
     /**
@@ -190,9 +186,10 @@ public class NationalTemplateController {
 
     @GetMapping("/view-file/{filename}")
     public ResponseEntity<byte[]> getDocument(@PathVariable String filename) {
+
         String url = AppConstants.INTERNATIONAL_DOCS_ENDPOINT + filename + "/data";
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth("admin", "district");
+        headers.setBasicAuth(username, password);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<byte[]> response = restTemplate.exchange(url,
                 HttpMethod.GET,

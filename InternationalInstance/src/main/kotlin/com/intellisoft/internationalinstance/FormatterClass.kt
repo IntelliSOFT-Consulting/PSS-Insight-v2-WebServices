@@ -21,6 +21,21 @@ import java.util.regex.Pattern
 
 class FormatterClass {
 
+
+    fun getValue(): DbApplicationValues{
+        val props = Properties()
+        val inputStream = javaClass.classLoader
+            .getResourceAsStream("application.properties")
+        props.load(inputStream)
+        val username = props.getProperty("dhis.username")
+        val password = props.getProperty("dhis.password")
+        val internationalUrl = props.getProperty("dhis.international")
+        val program = props.getProperty("dhis.program")
+        val template = props.getProperty("dhis.template")
+
+        return DbApplicationValues(internationalUrl, username, password, program, template)
+    }
+
     fun getUUid():String{
         return RandomStringUtils.randomAlphanumeric(10)
     }

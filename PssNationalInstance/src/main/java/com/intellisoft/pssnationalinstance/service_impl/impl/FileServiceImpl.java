@@ -5,6 +5,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.FileService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -20,6 +21,10 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
 
 
     @Override
@@ -29,7 +34,7 @@ public class FileServiceImpl implements FileService {
 
             RestTemplate restTemplate = new RestTemplate();
             String authHeader = "Basic " + Base64.getEncoder().encodeToString((
-                    "admin" + ":" + "district").getBytes());
+                    username + ":" + password).getBytes());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             headers.add("Authorization", authHeader);
@@ -117,7 +122,7 @@ public class FileServiceImpl implements FileService {
 
             RestTemplate restTemplate = new RestTemplate();
             String authHeader = "Basic " + Base64.getEncoder().encodeToString((
-                    "admin" + ":" + "district").getBytes());
+                    username + ":" + password).getBytes());
             HttpHeaders headers = new HttpHeaders();
             headers.add("Authorization", authHeader);
             HttpEntity<String> entity = new HttpEntity<>(null, headers);

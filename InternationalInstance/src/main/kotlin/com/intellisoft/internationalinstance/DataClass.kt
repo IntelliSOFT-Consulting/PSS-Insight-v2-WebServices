@@ -307,7 +307,17 @@ data class DbProgramsData(
     var referenceSheet: Any?,
 )
 
+data class DbIndicatorList(
+    @JsonProperty("indicatorList")
+    val indicatorList:List<DbIndicatorDetails>
+)
+
 data class DbIndicatorDetails(
+    @JsonProperty("Description")
+    var Description: String?,
+    @JsonProperty("Indicator_Code")
+    var Indicator_Code: String?,
+
     @JsonProperty("uuid")
     var uuid: Any?,
     @JsonProperty("date")
@@ -323,7 +333,7 @@ data class DbIndicatorDetails(
     @JsonProperty("definition")
     var definition: Any?,
     @JsonProperty("assessmentQuestions")
-    var assessmentQuestions: List<DbAssessmentQuestion>,
+    var assessmentQuestions: List<DbAssessmentQuestion>?,
     @JsonProperty("purposeAndIssues")
     var purposeAndIssues: Any?,
     @JsonProperty("preferredDataSources")
@@ -381,12 +391,7 @@ data class DbDataValuesData(
     val legendSets: Any,
     val aggregationLevels: Any
 )
-data class DbIndicatorDescription(
-    @JsonProperty("Description")
-    val Description: String?,
-    @JsonProperty("Indicator_Code")
-    val Indicator_Code: String?
-)
+
 data class DbIndicatorDescriptionData(
     val description: String?,
     val indicatorCode: String?
@@ -475,4 +480,25 @@ data class DbFileResponse(
 data class DbResp(
     @JsonProperty("uid")
     val uid: String
+)
+data class DbEmailConfiguration(
+    val serverType: String,
+    val serverName: String,
+    val ports: String,
+    val username:String,
+    val from:String,
+    val password:String
+)
+data class DbApplicationValues(
+    val internationalUrl :String?,
+    val username :String?,
+    val password :String?,
+    val program :String?,
+    val masterTemplate :String?,
+)
+data class DbIndicatorDescription(
+    @JsonProperty("Description")
+    val Description: String?,
+    @JsonProperty("Indicator_Code")
+    val Indicator_Code: String?
 )
