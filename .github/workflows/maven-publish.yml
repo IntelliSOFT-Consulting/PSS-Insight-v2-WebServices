@@ -10,7 +10,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   SSH_PORT: 22
 
-# INTERNATIONAL INSTANCE
+  # INTERNATIONAL INSTANCE
   SSH_PASS_INTERNATIONAL: ${{ secrets.SSH_PRIVATE_KEY }}
   SSH_HOST_INTERNATIONAL: ${{ secrets.SSH_HOST_INTERNATIONAL }}
   SSH_USER_INTERNATIONAL: ${{ secrets.SSH_USER_INTERNATIONAL }}
@@ -18,7 +18,7 @@ env:
   CONTAINER_NAME_INTERNATIONAL: dhis_pss_international
   IMAGE_NAME_INTERNATIONAL: ${{ secrets.DOCKER_USERNAME }}/dhis_pss_international:v3
 
-# NATIONAL INSTANCE
+  # NATIONAL INSTANCE
   SSH_PASS_NATIONAL: ${{ secrets.SSH_PRIVATE_KEY }}
   SSH_HOST_NATIONAL: ${{ secrets.SSH_HOST_NATIONAL }}
   SSH_USER_NATIONAL: ${{ secrets.SSH_USER_NATIONAL }}
@@ -84,7 +84,7 @@ jobs:
             docker logout
             sleep 10
   
-
+  
 
   build_microservice_national:
     runs-on: ubuntu-20.04
@@ -140,4 +140,3 @@ jobs:
             docker run -d --name ${{ env.CONTAINER_NAME_NATIONAL }} -p 7001:7001 ${{ env.IMAGE_NAME_NATIONAL }}
             docker logout
             sleep 10
-
