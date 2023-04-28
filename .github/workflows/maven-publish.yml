@@ -16,7 +16,7 @@ env:
   SSH_USER_INTERNATIONAL: ${{ secrets.SSH_USER_INTERNATIONAL }}
 
   CONTAINER_NAME_INTERNATIONAL: dhis_pss_international
-  IMAGE_NAME_INTERNATIONAL: ${{ env.DOCKER_USERNAME }}/dhis_pss_international:v3
+  IMAGE_NAME_INTERNATIONAL: ${{ secrets.DOCKER_USERNAME }}/dhis_pss_international:v3
 
 # NATIONAL INSTANCE
   SSH_PASS_NATIONAL: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -24,7 +24,7 @@ env:
   SSH_USER_NATIONAL: ${{ secrets.SSH_USER_NATIONAL }}
 
   CONTAINER_NAME_NATIONAL: dhis_pss_national
-  IMAGE_NAME_NATIONAL: ${{ env.DOCKER_USERNAME }}/dhis_pss_national:v1
+  IMAGE_NAME_NATIONAL: ${{ secrets.DOCKER_USERNAME }}/dhis_pss_national:v1
 
 
 jobs:
