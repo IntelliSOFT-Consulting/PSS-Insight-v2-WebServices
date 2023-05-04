@@ -111,11 +111,11 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
             }
         }
-
-
+    
         List<DbIndicators> dbIndicatorsList = new ArrayList<>();
-        DbPublishedVersion dbPublishedVersion = getAvailableVersion();
-        if (dbPublishedVersion != null){
+        // DbPublishedVersion dbPublishedVersion = getAvailableVersion();
+        DbPublishedVersion dbPublishedVersion = internationalTemplateService.interNationalPublishedIndicators();
+        if (dbPublishedVersion != null) {
             dbIndicatorsList = dbPublishedVersion.getDetails();
         }
 
@@ -178,6 +178,8 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             versionEntity.setIndicators(indicatorList);
             if (isPublished){
                 versionEntity.setStatus(PublishStatus.PUBLISHED.name());
+                String publishedBy = dbVersions.getPublishedBy();
+                versionEntity.setPublishedBy(publishedBy);
                 nationalTemplateService.savePublishedVersion(
                         versionEntity.getCreatedBy(),
                         id,
@@ -228,7 +230,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                 if (versionNo != null){
                     dbPublishedVersion = getThePreviousIndicators(versionNo);
                 }else {
-                    dbPublishedVersion = getAvailableVersion();
+                    dbPublishedVersion = internationalTemplateService.interNationalPublishedIndicators();// getAvailableVersion();
                 }
 
                 DbVersionDataDetails dbVersionDataDetails = new DbVersionDataDetails(
@@ -256,20 +258,19 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         return new Results(400, "Resource not found.");
     }
     public static DbPublishedVersion filterDbPublishedVersionByCategoryId(List<String> categoryIds, DbPublishedVersion version) {
-        List<DbIndicators> filteredDetails = version.getDetails().stream()
-                .map(indicator -> {
-                    List<DbIndicatorValues> filteredIndicators = indicator.getIndicators().stream()
-                            .filter(indicatorValue -> indicatorValue != null
-                                    && categoryIds.contains(indicatorValue.getCategoryId().toString()))
-                            .collect(Collectors.toList());
-                    if (!filteredIndicators.isEmpty()) {
-                        return new DbIndicators(indicator.getCategoryName(), filteredIndicators);
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<DbIndicators> filteredDetails = new ArrayList<>();
+        for (DbIndicators dbIndicator:version.getDetails()) {
+            List<DbIndicatorValues> filteredIndicators = dbIndicator.getIndicators().stream()
+                    .filter(indicatorValue -> {
+                        return indicatorValue != null
+                                && categoryIds.contains(indicatorValue.getCategoryId().toString());
+                    })
+                    .collect(Collectors.toList());
+            if (!filteredIndicators.isEmpty()) {
+                filteredDetails.add(new DbIndicators(dbIndicator.getCategoryName(), filteredIndicators));
+            }
+        }
+        filteredDetails.removeIf(Objects::isNull);
         return new DbPublishedVersion(filteredDetails.size(), filteredDetails);
     }
 
