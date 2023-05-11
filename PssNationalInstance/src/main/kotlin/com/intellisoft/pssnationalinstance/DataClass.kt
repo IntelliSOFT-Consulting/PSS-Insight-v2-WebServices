@@ -63,7 +63,13 @@ data class DbPrograms(
     @JsonProperty("publishedVersion")
     var publishedVersion: DbPublishedVersion?,
     @JsonProperty("referenceSheet")
-    var referenceSheet: Any?
+    var referenceSheet: Any?,
+    @JsonProperty("aboutUs")
+    var aboutUs: Any?,
+    @JsonProperty("contactUs")
+    var contactUs: Any?,
+
+
 )
 
 
@@ -111,9 +117,11 @@ data class DbIndicatorValuesApp(
     var indicatorDataValue: List<DbIndicatorDataValues>,
 )
 data class DbPublishedVersionDetails(
-    var referenceSheet: String?,
-    var count: Any?,
-    var details: List<DbIndicators>,
+        var aboutUs: String?,
+        var contactUs: String?,
+        var referenceSheet: String?,
+        var count: Any?,
+        var details: List<DbIndicators>,
 )
 data class DbPublishedVersion(
     @JsonProperty("count")

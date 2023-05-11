@@ -62,6 +62,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
 
                 return new DbPublishedVersionDetails(
+                        null, null,
                         url,
                         dbPrograms.getPublishedVersion().getCount(),
                         dbPrograms.getPublishedVersion().getDetails()
@@ -111,6 +112,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                     String refSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
 
                     DbPublishedVersionDetails dbPublishedVersionDetails = new DbPublishedVersionDetails(
+                            null, null,
                             refSheet,
                             indicators.getCount(),
                             indicators.getDetails());
