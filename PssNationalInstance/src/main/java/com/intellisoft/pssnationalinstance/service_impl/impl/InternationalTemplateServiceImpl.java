@@ -62,9 +62,12 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
 
                 return new DbPublishedVersionDetails(
+                        dbPrograms.getAboutUs(),
+                        dbPrograms.getContactUs(),
                         url,
                         dbPrograms.getPublishedVersion().getCount(),
                         dbPrograms.getPublishedVersion().getDetails()
+
                 );
             }
         }
@@ -109,8 +112,12 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
 
                     DbPublishedVersion indicators = dbMetadataJson.getMetadata().getPublishedVersion();
                     String refSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
+                    String aboutUs = dbMetadataJson.getMetadata().getAboutUs();
+                    String contactUs = dbMetadataJson.getMetadata().getContactUs();
 
                     DbPublishedVersionDetails dbPublishedVersionDetails = new DbPublishedVersionDetails(
+                            aboutUs,
+                            contactUs,
                             refSheet,
                             indicators.getCount(),
                             indicators.getDetails());

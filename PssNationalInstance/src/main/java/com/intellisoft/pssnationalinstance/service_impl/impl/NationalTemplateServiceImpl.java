@@ -8,6 +8,7 @@ import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.AboutUs;
 import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
+import com.intellisoft.pssnationalinstance.repository.AboutUsRepository;
 import com.intellisoft.pssnationalinstance.repository.VersionEntityRepository;
 import com.intellisoft.pssnationalinstance.service_impl.service.AboutUsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
@@ -38,17 +39,18 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private final VersionEntityRepository versionEntityRepository;
     private final IndicatorEditsService indicatorEditsService;
     private final AboutUsService aboutUsService;
+    private final AboutUsRepository aboutUsRepository;
 
     @Override
     public Results getNationalPublishedVersion() {
 
-        try{
+        try {
 
             DbPublishedVersionDetails publishedVersionValues =
                     getPublishedDetails();
             return new Results(200, publishedVersionValues);
 
-        } catch (Exception syntaxException){
+        } catch (Exception syntaxException) {
             syntaxException.printStackTrace();
         }
         return new Results(400, "The national indicators could not be found.");
@@ -57,22 +59,22 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
     @Override
     public Results getNationalDetails() {
-        try{
+        try {
 
             DbPublishedVersion publishedVersionValues =
                     nationalPublishedIndicators();
-            if (publishedVersionValues != null){
+            if (publishedVersionValues != null) {
 
                 int no = 0;
                 List<DbIndicatorsApp> dbIndicatorsAppList = new ArrayList<>();
                 List<DbIndicators> dbIndicatorsList = publishedVersionValues.getDetails();
-                for (DbIndicators dbIndicators: dbIndicatorsList){
+                for (DbIndicators dbIndicators : dbIndicatorsList) {
                     String name = (String) dbIndicators.getCategoryName();
 
                     List<DbIndicatorValuesApp> dbIndicatorValuesAppList = new ArrayList<>();
                     List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
                     no = no + indicatorValuesList.size();
-                    for (DbIndicatorValues dbIndicatorValues: indicatorValuesList){
+                    for (DbIndicatorValues dbIndicatorValues : indicatorValuesList) {
                         String categoryName = (String) dbIndicatorValues.getCategoryName();
                         String description = (String) dbIndicatorValues.getDescription();
                         String categoryId = (String) dbIndicatorValues.getCategoryId();
@@ -111,7 +113,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 return new Results(200, data);
             }
 
-        } catch (Exception syntaxException){
+        } catch (Exception syntaxException) {
             syntaxException.printStackTrace();
         }
         return new Results(400, "The national indicators could not be found.");
@@ -119,47 +121,56 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     }
 
 
-    public DbPublishedVersion getThePreviousIndicators(String versionNumber){
+    public DbPublishedVersion getThePreviousIndicators(String versionNumber) {
         String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS + versionNumber;
         DbMetadataJson dbMetadataJson =
                 internationalTemplateService.getIndicators(publishedBaseUrl);
-        if (dbMetadataJson != null){
+        if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-            if (dbPrograms != null){
+            if (dbPrograms != null) {
                 return dbPrograms.getPublishedVersion();
             }
         }
         return null;
     }
-    public DbPublishedVersion nationalPublishedIndicators(){
+
+    public DbPublishedVersion nationalPublishedIndicators() {
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
         DbMetadataJson dbMetadataJson =
                 internationalTemplateService.getPublishedData(publishedBaseUrl);
-        if (dbMetadataJson != null){
+        if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-            if (dbPrograms != null){
+            if (dbPrograms != null) {
                 return dbPrograms.getPublishedVersion();
             }
         }
         return null;
     }
-    private DbPublishedVersionDetails getPublishedDetails(){
-        DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, Collections.emptyList());
+
+    private DbPublishedVersionDetails getPublishedDetails() {
+        DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, null, null, Collections.emptyList());
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
-        DbMetadataJson dbMetadataJson =
-                internationalTemplateService.getPublishedData(publishedBaseUrl);
-        if (dbMetadataJson != null){
+        DbMetadataJson dbMetadataJson = internationalTemplateService.getPublishedData(publishedBaseUrl);
+
+        if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-            if (dbMetadataJson.getMetadata() != null){
+            if (dbMetadataJson.getMetadata() != null) {
                 String referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
                 details.setReferenceSheet(referenceSheet);
             }
-            if (dbPrograms != null){
+            if (dbPrograms != null) {
                 DbPublishedVersion dbPublishedVersion = dbPrograms.getPublishedVersion();
-                if (dbPublishedVersion != null){
+                if (dbPublishedVersion != null) {
+                    List<AboutUs> publishedDetails = aboutUsRepository.findAll();
+                    for (AboutUs publishedDetail : publishedDetails) {
+                        String aboutUs = publishedDetail.getAboutUs();
+                        String contactUs = publishedDetail.getContactUs();
+                        details.setAboutUs(aboutUs);
+                        details.setContactUs(contactUs);
+                    }
                     details.setDetails(dbPublishedVersion.getDetails());
                 }
-                if (dbPublishedVersion != null){
+                if (dbPublishedVersion != null) {
                     details.setCount(dbPublishedVersion.getCount());
                 }
             }
@@ -171,55 +182,57 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     public Results getIndicatorDescription(String pssCode) {
 
         String description = "Indicator Description";
-        try{
+        try {
             String publishedBaseUrlNational = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
             DbMetadataJsonNational dbMetadataJsonNational = getMetadataNational(publishedBaseUrlNational);
 
-            if (dbMetadataJsonNational != null){
+            if (dbMetadataJsonNational != null) {
                 DbProgramsDataDetails dbPrograms = dbMetadataJsonNational.getMetadata();
-                if (dbPrograms != null){
+                if (dbPrograms != null) {
                     List<DbIndicatorDescriptionData> dbIndicatorDescriptionList = dbPrograms.getIndicatorDescriptions();
                     description = getIndicatorDescriptionNational(pssCode, dbIndicatorDescriptionList);
                 }
 
-            }else {
+            } else {
                 //Check from the international indicator description
                 String publishedBaseUrlInternational = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
                 DbMetadataJson dbMetadataJsonInternational = getMetadata(publishedBaseUrlInternational);
-                if (dbMetadataJsonInternational != null){
+                if (dbMetadataJsonInternational != null) {
                     DbPrograms dbPrograms = dbMetadataJsonInternational.getMetadata();
-                    if (dbPrograms != null){
+                    if (dbPrograms != null) {
                         List<DbIndicatorDescriptionInt> indicatorDescriptionNational = (List<DbIndicatorDescriptionInt>) dbPrograms.getIndicatorDescriptions();
                         description = getIndicatorDescriptionInterNational(pssCode, indicatorDescriptionNational);
                     }
                 }
             }
-            
-        }catch (Exception e){
+
+        } catch (Exception e) {
             e.printStackTrace();
             return new Results(400, "Indicator could not be found.");
         }
 
         return new Results(200, new DbDetails(description));
     }
+
     private String getIndicatorDescriptionNational(String code,
-                                           List<DbIndicatorDescriptionData> dbIndicatorDescriptionList){
+                                                   List<DbIndicatorDescriptionData> dbIndicatorDescriptionList) {
 
         String description = "";
-        for (DbIndicatorDescriptionData indicatorDescription : dbIndicatorDescriptionList){
-            if (code.equals(indicatorDescription.getIndicator_Code())){
+        for (DbIndicatorDescriptionData indicatorDescription : dbIndicatorDescriptionList) {
+            if (code.equals(indicatorDescription.getIndicator_Code())) {
                 description = indicatorDescription.getDescription();
                 break;
             }
         }
         return description;
     }
+
     private String getIndicatorDescriptionInterNational(String code,
-                                           List<DbIndicatorDescriptionInt> dbIndicatorDescriptionList){
+                                                        List<DbIndicatorDescriptionInt> dbIndicatorDescriptionList) {
 
         String description = "";
-        for (DbIndicatorDescriptionInt indicatorDescription : dbIndicatorDescriptionList){
-            if (code.equals(indicatorDescription.getIndicator_Code())){
+        for (DbIndicatorDescriptionInt indicatorDescription : dbIndicatorDescriptionList) {
+            if (code.equals(indicatorDescription.getIndicator_Code())) {
                 description = indicatorDescription.getDescription();
                 break;
             }
@@ -230,13 +243,14 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private DbMetadataJson getMetadata(String url) {
         return internationalTemplateService.getPublishedData(url);
     }
+
     private DbMetadataJsonNational getMetadataNational(String url) {
         return internationalTemplateService.getPublishedDataNational(url);
     }
 
     @Async
-    public void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList){
-        try{
+    public void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList) {
+        try {
 
             String nationalPublishedUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
             String interNationalPublishedUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
@@ -244,17 +258,17 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             String versionNumberLatest = "1";
             String versionNumberPast = "1";
             int nationalLatestVersion = 1;
-            try{
+            try {
                 int versionNo = internationalTemplateService.getVersions(interNationalPublishedUrl);
                 nationalLatestVersion = internationalTemplateService.getVersions(nationalPublishedUrl);
 
                 versionNumberLatest = String.valueOf(versionNo + 1);
 
-                if (versionNo > 1){
+                if (versionNo > 1) {
                     versionNumberPast = String.valueOf(versionNo - 1);
                 }
 
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -262,13 +276,13 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             List<String> latestIndicators = new ArrayList<>();
             List<String> pastIndicators = new ArrayList<>();
-            for (DbVersionDate dbVersionDate : indicatorList){
+            for (DbVersionDate dbVersionDate : indicatorList) {
 
                 boolean isLatest = dbVersionDate.isLatest();
                 String id = dbVersionDate.getId();
-                if (isLatest){
+                if (isLatest) {
                     latestIndicators.add(id);
-                }else {
+                } else {
                     pastIndicators.add(id);
                 }
             }
@@ -277,12 +291,12 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
              * Get past metadata from the version number
              */
             DbPublishedVersion pastInternationalIndicators = getThePreviousIndicators(versionNumberPast);
-            if (pastInternationalIndicators != null){
+            if (pastInternationalIndicators != null) {
                 List<DbIndicators> indicatorValuesList =
                         getSelectedIndicators(
                                 pastInternationalIndicators.getDetails(),
                                 pastIndicators);
-                if(!indicatorValuesList.isEmpty()){
+                if (!indicatorValuesList.isEmpty()) {
                     indicatorsList.addAll(indicatorValuesList);
                 }
 
@@ -295,17 +309,17 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             DbMetadataJson dbMetadataJson = getMetadata(internationalPublishedUrl);
             String versionNo = String.valueOf(nationalLatestVersion + 1);
 
-            if (dbMetadataJson != null){
+            if (dbMetadataJson != null) {
 
                 DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-                if (dbPrograms != null){
+                if (dbPrograms != null) {
                     DbPublishedVersion publishedVersionValues = dbPrograms.getPublishedVersion();
-                    if (publishedVersionValues != null){
+                    if (publishedVersionValues != null) {
                         List<DbIndicators> indicatorValuesList =
                                 getSelectedIndicators(
                                         publishedVersionValues.getDetails(),
                                         latestIndicators);
-                        if(!indicatorValuesList.isEmpty()){
+                        if (!indicatorValuesList.isEmpty()) {
                             indicatorsList.addAll(indicatorValuesList);
                         }
 
@@ -316,24 +330,24 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 //Get updates from db and include them
                 List<IndicatorEdits> indicatorEditsList =
                         indicatorEditsService.getIndicatorEditsCreator(createdBy);
-                for (IndicatorEdits indicatorEdits: indicatorEditsList){
+                for (IndicatorEdits indicatorEdits : indicatorEditsList) {
 
                     String categoryId = indicatorEdits.getCategoryId();
                     String indicatorId = indicatorEdits.getIndicatorId();
                     String edits = indicatorEdits.getEdit();
 
-                    for (DbIndicators dbIndicators: indicatorsList){
+                    for (DbIndicators dbIndicators : indicatorsList) {
                         List<DbIndicatorValues> indicators = dbIndicators.getIndicators();
-                        for (DbIndicatorValues dbIndicatorValues: indicators){
+                        for (DbIndicatorValues dbIndicatorValues : indicators) {
                             String dbCategoryId = (String) dbIndicatorValues.getCategoryId();
                             List<DbIndicatorDataValues> indicatorDataValueList = dbIndicatorValues.getIndicatorDataValue();
-                            if (categoryId.equals(dbCategoryId)){
-                                if (categoryId.equals(indicatorId)){
+                            if (categoryId.equals(dbCategoryId)) {
+                                if (categoryId.equals(indicatorId)) {
                                     dbIndicatorValues.setIndicatorName(edits);
-                                }else {
-                                    for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValueList){
+                                } else {
+                                    for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValueList) {
                                         String dbIndicatorId = (String) dbIndicatorDataValues.getId();
-                                        if (indicatorId.equals(dbIndicatorId)){
+                                        if (indicatorId.equals(dbIndicatorId)) {
                                             dbIndicatorDataValues.setName(edits);
                                         }
                                     }
@@ -365,7 +379,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             if (response.getHttpStatusCode() == 201) {
                 Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
-                if (optionalVersionEntity.isPresent()){
+                if (optionalVersionEntity.isPresent()) {
 
                     VersionEntity versionEntity = optionalVersionEntity.get();
                     versionEntity.setVersionName(versionNo);
@@ -374,17 +388,17 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public List<DbIndicators> getSelectedIndicators(
             List<DbIndicators> details,
-            List<String> selectedIndicators){
+            List<String> selectedIndicators) {
 
         List<DbIndicators> dbIndicatorsList = new ArrayList<>();
-        for (DbIndicators dbIndicators: details){
+        for (DbIndicators dbIndicators : details) {
             String categoryName = (String) dbIndicators.getCategoryName();
 
             List<DbIndicatorValues> newIndicators = new ArrayList<>();
@@ -396,7 +410,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     newIndicators.add(indicatorValues);
                 }
             }
-            if (!newIndicators.isEmpty()){
+            if (!newIndicators.isEmpty()) {
                 DbIndicators dbNewIndicators = new DbIndicators(
                         categoryName, newIndicators);
                 dbIndicatorsList.add(dbNewIndicators);
@@ -415,11 +429,11 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     @Override
     public Results getOrgUnits(int pageNo) {
 
-        try{
+        try {
 
             DbOrganisationUnit dbOrganisationUnit = GenericWebclient.getForSingleObjResponse(
                     AppConstants.NATIONAL_BASE_ORG_UNIT + pageNo, DbOrganisationUnit.class);
-            if (dbOrganisationUnit != null){
+            if (dbOrganisationUnit != null) {
 
                 List<DbProgramsValue> dbProgramsValueList = dbOrganisationUnit.getOrganisationUnits();
                 DbResults dbResults = new DbResults(
@@ -430,11 +444,9 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-
 
 
         return new Results(400, "There was an issue processing the request");
@@ -443,16 +455,16 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     @Override
     public int getCurrentVersion(String url) {
 
-        try{
+        try {
             var response = GenericWebclient.getForSingleObjResponse(
                     url,
                     List.class);
-            if (!response.isEmpty()){
+            if (!response.isEmpty()) {
                 return formatterClass.getNextVersion(response);
-            }else {
+            } else {
                 return 1;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             return 1;
         }
     }

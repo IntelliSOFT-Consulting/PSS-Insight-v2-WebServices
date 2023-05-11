@@ -6,200 +6,227 @@ import org.springframework.stereotype.Component
 
 data class Results(val code: Int, val details: Any?)
 data class DbResultsApi(
-    @JsonProperty("code")
-    val code: Int,
-    @JsonProperty("details")
-    val details: Any?
+        @JsonProperty("code")
+        val code: Int,
+        @JsonProperty("details")
+        val details: Any?
 )
 
 data class DbResults(
-    val count: Int,
-    val details: Any?
+        val count: Int,
+        val details: Any?
 )
 
 data class DbDetails(val details: Any?)
 
 data class DbMetadataJsonNational(
-    @JsonProperty("metadata")
-    var metadata: DbProgramsDataDetails?
+        @JsonProperty("metadata")
+        var metadata: DbProgramsDataDetails?
 )
+
 data class DbProgramsDataDetails(
-    @JsonProperty("indicatorDescriptions")
-    val indicatorDescriptions: List<DbIndicatorDescriptionData>
+        @JsonProperty("indicatorDescriptions")
+        val indicatorDescriptions: List<DbIndicatorDescriptionData>
 )
 
 
 data class DbMetadataJson(
-    @JsonProperty("version")
-    var version: String?,
-    @JsonProperty("versionDescription")
-    val versionDescription: String?,
-    @JsonProperty("metadata")
-    var metadata: DbPrograms?
+        @JsonProperty("version")
+        var version: String?,
+        @JsonProperty("versionDescription")
+        val versionDescription: String?,
+        @JsonProperty("metadata")
+        var metadata: DbPrograms?
 )
+
 data class DbPrograms(
-    @JsonProperty("date")
-    val date: Any?,
-    @JsonProperty("dataElements")
-    var dataElements: Any?,
-    @JsonProperty("categoryOptionCombos")
-    val categoryOptionCombos: Any?,
-    @JsonProperty("categoryOptions")
-    val categoryOptions: Any?,
-    @JsonProperty("categoryCombos")
-    val categoryCombos: Any?,
-    @JsonProperty("programStageDataElements")
-    val programStageDataElements: Any?,
-    @JsonProperty("programStages")
-    val programStages: Any?,
-    @JsonProperty("categories")
-    val categories: Any?,
-    @JsonProperty("programs")
-    val programs: Any?,
-    @JsonProperty("groups")
-    val groups: DbGroups?,
-    @JsonProperty("indicatorDescriptions")
-    val indicatorDescriptions: Any?,
-    @JsonProperty("publishedVersion")
-    var publishedVersion: DbPublishedVersion?,
-    @JsonProperty("referenceSheet")
-    var referenceSheet: Any?
+        @JsonProperty("date")
+        val date: Any?,
+        @JsonProperty("dataElements")
+        var dataElements: Any?,
+        @JsonProperty("categoryOptionCombos")
+        val categoryOptionCombos: Any?,
+        @JsonProperty("categoryOptions")
+        val categoryOptions: Any?,
+        @JsonProperty("categoryCombos")
+        val categoryCombos: Any?,
+        @JsonProperty("programStageDataElements")
+        val programStageDataElements: Any?,
+        @JsonProperty("programStages")
+        val programStages: Any?,
+        @JsonProperty("categories")
+        val categories: Any?,
+        @JsonProperty("programs")
+        val programs: Any?,
+        @JsonProperty("groups")
+        val groups: DbGroups?,
+        @JsonProperty("indicatorDescriptions")
+        val indicatorDescriptions: Any?,
+        @JsonProperty("publishedVersion")
+        var publishedVersion: DbPublishedVersion?,
+        @JsonProperty("referenceSheet")
+        var referenceSheet: Any?,
+        @JsonProperty("aboutUs")
+        var aboutUs: String?,
+        @JsonProperty("contactUs")
+        var contactUs: String?,
 )
 
 
 data class DbGroups(
-    @JsonProperty("pager")
-    val pager:Any?,
-    @JsonProperty("dataElementGroups")
-    val dataElementGroups:List<DbDataElementGroups>
+        @JsonProperty("pager")
+        val pager: Any?,
+        @JsonProperty("dataElementGroups")
+        val dataElementGroups: List<DbDataElementGroups>
 )
+
 data class DbDataElementGroups(
-    @JsonProperty("name")
-    val name: String?,
-    @JsonProperty("id")
-    val id:String?,
-    @JsonProperty("dataElements")
-    val dataElements:List<DbDataElements>
+        @JsonProperty("name")
+        val name: String?,
+        @JsonProperty("id")
+        val id: String?,
+        @JsonProperty("dataElements")
+        val dataElements: List<DbDataElements>
 )
+
 data class DbDataElements(
-    @JsonProperty("code")
-    val code: String?,
-    @JsonProperty("name")
-    val name: String?,
-    @JsonProperty("id")
-    val id: String?
+        @JsonProperty("code")
+        val code: String?,
+        @JsonProperty("name")
+        val name: String?,
+        @JsonProperty("id")
+        val id: String?
 )
+
 data class DbMobileData(
-    val publishedIndicators: Any?,
-    val nationalInformation:Any?
+        val publishedIndicators: Any?,
+        val nationalInformation: Any?
 )
 
 data class DbPublishedVersionApp(
-    var count: Any?,
-    var details: List<DbIndicatorsApp>,
+        var count: Any?,
+        var details: List<DbIndicatorsApp>,
 )
+
 data class DbIndicatorsApp(
-    var categoryName: Any?,
-    var indicators: List<DbIndicatorValuesApp?>,
+        var categoryName: Any?,
+        var indicators: List<DbIndicatorValuesApp?>,
 )
+
 data class DbIndicatorValuesApp(
-    var categoryName: Any?,
-    var description: Any?,
-    var categoryId: Any?,
-    var categoryCode: Any?,
-    var indicatorName: Any?,
-    var indicatorDataValue: List<DbIndicatorDataValues>,
+        var categoryName: Any?,
+        var description: Any?,
+        var categoryId: Any?,
+        var categoryCode: Any?,
+        var indicatorName: Any?,
+        var indicatorDataValue: List<DbIndicatorDataValues>,
 )
+
 data class DbPublishedVersionDetails(
-    var referenceSheet: String?,
-    var count: Any?,
-    var details: List<DbIndicators>,
+        var aboutUs: String?,
+        var contactUs: String?,
+        var referenceSheet: String?,
+        var count: Any?,
+        var details: List<DbIndicators>,
 )
+
 data class DbPublishedVersion(
-    @JsonProperty("count")
-    var count: Any?,
-    @JsonProperty("details")
-    var details: List<DbIndicators>,
+        @JsonProperty("count")
+        var count: Any?,
+        @JsonProperty("details")
+        var details: List<DbIndicators>,
 )
+
 data class DbIndicators(
-    @JsonProperty("categoryName")
-    var categoryName: Any?,
-    @JsonProperty("indicators")
-    var indicators: List<DbIndicatorValues?>,
+        @JsonProperty("categoryName")
+        var categoryName: Any?,
+        @JsonProperty("indicators")
+        var indicators: List<DbIndicatorValues?>,
 )
+
 data class DbIndicatorValues(
-    @JsonProperty("description")
-    var description: Any?,
-    @JsonProperty("categoryId")
-    var categoryId: Any?,
-    @JsonProperty("categoryName")
-    var categoryName: Any?,
-    @JsonProperty("indicatorName")
-    var indicatorName: Any?,
-    @JsonProperty("indicatorDataValue")
-    var indicatorDataValue: List<DbIndicatorDataValues>,
+        @JsonProperty("description")
+        var description: Any?,
+        @JsonProperty("categoryId")
+        var categoryId: Any?,
+        @JsonProperty("categoryName")
+        var categoryName: Any?,
+        @JsonProperty("indicatorName")
+        var indicatorName: Any?,
+        @JsonProperty("indicatorDataValue")
+        var indicatorDataValue: List<DbIndicatorDataValues>,
 )
+
 data class DbIndicatorDataValues(
-    @JsonProperty("id")
-    var id: Any?,
-    @JsonProperty("code")
-    var code: Any?,
-    @JsonProperty("name")
-    var name: Any?,
-    @JsonProperty("valueType")
-    var valueType: Any?,
+        @JsonProperty("id")
+        var id: Any?,
+        @JsonProperty("code")
+        var code: Any?,
+        @JsonProperty("name")
+        var name: Any?,
+        @JsonProperty("valueType")
+        var valueType: Any?,
 )
+
 data class DbIndicatorDescription(
-    @JsonProperty("Description")
-    val Description: String?,
-    @JsonProperty("Indicator_Code")
-    val Indicator_Code: String?
+        @JsonProperty("Description")
+        val Description: String?,
+        @JsonProperty("Indicator_Code")
+        val Indicator_Code: String?
 )
+
 data class DbIndicatorDescriptionInt(
-    val Description: String?,
-    val Indicator_Code: String?
+        val Description: String?,
+        val Indicator_Code: String?
 )
+
 data class DbIndicatorDescriptionData(
-    @JsonProperty("description")
-    val description: String?,
-    @JsonProperty("indicator_Code")
-    val indicator_Code: String?
+        @JsonProperty("description")
+        val description: String?,
+        @JsonProperty("indicator_Code")
+        val indicator_Code: String?
 )
 
 data class DbIndicatorDataResponses(
-    var id: Any?,
-    var code: Any?,
-    var name: Any?,
-    var valueType: Any?,
-    var response: DbDataEntryResponses?
+        var id: Any?,
+        var code: Any?,
+        var name: Any?,
+        var valueType: Any?,
+        var response: DbDataEntryResponses?
 )
+
 data class DbIndicatorEdit(
-    val categoryId: String,
-    val indicatorId:String,
-    val editValue:String,
-    val creatorId:String
+        val categoryId: String,
+        val indicatorId: String,
+        val editValue: String,
+        val creatorId: String
 )
+
 data class DbVersions(
-    val versionDescription: String,
-    val isPublished: Boolean,
-    val createdBy: String,
-    val publishedBy: String?,
-    val indicators: List<DbVersionDate>
+        val versionDescription: String,
+        val isPublished: Boolean,
+        val createdBy: String,
+        val publishedBy: String?,
+        val indicators: List<DbVersionDate>
 )
+
 data class DbVersionDate(
-    val isLatest:Boolean,
-    val id:String
+        val isLatest: Boolean,
+        val id: String
 )
+
 enum class DhisStatus {
     ACTIVE,
     COMPLETED,
     OVERDUE
 }
+
 enum class PublishStatus {
     DRAFT,
     PUBLISHED,
     COMPLETED
 }
+
 enum class SurveySubmissionStatus {
     DRAFT, //Respondent has not sent responses
     PENDING, // Respondent has sent responses
@@ -207,179 +234,204 @@ enum class SurveySubmissionStatus {
     CANCELLED, // Admin has cancelled respondents survey
     EXPIRED, // Respondent's survey has expired
 }
+
 enum class SurveyStatus {
     DRAFT, //Survey has just been created
     SAVED, //
     SENT, // Survey has been sent
     COMPLETED
 }
+
 enum class SurveyRespondentStatus {
     VERIFIED,
     PENDING,
     RESEND_REQUEST
 }
+
 enum class MailStatus {
     SEND,
     RESEND,
     REMIND,
     EXPIRED
 }
+
 data class DbPublishVersionResponse(
-    @JsonProperty("httpStatus")
-    val httpStatus:String,
-    @JsonProperty("httpStatusCode")
-    val httpStatusCode:Int,
-    @JsonProperty("status")
-    val status:String,
-    @JsonProperty("message")
-    val message:String,
+        @JsonProperty("httpStatus")
+        val httpStatus: String,
+        @JsonProperty("httpStatusCode")
+        val httpStatusCode: Int,
+        @JsonProperty("status")
+        val status: String,
+        @JsonProperty("message")
+        val message: String,
 )
+
 data class DbVersionDetails(
-    val id: Long?,
-    val versionName: String?,
-    val versionDescription: String,
-    val createdBy: String,
-    val status: String,
-    val publishedBy: String?,
-    val createdAt: String,
-    val indicators: Any?
+        val id: Long?,
+        val versionName: String?,
+        val versionDescription: String,
+        val createdBy: String,
+        val status: String,
+        val publishedBy: String?,
+        val createdAt: String,
+        val indicators: Any?
 )
+
 data class DbResultsData(
-    val count: Int,
-    val details: Any?
+        val count: Int,
+        val details: Any?
 )
+
 data class DbTemplates(
-    var nationalTemplate: DbTemplateDetails? = null,
-    var interNationalTemplate: DbTemplateDetails? = null
+        var nationalTemplate: DbTemplateDetails? = null,
+        var interNationalTemplate: DbTemplateDetails? = null
 )
+
 data class DbTemplateDetails(
-    val version:Int?,
-    val indicators: Any?
+        val version: Int?,
+        val indicators: Any?
 )
+
 data class DbPeriodConfiguration(
-    val period: String,
-    val isCompleted:Boolean,
-    val closedBy: String
+        val period: String,
+        val isCompleted: Boolean,
+        val closedBy: String
 )
+
 data class DbAboutUs(
-    val aboutUs: String?,
-    val contactUs:String?,
+        val aboutUs: String?,
+        val contactUs: String?,
 )
 
 data class DbDataEntry(
-    val program: String,
-    val orgUnit: String,
-    val eventDate: String,
-    val status: String,
-    val storedBy: String,
-    val dataValues: List<DbDataValues>
+        val program: String,
+        val orgUnit: String,
+        val eventDate: String,
+        val status: String,
+        val storedBy: String,
+        val dataValues: List<DbDataValues>
 )
+
 data class DbDataValues(
-    val dataElement: String,
-    val value: String
+        val dataElement: String,
+        val value: String
 )
+
 data class DbFileResources(
-    @JsonProperty("httpStatus")
-    val httpStatus:String,
-    @JsonProperty("httpStatusCode")
-    val httpStatusCode:String,
-    @JsonProperty("response")
-    val response:DbResponseFileResource?,
+        @JsonProperty("httpStatus")
+        val httpStatus: String,
+        @JsonProperty("httpStatusCode")
+        val httpStatusCode: String,
+        @JsonProperty("response")
+        val response: DbResponseFileResource?,
 )
 
 data class DbResponseFileResource(
-    @JsonProperty("fileResource")
-    val fileResource:DbResFileRes?
+        @JsonProperty("fileResource")
+        val fileResource: DbResFileRes?
 )
+
 data class DbResFileRes(
-    @JsonProperty("id")
-    val id:String?
+        @JsonProperty("id")
+        val id: String?
 )
+
 data class DbDataEntryResponse(
-    val id: Long?,
-    val selectedPeriod: String?,
-    val status: String?,
-    val dataEntryPersonId: String?,
-    val dataEntryDate: String?,
-    val createdAt: Any?,
-    val responses: Any?,
-    var indicators: Any? = null,
+        val id: Long?,
+        val selectedPeriod: String?,
+        val status: String?,
+        val dataEntryPersonId: String?,
+        val dataEntryDate: String?,
+        val createdAt: Any?,
+        val responses: Any?,
+        var indicators: Any? = null,
 )
+
 data class DbSurvey(
-    val surveyName: String?,
-    val surveyDescription: String?,
-    val surveyLandingPage:String?,
-    val isSaved: Boolean,
-    val creatorId: String,
-    val indicators : List<String>
+        val surveyName: String?,
+        val surveyDescription: String?,
+        val surveyLandingPage: String?,
+        val isSaved: Boolean,
+        val creatorId: String,
+        val indicators: List<String>
 )
+
 data class DbSurveyRespondent(
-    val emailAddressList: List<String>,
-    val expiryDateTime: String,
-    val surveyId: String,
-    val customAppUrl: String
+        val emailAddressList: List<String>,
+        val expiryDateTime: String,
+        val surveyId: String,
+        val customAppUrl: String
 )
 
 data class DbSurveyDetails(
-    val surveyId:String,
-    val surveyName: String,
-    val surveyStatus: String,
-    val surveyDescription: String?,
-    val landingPage: String?,
-    val respondentList:List<DbRespondent>
+        val surveyId: String,
+        val surveyName: String,
+        val surveyStatus: String,
+        val surveyDescription: String?,
+        val landingPage: String?,
+        val respondentList: List<DbRespondent>
 )
-data class DbRespondent(
-    val respondentId:String,
-    val emailAddress: String,
-    val createdAt: String,
 
-    var expiryDate: String?,
-    var newLinkRequested: Boolean?
+data class DbRespondent(
+        val respondentId: String,
+        val emailAddress: String,
+        val createdAt: String,
+
+        var expiryDate: String?,
+        var newLinkRequested: Boolean?
 )
+
 data class DbVerifySurvey(
-    val respondentId: String,
-    val password: String
+        val respondentId: String,
+        val password: String
 )
+
 data class DbRespondentsDetails(
-    val id: Long,
-    val emailAddress: String,
-    val expiresAt:String,
-    val status:String?,
-    val surveyName:String?,
-    val surveyDescription: String?,
-    val landingPage: String?,
-    val referenceSheet:String?
+        val id: Long,
+        val emailAddress: String,
+        val expiresAt: String,
+        val status: String?,
+        val surveyName: String?,
+        val surveyDescription: String?,
+        val landingPage: String?,
+        val referenceSheet: String?
 )
+
 data class DbResponse(
-    val isSubmit: Boolean,
-    val respondentId: String,
-    val responses: List<DbRespondentSurvey>
+        val isSubmit: Boolean,
+        val respondentId: String,
+        val responses: List<DbRespondentSurvey>
 )
+
 data class DbRespondentSurvey(
-    val indicatorId: String,
-    val answer: String,
-    val comments: String?,
-    val attachment: String?
+        val indicatorId: String,
+        val answer: String,
+        val comments: String?,
+        val attachment: String?
 )
+
 data class DbResponseDetails(
-    var resentQuestions:Any? = null,
-    var questions: Any? = null,
-    var responses: Any? = null,
-    var respondentDetails: Any? = null
+        var resentQuestions: Any? = null,
+        var questions: Any? = null,
+        var responses: Any? = null,
+        var respondentDetails: Any? = null
 )
+
 data class DbResendSurvey(
-    val comments: String?,
-    val indicators : List<String>,
-    val expiryDateTime: String
+        val comments: String?,
+        val indicators: List<String>,
+        val expiryDateTime: String
 )
+
 data class DbConfirmSurvey(
-    val orgUnit: String,
-    val selectedPeriod: String?,
-    val dataEntryPersonId: String,
-    val indicators : List<String>,
+        val orgUnit: String,
+        val selectedPeriod: String?,
+        val dataEntryPersonId: String,
+        val indicators: List<String>,
 )
+
 data class DbDataEntryData(
-        val surveyId:String? = null,
+        val surveyId: String? = null,
         val orgUnit: String,
         val selectedPeriod: String?,
         val isPublished: Boolean,
@@ -387,106 +439,122 @@ data class DbDataEntryData(
         val dataEntryDate: String?,
         val responses: List<DbDataEntryResponses>,
 )
+
 data class DbDataEntryResponses(
-    val indicator: String,
-    val response: String?,
-    val comment: String?,
-    val attachment: String?
+        val indicator: String,
+        val response: String?,
+        val comment: String?,
+        val attachment: String?
 )
+
 data class DbRequestLink(
-    @JsonProperty("comment")
-    val comment: String
+        @JsonProperty("comment")
+        val comment: String
 )
+
 data class DbRespondents(
-    val respondents: List<DbSurveyRespondentData>
+        val respondents: List<DbSurveyRespondentData>
 )
+
 data class DbSurveyRespondentData(
-    val emailAddress:String,
-    val expiryDate:String,
-    val customUrl: String,
-    val password:String
+        val emailAddress: String,
+        val expiryDate: String,
+        val customUrl: String,
+        val password: String
 )
+
 data class DbProgramsData(
-    @JsonProperty("pager")
-    val pager: Any?,
-    @JsonProperty("programs")
-    val programs: List<DbProgramsValue>
+        @JsonProperty("pager")
+        val pager: Any?,
+        @JsonProperty("programs")
+        val programs: List<DbProgramsValue>
 )
+
 data class DbProgramsValue(
-    @JsonProperty("id")
-    val id:Any?,
-    @JsonProperty("displayName")
-    val displayName:Any?,
+        @JsonProperty("id")
+        val id: Any?,
+        @JsonProperty("displayName")
+        val displayName: Any?,
 
-)
+        )
+
 data class DbOrganisationUnit(
-    @JsonProperty("pager")
-    val pager: Any?,
-    @JsonProperty("organisationUnits")
-    val organisationUnits: List<DbProgramsValue>
+        @JsonProperty("pager")
+        val pager: Any?,
+        @JsonProperty("organisationUnits")
+        val organisationUnits: List<DbProgramsValue>
 )
+
 data class DbDocuments(
-    val name:String,
-    val type:String,
-    val attachment: Boolean,
-    val external:Boolean,
-    val url:String
+        val name: String,
+        val type: String,
+        val attachment: Boolean,
+        val external: Boolean,
+        val url: String
 )
+
 data class DbDocumentFile(
-    @JsonProperty("httpStatusCode")
-    val httpStatusCode:Any?,
-    @JsonProperty("response")
-    val response:DbFileResponse?
+        @JsonProperty("httpStatusCode")
+        val httpStatusCode: Any?,
+        @JsonProperty("response")
+        val response: DbFileResponse?
 )
+
 data class DbEvents(
-    @JsonProperty("httpStatusCode")
-    val httpStatusCode:Int
+        @JsonProperty("httpStatusCode")
+        val httpStatusCode: Int
 )
+
 data class DbFileResponse(
-    @JsonProperty("uid")
-    val uid:String?
+        @JsonProperty("uid")
+        val uid: String?
 )
+
 data class DbVersionDataDetails(
-    val id:Long?,
-    val versionName: String?,
-    val versionDescription: String?,
-    val status: String?,
-    val createdBy: Any?,
-    val publishedBy: String?,
-    var indicators: Any?
+        val id: Long?,
+        val versionName: String?,
+        val versionDescription: String?,
+        val status: String?,
+        val createdBy: Any?,
+        val publishedBy: String?,
+        var indicators: Any?
 )
+
 data class DbSurveyData(
-    val id:Long?,
-    val name: String?,
-    val description: String?,
-    val landingPage: String?,
-    val status: String?,
-    val createdBy: Any?,
-    val createdAt: Any?,
-    var indicators: Any?,
-    var respondents: Any?
+        val id: Long?,
+        val name: String?,
+        val description: String?,
+        val landingPage: String?,
+        val status: String?,
+        val createdBy: Any?,
+        val createdAt: Any?,
+        var indicators: Any?,
+        var respondents: Any?
 )
+
 data class DbSurveyRespondentDataDerails(
-    val id:Long,
-    val emailAddress: String,
-    val expiryDateTime: String,
-    val surveyId: String,
-    val customUrl: String,
-    val status: String?
+        val id: Long,
+        val emailAddress: String,
+        val expiryDateTime: String,
+        val surveyId: String,
+        val customUrl: String,
+        val status: String?
 
 )
+
 data class DbNotificationSub(
-    val firstName: String?,
-    val lastName: String?,
-    val email:String,
-    val phoneNumber:String?
+        val firstName: String?,
+        val lastName: String?,
+        val email: String,
+        val phoneNumber: String?
 )
+
 data class DbEmailConfiguration(
-    val serverType: String,
-    val serverName: String,
-    val ports: String,
-    val username:String,
-    val from:String,
-    val password:String
+        val serverType: String,
+        val serverName: String,
+        val ports: String,
+        val username: String,
+        val from: String,
+        val password: String
 )
 

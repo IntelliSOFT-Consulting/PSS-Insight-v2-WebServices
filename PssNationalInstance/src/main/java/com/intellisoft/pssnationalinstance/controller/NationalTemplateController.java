@@ -44,6 +44,7 @@ public class NationalTemplateController {
 
     /**
      * Update the national instance with the international data from the international data
+     *
      * @return
      * @throws URISyntaxException
      */
@@ -53,13 +54,13 @@ public class NationalTemplateController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
             @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+                    content = {@Content(examples = {@ExampleObject(value = "")})}),
             @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+                    content = {@Content(examples = {@ExampleObject(value = "")})})})
     @GetMapping("organisation-units")
     public ResponseEntity<?> getOrgUnits(
             @RequestParam(value = "page", required = false) String page
-            ) {
+    ) {
         int pageNo = 1;
         if (page != null)
             pageNo = Integer.parseInt(page);
@@ -67,15 +68,16 @@ public class NationalTemplateController {
         Results results = nationalTemplateService.getOrgUnits(pageNo);
         return formatterClass.getResponse(results);
     }
+
     @Operation(
             summary = "Pull the international template",
             description = "This api is used for pulling the international template and displaying it to frontend")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
             @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+                    content = {@Content(examples = {@ExampleObject(value = "")})}),
             @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+                    content = {@Content(examples = {@ExampleObject(value = "")})})})
     @GetMapping("published-indicators")
     public ResponseEntity<?> getNationalIndicators() {
         Results results = nationalTemplateService.getNationalPublishedVersion();
@@ -84,6 +86,7 @@ public class NationalTemplateController {
 
     /**
      * Update the national instance with the international data from the international data
+     *
      * @return
      * @throws URISyntaxException
      */
@@ -93,9 +96,9 @@ public class NationalTemplateController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
             @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+                    content = {@Content(examples = {@ExampleObject(value = "")})}),
             @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+                    content = {@Content(examples = {@ExampleObject(value = "")})})})
     @GetMapping("indicator-description/{code}")
     public ResponseEntity<?> getIndicatorDescription(@PathVariable("code") String code) {
         Results results = nationalTemplateService.getIndicatorDescription(code);
@@ -104,7 +107,7 @@ public class NationalTemplateController {
 
     @PostMapping("edit-indicator")
     public ResponseEntity<?> addEdit(
-            @RequestBody DbIndicatorEdit dbIndicatorEdit){
+            @RequestBody DbIndicatorEdit dbIndicatorEdit) {
         Results results = indicatorEditsService.addEdit(dbIndicatorEdit);
         return formatterClass.getResponse(results);
     }
@@ -116,7 +119,7 @@ public class NationalTemplateController {
             @RequestParam(value = "size", required = false) String size,
             @RequestParam(value = "isLatest", required = false) String isLatest
 
-    ){
+    ) {
         int pageNo = 1;
         int sizeNo = 10;
         boolean isLatestTemplate = false;
@@ -128,7 +131,7 @@ public class NationalTemplateController {
             isLatestTemplate = Boolean.parseBoolean(isLatest);
 
         Results results = versionEntityService
-                .listVersions(pageNo,sizeNo, isLatestTemplate);
+                .listVersions(pageNo, sizeNo, isLatestTemplate);
         return formatterClass.getResponse(results);
 
     }
@@ -141,15 +144,17 @@ public class NationalTemplateController {
                 .updateVersion(id, dbVersionData);
         return formatterClass.getResponse(results);
     }
+
     @GetMapping(value = "version-details/{id}")
     public ResponseEntity<?> getVersionDetails(@PathVariable("id") String id) {
         Results results = versionEntityService
                 .getVersionDetails(id);
         return formatterClass.getResponse(results);
     }
+
     @PostMapping("add-version")
     public ResponseEntity<?> addVersion(
-            @RequestBody DbVersions dbVersions){
+            @RequestBody DbVersions dbVersions) {
         Results results = versionEntityService.addVersion(dbVersions);
         return formatterClass.getResponse(results);
     }
@@ -160,9 +165,9 @@ public class NationalTemplateController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
             @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+                    content = {@Content(examples = {@ExampleObject(value = "")})}),
             @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+                    content = {@Content(examples = {@ExampleObject(value = "")})})})
     @DeleteMapping(value = "/version-details/{versionId}")
     public ResponseEntity<?> deleteTemplate(@PathVariable("versionId") String versionId) {
         Results results = versionEntityService.deleteTemplate(versionId);
@@ -175,9 +180,9 @@ public class NationalTemplateController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "${api.response-codes.ok.desc}"),
             @ApiResponse(responseCode = "400", description = "${api.response-codes.badRequest.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }),
+                    content = {@Content(examples = {@ExampleObject(value = "")})}),
             @ApiResponse(responseCode = "404", description = "${api.response-codes.notFound.desc}",
-                    content = { @Content(examples = { @ExampleObject(value = "") }) }) })
+                    content = {@Content(examples = {@ExampleObject(value = "")})})})
     @GetMapping("details")
     public ResponseEntity<?> getNationalDetails() {
         Results results = nationalTemplateService.getNationalDetails();
