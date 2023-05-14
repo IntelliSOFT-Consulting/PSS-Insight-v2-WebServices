@@ -6,6 +6,7 @@ import com.intellisoft.internationalinstance.FormatterClass;
 import com.intellisoft.internationalinstance.Results;
 import com.intellisoft.internationalinstance.service_impl.service.ConfigurationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,5 +26,12 @@ public class ConfigurationController {
         Results results = periodConfigurationService.saveMailConfiguration(dbEmailConfiguration);
         return formatterClass.getResponse(results);
     }
+
+    //Retrieve Mail Config::
+    @GetMapping("getMailConfig")
+    public ResponseEntity<?> getMailConfig(){
+        return ResponseEntity.status(HttpStatus.FOUND).body(periodConfigurationService.getMailConfiguration());
+    }
+
 
 }
