@@ -519,7 +519,11 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 true,
                 dataEntryPersonId,
                 null,
-                dataEntryResponsesList);
+                null,
+                null,
+                null,
+                null,
+                dataEntryResponsesList.toString());
 
         dataEntryService.saveEventData(dbDataEntryData);
 

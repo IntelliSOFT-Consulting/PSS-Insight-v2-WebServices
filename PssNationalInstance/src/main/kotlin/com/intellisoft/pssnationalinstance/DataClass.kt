@@ -1,8 +1,6 @@
 package com.intellisoft.pssnationalinstance
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
 
 data class Results(val code: Int, val details: Any?)
 data class DbResultsApi(
@@ -313,6 +311,23 @@ data class DbDataEntryResponse(
     val responses: Any?,
     var indicators: Any? = null,
 )
+
+data class DbSubmissionsResponse(
+        val id: Long,
+        val selectedPeriod: String?,
+        val status: String?,
+        val dataEntryPersonId: String?,
+        val dataEntryDate: String?,
+        val createdAt: Any?,
+        var dataEntryPerson: MutableList<DataEntryPerson>,
+)
+data class DataEntryPerson(
+        var username: String,
+        var id: Long,
+        var surname: String,
+        var firstName: String,
+        var email: String
+)
 data class DbSurvey(
     val surveyName: String?,
     val surveyDescription: String?,
@@ -394,7 +409,12 @@ data class DbDataEntryData(
         val dataEntryPersonId: String,
         val dataEntryDate: String?,
         val responses: List<DbDataEntryResponses>,
+        val username: String,
+        val firstName: String,
+        val surname: String,
+        val email: String?,
 )
+
 data class DbDataEntryResponses(
     val indicator: String,
     val response: String?,

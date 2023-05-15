@@ -10,7 +10,7 @@ import java.net.URISyntaxException;
 public interface DataEntryService {
 
     Results addDataEntry(DbDataEntryData dbDataEntryData);
-    Results listDataEntry(int no, int size, String status, String dataEntryPersonId);
+    Results listDataEntry(int no, int size, String status);
     void saveEventData(DbDataEntryData dbDataEntryData);
 
     Results viewDataEntry(String id);
