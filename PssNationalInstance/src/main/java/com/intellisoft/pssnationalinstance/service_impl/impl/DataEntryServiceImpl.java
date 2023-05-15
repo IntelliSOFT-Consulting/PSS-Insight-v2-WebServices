@@ -602,7 +602,6 @@ public class DataEntryServiceImpl implements DataEntryService {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
         Page<DataEntry> page;
         if (status.equals("ALL")) {
-            System.out.println("WORKS!!");
             page = dataEntryRepository.findAll(pageable);
         } else {
             page = dataEntryRepository.findAllByStatus(status, pageable);

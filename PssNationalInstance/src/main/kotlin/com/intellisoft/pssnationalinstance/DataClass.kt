@@ -1,6 +1,10 @@
 package com.intellisoft.pssnationalinstance
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
+import java.time.LocalDate
+import java.util.*
 
 data class Results(val code: Int, val details: Any?)
 data class DbResultsApi(
@@ -212,6 +216,7 @@ enum class SurveySubmissionStatus {
     VERIFIED, // Admin has confirmed
     CANCELLED, // Admin has cancelled respondents survey
     EXPIRED, // Respondent's survey has expired
+    REJECTED
 }
 enum class SurveyStatus {
     DRAFT, //Survey has just been created
@@ -364,14 +369,15 @@ data class DbVerifySurvey(
     val password: String
 )
 data class DbRespondentsDetails(
-    val id: Long,
-    val emailAddress: String,
-    val expiresAt:String,
-    val status:String?,
-    val surveyName:String?,
-    val surveyDescription: String?,
-    val landingPage: String?,
-    val referenceSheet:String?
+        val id: Long,
+        val emailAddress: String,
+        val expiresAt:String,
+        val status:String?,
+        val surveyName:String?,
+        val surveyDescription: String?,
+        val landingPage: String?,
+        val referenceSheet:String?,
+        val dateFilled: String?
 )
 data class DbResponse(
     val isSubmit: Boolean,

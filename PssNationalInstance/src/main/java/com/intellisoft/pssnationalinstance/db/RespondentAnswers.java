@@ -1,6 +1,10 @@
 package com.intellisoft.pssnationalinstance.db;
 
+import org.apache.tomcat.jni.Local;
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "respondent_answers")
@@ -83,6 +87,7 @@ public class RespondentAnswers {
     public void setAttachment(String attachment) {
         this.attachment = attachment;
     }
+
 }
 
 

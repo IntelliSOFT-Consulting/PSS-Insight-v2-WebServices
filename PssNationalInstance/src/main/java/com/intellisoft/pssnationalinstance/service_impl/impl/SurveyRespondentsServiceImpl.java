@@ -19,7 +19,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -261,6 +264,9 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
         for(int i = 0; i < dbRespondentSurveyList.size(); i++){
+
+            LocalDate currentDateTime = LocalDate.now();
+
             String indicatorId = dbRespondentSurveyList.get(i).getIndicatorId();
             String answer = dbRespondentSurveyList.get(i).getAnswer();
             String comments = dbRespondentSurveyList.get(i).getComments();
@@ -303,10 +309,13 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         if (optionalSurveyRespondents.isPresent()){
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
 
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+
             String emailAddress = surveyRespondents.getEmailAddress();
             String expiryTime = surveyRespondents.getExpiryTime();
             String surveyId = surveyRespondents.getSurveyId();
             String status = surveyRespondents.getRespondentsStatus();
+            String dateFilled = outputFormat.format(surveyRespondents.getCreatedAt());
 
             String landingPage = "";
             String surveyName = "";
@@ -354,7 +363,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                                 surveyName,
                                 surveyDesc,
                                 landingPage,
-                                refSheet
+                                refSheet,
+                                dateFilled
                         );
                 dbResponseDetailsValues.setRespondentDetails(dbRespondentsDetails);
             }
@@ -552,6 +562,44 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     @Override
     public List<SurveyRespondents> getSurveyRespondents() {
         return respondentsRepo.findBySurveyStatus(SurveyStatus.SENT.name());
+    }
+
+    @Override
+    public Results verifySurvey(String respondentId) {
+        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+
+        if (optionalSurveyRespondents.isPresent()) {
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+
+            // change status to verified
+            surveyRespondents.setSurveyStatus(SurveySubmissionStatus.VERIFIED.name());
+
+            //update on dB:
+            respondentsRepo.save(surveyRespondents);
+
+            return new Results(200, surveyRespondents);
+        } else {
+            return new Results(400, "Resource not found, verification not successful");
+        }
+    }
+
+    @Override
+    public Results rejectSurvey(String respondentId) {
+        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+
+        if (optionalSurveyRespondents.isPresent()) {
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+
+            // change status to rejected/cancelled
+            surveyRespondents.setSurveyStatus(SurveySubmissionStatus.REJECTED.name());
+
+            //update on dB:
+            respondentsRepo.save(surveyRespondents);
+
+            return new Results(200, surveyRespondents);
+        } else {
+            return new Results(400, "Resource not found, rejection not successful");
+        }
     }
 
     private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId){
