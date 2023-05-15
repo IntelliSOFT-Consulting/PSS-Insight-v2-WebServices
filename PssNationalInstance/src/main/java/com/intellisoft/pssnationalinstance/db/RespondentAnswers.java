@@ -19,21 +19,17 @@ public class RespondentAnswers {
     private String comments;
     private String attachment;
     private String status;
-
-    //addition of dateFilled field to facilitate when respondent answer was captured:
-    private LocalDate dateFilled;
     public RespondentAnswers() {
     }
 
     public RespondentAnswers(String respondentId, String indicatorId,
                              String answer, String comments,
-                             String attachment, LocalDate dateFilled) {
+                             String attachment) {
         this.respondentId = respondentId;
         this.indicatorId = indicatorId;
         this.answer = answer;
         this.comments = comments;
         this.attachment = attachment;
-        this.dateFilled = dateFilled;
     }
 
     public Long getId() {
@@ -92,14 +88,6 @@ public class RespondentAnswers {
         this.attachment = attachment;
     }
 
-
-    public LocalDate getDateFilled() {
-        return dateFilled;
-    }
-
-    public void setDateFilled(LocalDate dateFilled) {
-        this.dateFilled = dateFilled;
-    }
 }
 
 

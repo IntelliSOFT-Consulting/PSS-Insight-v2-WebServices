@@ -273,7 +273,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             String attachment = dbRespondentSurveyList.get(i).getAttachment();
             LocalDate dateFilled = LocalDate.now(); //new field added
             RespondentAnswers respondentAnswers = new RespondentAnswers(
-                    respondentId, indicatorId, answer, comments, attachment, dateFilled);
+                    respondentId, indicatorId, answer, comments, attachment);
             respondentAnswers.setStatus(SurveyRespondentStatus.PENDING.name());
             respondentAnswersList.add(respondentAnswers);
         }
