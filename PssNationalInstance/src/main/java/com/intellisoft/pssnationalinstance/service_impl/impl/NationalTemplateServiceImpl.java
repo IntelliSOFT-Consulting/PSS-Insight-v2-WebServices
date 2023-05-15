@@ -8,6 +8,7 @@ import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.AboutUs;
 import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
+import com.intellisoft.pssnationalinstance.repository.AboutUsRepository;
 import com.intellisoft.pssnationalinstance.repository.VersionEntityRepository;
 import com.intellisoft.pssnationalinstance.service_impl.service.AboutUsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
@@ -38,6 +39,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private final VersionEntityRepository versionEntityRepository;
     private final IndicatorEditsService indicatorEditsService;
     private final AboutUsService aboutUsService;
+    private final AboutUsRepository aboutUsRepository;
 
     @Override
     public Results getNationalPublishedVersion() {
@@ -143,24 +145,34 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         }
         return null;
     }
-    private DbPublishedVersionDetails getPublishedDetails(){
-        DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, Collections.emptyList());
+
+    private DbPublishedVersionDetails getPublishedDetails() {
+        DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, null, null, Collections.emptyList());
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
         DbMetadataJson dbMetadataJson =
                 internationalTemplateService.getPublishedData(publishedBaseUrl);
-        if (dbMetadataJson != null){
+        if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-            if (dbMetadataJson.getMetadata() != null){
+            if (dbMetadataJson.getMetadata() != null) {
                 String referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
                 details.setReferenceSheet(referenceSheet);
             }
-            if (dbPrograms != null){
+            if (dbPrograms != null) {
                 DbPublishedVersion dbPublishedVersion = dbPrograms.getPublishedVersion();
-                if (dbPublishedVersion != null){
-                    details.setDetails(dbPublishedVersion.getDetails());
-                }
-                if (dbPublishedVersion != null){
-                    details.setCount(dbPublishedVersion.getCount());
+
+                List<AboutUs> publishedDetails = aboutUsRepository.findAll();
+                if (!publishedDetails.isEmpty()) {
+                    for (AboutUs aboutUs : publishedDetails) {
+                        details.setAboutUs(aboutUs.getAboutUs());
+                        details.setContactUs(aboutUs.getContactUs());
+
+                        if (dbPublishedVersion != null) {
+                            details.setDetails(dbPublishedVersion.getDetails());
+                        }
+                        if (dbPublishedVersion != null) {
+                            details.setCount(dbPublishedVersion.getCount());
+                        }
+                    }
                 }
             }
         }
@@ -347,6 +359,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
                 //Set new values
                 DbPublishedVersion dbPublishedVersion = new DbPublishedVersion(
+
                         indicatorsList.size(),
                         indicatorsList);
                 assert dbPrograms != null;

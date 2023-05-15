@@ -14,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -78,10 +79,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public MailConfiguration getMailConfiguration() {
-
-        Optional<MailConfiguration> optionalMailConfiguration =
-                mailConfigurationRepository.findByIsActive(true);
-        return optionalMailConfiguration.orElse(null);
-
+        Optional<MailConfiguration> optionalMailConfiguration = mailConfigurationRepository.findByIsActive(true);
+        return optionalMailConfiguration.orElseThrow(() -> new NoSuchElementException("No active MailConfiguration found"));
     }
 }
