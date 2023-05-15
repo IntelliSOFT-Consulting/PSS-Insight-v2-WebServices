@@ -271,7 +271,6 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             String answer = dbRespondentSurveyList.get(i).getAnswer();
             String comments = dbRespondentSurveyList.get(i).getComments();
             String attachment = dbRespondentSurveyList.get(i).getAttachment();
-            LocalDate dateFilled = LocalDate.now(); //new field added
             RespondentAnswers respondentAnswers = new RespondentAnswers(
                     respondentId, indicatorId, answer, comments, attachment);
             respondentAnswers.setStatus(SurveyRespondentStatus.PENDING.name());
@@ -530,7 +529,11 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 true,
                 dataEntryPersonId,
                 null,
-                dataEntryResponsesList);
+                null,
+                null,
+                null,
+                null,
+                dataEntryResponsesList.toString());
 
         dataEntryService.saveEventData(dbDataEntryData);
 
