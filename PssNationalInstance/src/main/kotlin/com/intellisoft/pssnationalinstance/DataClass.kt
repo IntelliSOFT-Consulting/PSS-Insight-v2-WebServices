@@ -216,6 +216,7 @@ enum class SurveySubmissionStatus {
     VERIFIED, // Admin has confirmed
     CANCELLED, // Admin has cancelled respondents survey
     EXPIRED, // Respondent's survey has expired
+    REJECTED
 }
 enum class SurveyStatus {
     DRAFT, //Survey has just been created

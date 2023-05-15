@@ -6,6 +6,7 @@ import com.sendgrid.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
@@ -91,6 +92,18 @@ public class SurveyRespondentsController {
         Results results = surveyRespondentsService
                 .requestLink(respondentId,dbRequestLink);
         return formatterClass.getResponse(results);
+    }
+
+
+    // new end-points to implement confirmation & rejection of survey responses::
+    @PutMapping("/{respondentId}/verify-survey")
+    public ResponseEntity<Results> confirmSurvey(@PathVariable String respondentId){
+        return ResponseEntity.status(HttpStatus.OK).body(surveyRespondentsService.verifySurvey(respondentId));
+    }
+
+    @PutMapping("/{respondentId}/reject-survey")
+    public ResponseEntity<Results> rejectSurvey(@PathVariable String respondentId){
+        return ResponseEntity.status(HttpStatus.OK).body(surveyRespondentsService.rejectSurvey(respondentId));
     }
 
 

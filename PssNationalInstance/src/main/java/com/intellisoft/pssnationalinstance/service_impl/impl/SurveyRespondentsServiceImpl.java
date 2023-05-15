@@ -564,6 +564,44 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         return respondentsRepo.findBySurveyStatus(SurveyStatus.SENT.name());
     }
 
+    @Override
+    public Results verifySurvey(String respondentId) {
+        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+
+        if (optionalSurveyRespondents.isPresent()) {
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+
+            // change status to verified
+            surveyRespondents.setSurveyStatus(SurveySubmissionStatus.VERIFIED.name());
+
+            //update on dB:
+            respondentsRepo.save(surveyRespondents);
+
+            return new Results(200, surveyRespondents);
+        } else {
+            return new Results(400, "Resource not found, verification not successful");
+        }
+    }
+
+    @Override
+    public Results rejectSurvey(String respondentId) {
+        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+
+        if (optionalSurveyRespondents.isPresent()) {
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+
+            // change status to rejected/cancelled
+            surveyRespondents.setSurveyStatus(SurveySubmissionStatus.REJECTED.name());
+
+            //update on dB:
+            respondentsRepo.save(surveyRespondents);
+
+            return new Results(200, surveyRespondents);
+        } else {
+            return new Results(400, "Resource not found, rejection not successful");
+        }
+    }
+
     private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId){
 
         List<String> indicatorList = new ArrayList<>();

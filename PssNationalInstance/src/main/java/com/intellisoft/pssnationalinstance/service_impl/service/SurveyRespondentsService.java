@@ -73,4 +73,7 @@ public interface SurveyRespondentsService {
     Results requestLink(String respondentId, DbRequestLink dbRequestLink);
     List<SurveyRespondents> getSurveyRespondents();
 
+    Results verifySurvey(String respondentId);
+
+    Results rejectSurvey(String respondentId);
 }
