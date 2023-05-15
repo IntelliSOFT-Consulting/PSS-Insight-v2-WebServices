@@ -1,6 +1,10 @@
 package com.intellisoft.pssnationalinstance.db;
 
+import org.apache.tomcat.jni.Local;
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "respondent_answers")
@@ -15,17 +19,21 @@ public class RespondentAnswers {
     private String comments;
     private String attachment;
     private String status;
+
+    //addition of dateFilled field to facilitate when respondent answer was captured:
+    private LocalDate dateFilled;
     public RespondentAnswers() {
     }
 
     public RespondentAnswers(String respondentId, String indicatorId,
                              String answer, String comments,
-                             String attachment) {
+                             String attachment, LocalDate dateFilled) {
         this.respondentId = respondentId;
         this.indicatorId = indicatorId;
         this.answer = answer;
         this.comments = comments;
         this.attachment = attachment;
+        this.dateFilled = dateFilled;
     }
 
     public Long getId() {
@@ -82,6 +90,15 @@ public class RespondentAnswers {
 
     public void setAttachment(String attachment) {
         this.attachment = attachment;
+    }
+
+
+    public LocalDate getDateFilled() {
+        return dateFilled;
+    }
+
+    public void setDateFilled(LocalDate dateFilled) {
+        this.dateFilled = dateFilled;
     }
 }
 
