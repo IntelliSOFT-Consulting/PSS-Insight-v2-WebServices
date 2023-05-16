@@ -48,10 +48,10 @@ public class DataEntryServiceImpl implements DataEntryService {
         String dataEntryPersonId = dbDataEntryData.getDataEntryPersonId();
         String dateEntryDate = dbDataEntryData.getDataEntryDate();
         String orgUnit = dbDataEntryData.getOrgUnit();
-        String username =  dbDataEntryData.getUsername();
-        String firstName = dbDataEntryData.getFirstName();
-        String surname = dbDataEntryData.getSurname();
-        String email = dbDataEntryData.getEmail();
+        String username = dbDataEntryData.getDataEntryPerson().getUsername();
+        String firstName = dbDataEntryData.getDataEntryPerson().getFirstName();
+        String surname = dbDataEntryData.getDataEntryPerson().getSurname();
+        String email = dbDataEntryData.getDataEntryPerson().getEmail();
 
         String status = PublishStatus.DRAFT.name();
         if (isPublished) {
@@ -407,11 +407,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                             true,
                             dataEntry1.getDataEntryPersonId(),
                             dataEntry1.getDataEntryDate(),
-                            dataEntryResponsesList,
-                            dataEntry1.getUsername(),
-                            dataEntry1.getFirstName(),
-                            dataEntry1.getSurname(),
-                            dataEntry1.getEmail());
+                            dataEntryResponsesList,null);
                     saveEventData(dbDataEntryResponse);
 
                 }
@@ -481,7 +477,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
                 DataEntryPerson dataEntryPerson = new DataEntryPerson(
                         dataEntryFound.getUsername(),
-                        dataEntryFound.getId(),
+                        dataEntryFound.getId().toString(),
                         dataEntryFound.getSurname(),
                         dataEntryFound.getFirstName(),
                         dataEntryFound.getEmail());
@@ -491,7 +487,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntryPerson.setUsername(null);
                 }
                 if (dataEntryFound.getId() == null) {
-                    dataEntryPerson.setId(0);
+                    dataEntryPerson.setId(String.valueOf(0));
                 }
                 if (dataEntryFound.getSurname() == null) {
                     dataEntryPerson.setSurname(null);
