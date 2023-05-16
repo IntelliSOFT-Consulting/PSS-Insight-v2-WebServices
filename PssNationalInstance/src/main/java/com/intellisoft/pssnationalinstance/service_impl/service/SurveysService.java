@@ -15,4 +15,5 @@ public interface SurveysService {
     Results updateSurvey(String surveyId, DbSurvey dbSurvey);
     Results updateSurvey(String surveyId);
 
+    Results listAllSurveys(String status);
 }

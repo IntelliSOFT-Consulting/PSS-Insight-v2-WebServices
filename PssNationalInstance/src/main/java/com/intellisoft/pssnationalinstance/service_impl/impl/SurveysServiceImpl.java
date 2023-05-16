@@ -268,6 +268,79 @@ public class SurveysServiceImpl implements SurveysService {
         return new Results(400, "Resource not found");
     }
 
+    @Override
+    public Results listAllSurveys(String status) {
+        if (status == null || status.isEmpty()) {
+            status = "ALL";
+        }
+
+        Iterable<Surveys> surveysList = surveysRepo.findAll();
+        List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
+
+        for (Surveys survey : surveysList) {
+            Long id = survey.getId();
+            String surveyName = survey.getName();
+            String surveyDesc = survey.getDescription();
+            String surveyStatusValue = survey.getStatus();
+            String landingPage = survey.getLandingPage();
+
+            List<DbRespondent> dbRespondentList = new ArrayList<>();
+            List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status);
+
+            for (SurveyRespondents respondent : respondentsList) {
+                String respId = String.valueOf(respondent.getId());
+                String emailAddress = respondent.getEmailAddress();
+                String createdAt = String.valueOf(respondent.getCreatedAt());
+                String expiryDate = respondent.getExpiryTime();
+
+                if (status.equals(SurveySubmissionStatus.EXPIRED.name())) {
+                    String respondentStatus = respondent.getRespondentsStatus();
+                    boolean isExpired = formatterClass.isPastToday(expiryDate);
+
+                    if (isExpired) {
+                        DbRespondent dbRespondent = new DbRespondent(
+                                respId,
+                                emailAddress,
+                                createdAt,
+                                null,
+                                null
+                        );
+                        dbRespondent.setExpiryDate(expiryDate);
+                        dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                        dbRespondentList.add(dbRespondent);
+                    }
+                } else {
+                    DbRespondent dbRespondent = new DbRespondent(
+                            respId,
+                            emailAddress,
+                            createdAt,
+                            expiryDate,
+                            null
+                    );
+                    dbRespondentList.add(dbRespondent);
+                }
+            }
+
+            DbSurveyDetails details = new DbSurveyDetails(
+                    String.valueOf(id),
+                    surveyName,
+                    surveyStatusValue,
+                    surveyDesc,
+                    landingPage,
+                    dbRespondentList
+            );
+            dbSurveyDetailsList.add(details);
+        }
+
+        DbResults dbResults = new DbResults(
+                dbSurveyDetailsList.size(),
+                dbSurveyDetailsList
+        );
+
+        return new Results(200, dbResults);
+    }
+
+
     public DbPublishedVersion getPublishedData(String url) {
 
         try {

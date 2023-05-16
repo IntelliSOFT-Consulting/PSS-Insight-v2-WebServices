@@ -1,11 +1,11 @@
 package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.DbSurvey;
-import com.intellisoft.pssnationalinstance.DbVersions;
 import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.Results;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveysService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,6 +69,12 @@ public class SurveyController {
         return formatterClass.getResponse(results);
 
     }
+
+    @GetMapping(value = "/list-surveys")
+    public ResponseEntity<Results> listAllSurveys(@RequestParam(value = "status", required = false) String status) {
+        return ResponseEntity.status(HttpStatus.OK).body(surveysService.listAllSurveys( status));
+    }
+
     @PutMapping(value = "survey-details/{id}")
     public ResponseEntity<?> updateSurvey(
             @RequestBody DbSurvey dbSurvey,
