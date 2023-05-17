@@ -17,4 +17,7 @@ public interface DataEntryService {
 
     Results updateDataEntry(String id, DbDataEntryData dbDataEntryData);
 
+    Results confirmDataEntry(Long id);
+
+    Results rejectDataEntry(Long id);
 }
