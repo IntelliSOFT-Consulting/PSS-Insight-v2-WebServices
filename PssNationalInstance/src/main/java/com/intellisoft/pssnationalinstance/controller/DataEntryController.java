@@ -6,6 +6,7 @@ import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.Results;
 import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,6 +88,21 @@ public class DataEntryController {
 //        Results results = dataEntryService.deleteDataEntry(id);
 //        return formatterClass.getResponse(results);
 //    }
+
+
+    /**
+     * verify/reject data entry
+     *
+     */
+    @PutMapping("/{id}/verify")
+    public ResponseEntity<Results> confirmDataEntry(@PathVariable Long id){
+        return ResponseEntity.status(HttpStatus.OK).body(dataEntryService.confirmDataEntry(id));
+    }
+
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<Results> rejectDataEntry(@PathVariable Long id){
+        return ResponseEntity.status(HttpStatus.OK).body(dataEntryService.rejectDataEntry(id));
+    }
 
 
 }

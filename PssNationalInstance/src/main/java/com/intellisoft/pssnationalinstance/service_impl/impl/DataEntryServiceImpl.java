@@ -2,10 +2,7 @@ package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.pssnationalinstance.*;
-import com.intellisoft.pssnationalinstance.db.DataEntry;
-import com.intellisoft.pssnationalinstance.db.DataEntryResponses;
-import com.intellisoft.pssnationalinstance.db.PeriodConfiguration;
-import com.intellisoft.pssnationalinstance.db.Surveys;
+import com.intellisoft.pssnationalinstance.db.*;
 import com.intellisoft.pssnationalinstance.repository.DataEntryRepository;
 import com.intellisoft.pssnationalinstance.repository.DataEntryResponsesRepository;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
@@ -421,6 +418,47 @@ public class DataEntryServiceImpl implements DataEntryService {
         }
 
         return new Results(400, "Resource not found");
+    }
+
+    public Results confirmDataEntry(Long id) {
+
+        Optional<DataEntry> optionalDataEntries = dataEntryRepository.findById(id);
+
+        if (optionalDataEntries.isPresent()) {
+
+            DataEntry dataEntries = optionalDataEntries.get();
+
+            // change status to PUBLISHED
+            dataEntries.setStatus(PublishStatus.PUBLISHED.name());
+
+            //update on dB:
+            dataEntryRepository.save(dataEntries);
+
+            return new Results(200, dataEntries);
+        } else {
+            return new Results(400, "Resource not found, verification not successful");
+        }
+    }
+
+    @Override
+    public Results rejectDataEntry(Long id) {
+
+        Optional<DataEntry> optionalDataEntries = dataEntryRepository.findById(id);
+
+        if (optionalDataEntries.isPresent()) {
+
+            DataEntry dataEntries = optionalDataEntries.get();
+
+            // change status to REJECTED
+            dataEntries.setStatus(PublishStatus.REJECTED.name());
+
+            //update on dB:
+            dataEntryRepository.save(dataEntries);
+
+            return new Results(200, dataEntries);
+        } else {
+            return new Results(400, "Resource not found, rejection not successful");
+        }
     }
 
     private String getCommentsUploads(String codeComments, List<DbDataElements> dataElementsList) {

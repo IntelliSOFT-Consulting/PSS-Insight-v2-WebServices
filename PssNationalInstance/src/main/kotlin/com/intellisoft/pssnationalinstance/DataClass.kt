@@ -208,7 +208,8 @@ enum class DhisStatus {
 enum class PublishStatus {
     DRAFT,
     PUBLISHED,
-    COMPLETED
+    COMPLETED,
+    REJECTED
 }
 enum class SurveySubmissionStatus {
     DRAFT, //Respondent has not sent responses
