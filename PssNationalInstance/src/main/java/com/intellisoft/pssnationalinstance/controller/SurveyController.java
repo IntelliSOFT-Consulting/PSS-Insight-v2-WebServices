@@ -70,9 +70,9 @@ public class SurveyController {
 
     }
 
-    @GetMapping(value = "/list-surveys")
+    @GetMapping(value = "/list")
     public ResponseEntity<Results> listAllSurveys(@RequestParam(value = "status", required = false) String status) {
-        return ResponseEntity.status(HttpStatus.OK).body(surveysService.listAllSurveys( status));
+        return ResponseEntity.status(HttpStatus.OK).body(surveysService.listAdminSurveys(null, status));
     }
 
     @PutMapping(value = "survey-details/{id}")
