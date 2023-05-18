@@ -11,5 +11,5 @@ public interface NotificationSubscriptionRepo extends JpaRepository<Notification
     Optional<NotificationSubscription> findByEmail(String email);
     List<NotificationSubscription> findAllByIsActive(boolean isActive);
     List<NotificationSubscription> findAllByIsActive(boolean isActive, Pageable pageable);
-
+    Optional<NotificationSubscription> findByUserId(String userId);
 }

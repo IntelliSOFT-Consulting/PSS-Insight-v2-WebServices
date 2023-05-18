@@ -446,6 +446,7 @@ data class DbResFileRes(
     val id:String?
 )
 data class DbNotificationSub(
+    val id:String?,
     val firstName: String?,
     val lastName: String?,
     val email:String,

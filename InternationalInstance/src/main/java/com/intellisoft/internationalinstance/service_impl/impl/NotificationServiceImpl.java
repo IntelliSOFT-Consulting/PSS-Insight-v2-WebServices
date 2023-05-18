@@ -35,6 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
         try{
 
             NotificationSubscription subscription = new NotificationSubscription();
+            if(notificationSubscription.getId() != null) subscription.setUserId(notificationSubscription.getId());
             if (notificationSubscription.getLastName() != null) subscription.setLastName(notificationSubscription.getLastName());
             if (notificationSubscription.getPhoneNumber() != null) subscription.setPhone(notificationSubscription.getPhoneNumber());
             if (notificationSubscription.getFirstName() != null) subscription.setFirstName(notificationSubscription.getFirstName());
@@ -44,16 +45,11 @@ public class NotificationServiceImpl implements NotificationService {
 
             var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
             if (savedSubscription.isEmpty()){
+                // email does not exist, so the API can subscribe the user
                 notificationSubscriptionRepo.save(subscription);
-            } else {
-                savedSubscription.get().setIsActive(true);
-
-                if (notificationSubscription.getLastName() != null) savedSubscription.get().setLastName(notificationSubscription.getLastName());
-                if (notificationSubscription.getPhoneNumber() != null) savedSubscription.get().setPhone(notificationSubscription.getPhoneNumber());
-                savedSubscription.get().setPhone(notificationSubscription.getPhoneNumber());
-                savedSubscription.get().setFirstName(notificationSubscription.getFirstName());
-
-                notificationSubscriptionRepo.save(savedSubscription.get());
+            } else if (!savedSubscription.isEmpty() && savedSubscription.get().getIsActive() == Boolean.TRUE && savedSubscription.get().getEmail().equals(notificationSubscription.getEmail())){
+                // avoid double subscription::
+                return new Results(400, "You are already subscribed.");
             }
 
             return new Results(200, notificationSubscription);
@@ -227,6 +223,34 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
+    @Override
+    public Results getSubscriptionDetails(String userId) {
+
+        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findByUserId(userId);
+        return optionalNotificationSubscription.map(notificationSubscription ->
+                new Results(200, notificationSubscription)).orElseGet(() ->
+                new Results(400, "Resource not found"));
+    }
+
+    @Override
+    public Results updateSubscription(DbNotificationSub dbNotificationSub) {
+
+        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findByUserId(dbNotificationSub.getId());
+        if (optionalNotificationSubscription.isPresent()) {
+
+            NotificationSubscription notificationSubscription = optionalNotificationSubscription.get();
+
+            // update with new email
+            notificationSubscription.setEmail(dbNotificationSub.getEmail());
+
+            //update on dB:
+            notificationSubscriptionRepo.save(notificationSubscription);
+
+            return new Results(200, notificationSubscription);
+        } else {
+            return new Results(400, "Resource not found, update not successful");
+        }
+    }
 
 
 }

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,6 +95,19 @@ public class NotificationController {
         Results results = notificationService.getNotificationDetails(id);
         return formatterClass.getResponse(results);
 
+    }
+
+    //fetch subscription details
+    @GetMapping(value = "/subscription-details")
+    public ResponseEntity<?> getSubscriptionDetails(@RequestParam("userId") String userId) {
+        Results results = notificationService.getSubscriptionDetails(userId);
+        return formatterClass.getResponse(results);
+    }
+
+    //update notification subscription
+    @PutMapping("/update-subscription")
+    public ResponseEntity<Results> updateSubscription(@RequestBody DbNotificationSub dbNotificationSub) {
+        return ResponseEntity.status(HttpStatus.OK).body(notificationService.updateSubscription(dbNotificationSub));
     }
 
 

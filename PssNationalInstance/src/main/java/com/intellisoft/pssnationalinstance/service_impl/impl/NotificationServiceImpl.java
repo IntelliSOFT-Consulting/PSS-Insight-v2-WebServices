@@ -59,6 +59,7 @@ public class NotificationServiceImpl implements NotificationService {
         DbNotificationSub dbNotificationSub = new DbNotificationSub(
                 null,
                 null,
+                null,
                 email,
                 null
         );
