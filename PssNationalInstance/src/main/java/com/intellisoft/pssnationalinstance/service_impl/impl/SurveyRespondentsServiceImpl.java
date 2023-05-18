@@ -176,7 +176,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }else if (status.equals("ALL")){
             surveyRespondentsList = respondentsRepo.findAllBySurveyId(surveyId);
         } else {
-            surveyRespondentsList = respondentsRepo.findBySurveyIdAndSurveyStatus(surveyId, status);
+            surveyRespondentsList = respondentsRepo.findBySurveyIdAndRespondentsStatus(surveyId, status); //bug-fix
         }
         return surveyRespondentsList;
     }
@@ -589,7 +589,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
 
             // change status to rejected/cancelled
-            surveyRespondents.setRespondentsStatus(SurveyRespondentStatus.REJECTED.name()); //verification against individual respondent as opposed to entire survey
+            surveyRespondents.setRespondentsStatus(String.valueOf(SurveyRespondentStatus.REJECTED)); //verification against individual respondent as opposed to entire survey
 
             //update on dB:
             respondentsRepo.save(surveyRespondents);
