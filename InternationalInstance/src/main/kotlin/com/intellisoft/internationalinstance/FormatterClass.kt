@@ -10,7 +10,10 @@ import com.itextpdf.text.*
 import com.itextpdf.text.pdf.PdfPCell
 import com.itextpdf.text.pdf.PdfPTable
 import com.itextpdf.text.pdf.PdfWriter
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.http.ResponseEntity
 import java.io.File
@@ -138,7 +141,7 @@ class FormatterClass {
         document.open()
 
         // Add title
-        val titleFont = Font(Font.FontFamily.HELVETICA, 36f, Font.BOLD, BaseColor.WHITE)
+        val titleFont = FontFactory.getFont("Gill Sans", 36f, Font.BOLD, BaseColor.WHITE)
         val titleTable = PdfPTable(1)
         titleTable.widthPercentage = 100f
         val titleCell = PdfPCell(Phrase(dbPdfData.title, titleFont))
@@ -150,7 +153,7 @@ class FormatterClass {
         document.add(titleTable)
 
         // Add version and description
-        val versionFont = Font(Font.FontFamily.HELVETICA, 12f, Font.NORMAL, BaseColor.BLACK)
+        val versionFont = FontFactory.getFont("Gill Sans", 12f, Font.NORMAL, BaseColor.BLACK)
         val paragraph = Paragraph()
         paragraph.add(Chunk("\n"))
         paragraph.add(Chunk("Version: ", versionFont))
@@ -162,8 +165,8 @@ class FormatterClass {
         document.add(paragraph)
 
         // Add subtitles and values
-        val subTitleFont = Font(Font.FontFamily.HELVETICA, 18f, Font.BOLD, BaseColor.BLACK)
-        val valueFont = Font(Font.FontFamily.HELVETICA, 12f, Font.NORMAL, BaseColor.BLACK)
+        val subTitleFont = FontFactory.getFont("Gill Sans", 18f, Font.BOLD, BaseColor.BLACK)
+        val valueFont = FontFactory.getFont("Gill Sans", 12f, Font.NORMAL, BaseColor.BLACK)
         val subTitleList = dbPdfData.subTitleList
         for (subTitle in subTitleList){
 
