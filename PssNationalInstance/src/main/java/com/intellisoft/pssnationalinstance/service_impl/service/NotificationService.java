@@ -11,4 +11,7 @@ public interface NotificationService {
      Results getNotifications(int no, int size, String emailAddress);
 
 
+     Results getSubscriptionDetails(String userId);
+
+     Results updateSubscription(DbNotificationSub dbNotificationSub);
 }

@@ -11,7 +11,9 @@ public class AppConstants {
 
 
     public static final String APP_NAME = "International Instance";
-    public static final String INTERNATIONAL_BASE_API="http://172.104.91.116:7009/api/v1/";
+//    public static final String INTERNATIONAL_BASE_API="http://172.104.91.116:7009/api/v1/";
+
+    public static final String INTERNATIONAL_BASE_API="localhost:7009/api/v1/";
     public static final String INTERNATIONAL_BASE_URL="http://pssinternational.intellisoftkenya.com/api/";
     public static final String INTERNATIONAL_PUBLISHED_VERSIONS = INTERNATIONAL_BASE_URL+"dataStore/master_indicator_templates/";
     public static final String INTERNATIONAL_DOCS_ENDPOINT =INTERNATIONAL_BASE_URL+"documents/";
