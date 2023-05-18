@@ -228,7 +228,8 @@ enum class SurveyStatus {
 enum class SurveyRespondentStatus {
     VERIFIED,
     PENDING,
-    RESEND_REQUEST
+    RESEND_REQUEST,
+    REJECTED
 }
 enum class MailStatus {
     SEND,

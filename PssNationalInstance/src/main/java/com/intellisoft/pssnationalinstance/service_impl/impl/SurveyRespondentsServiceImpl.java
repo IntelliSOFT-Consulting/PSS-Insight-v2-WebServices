@@ -570,7 +570,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
 
             // change status to verified
-            surveyRespondents.setSurveyStatus(SurveySubmissionStatus.VERIFIED.name());
+            surveyRespondents.setRespondentsStatus(SurveyRespondentStatus.VERIFIED.name()); //verification against individual respondent as opposed to entire survey
 
             //update on dB:
             respondentsRepo.save(surveyRespondents);
@@ -589,7 +589,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
 
             // change status to rejected/cancelled
-            surveyRespondents.setSurveyStatus(SurveySubmissionStatus.REJECTED.name());
+            surveyRespondents.setRespondentsStatus(SurveyRespondentStatus.REJECTED.name()); //verification against individual respondent as opposed to entire survey
 
             //update on dB:
             respondentsRepo.save(surveyRespondents);

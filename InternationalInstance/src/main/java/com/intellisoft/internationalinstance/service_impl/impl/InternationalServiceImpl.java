@@ -382,7 +382,7 @@ public class InternationalServiceImpl implements InternationalService {
                     String indicatorName = (String) dataValues.getIndicatorName();
 
                     if (indicatorName != null){
-                        DbPdfValue dbPdfValue = new DbPdfValue("indicatorName", indicatorName);
+                        DbPdfValue dbPdfValue = new DbPdfValue("Indicator Name", indicatorName); //rename camel case
                         dbPdfValueList.add(dbPdfValue);
                     }
                     if (categoryName != null){
@@ -411,7 +411,7 @@ public class InternationalServiceImpl implements InternationalService {
 
                     if (!questionList.isEmpty()){
                         String assessmentQuestions = String.join("\n", questionList);
-                        DbPdfValue dbPdfValue = new DbPdfValue("assessmentQuestions", assessmentQuestions);
+                        DbPdfValue dbPdfValue = new DbPdfValue("Assessment Questions", assessmentQuestions); //rename camel case
                         dbPdfValueList.add(dbPdfValue);
                     }
 

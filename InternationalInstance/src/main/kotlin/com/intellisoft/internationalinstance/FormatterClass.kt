@@ -4,6 +4,7 @@ package com.intellisoft.internationalinstance
 import com.intellisoft.internationalinstance.db.VersionEntity
 import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl
 import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService
+import com.intellisoft.internationalinstance.util.AppConstants
 import com.intellisoft.internationalinstance.util.GenericWebclient
 import com.itextpdf.text.*
 import com.itextpdf.text.pdf.PdfPCell
@@ -141,7 +142,7 @@ class FormatterClass {
         val titleTable = PdfPTable(1)
         titleTable.widthPercentage = 100f
         val titleCell = PdfPCell(Phrase(dbPdfData.title, titleFont))
-        titleCell.backgroundColor = BaseColor.RED
+        titleCell.backgroundColor = AppConstants.PSS_RED; //custom PSS_RED from color palette
         titleCell.horizontalAlignment = Element.ALIGN_CENTER
         titleCell.verticalAlignment = Element.ALIGN_MIDDLE
         titleCell.fixedHeight = 50f
@@ -180,7 +181,8 @@ class FormatterClass {
 
             val valueList = subTitle.valueList
             for (valueKey in valueList){
-                valueTable.addCell(createCell(valueKey.key, BaseColor.BLUE, valueFont))
+                val blueColor: BaseColor = AppConstants.PSS_BLUE //custom blue from PSS palette
+                valueTable.addCell(createCell(valueKey.key, blueColor, valueFont))
                 valueTable.addCell(createCell(valueKey.value, BaseColor.WHITE, valueFont))
             }
 

@@ -1,6 +1,7 @@
 package com.intellisoft.internationalinstance.util;
 
 import com.intellisoft.internationalinstance.FormatterClass;
+import com.itextpdf.text.BaseColor;
 
 public class AppConstants {
     public static final String APP_NAME = "International Instance";
@@ -15,4 +16,8 @@ public class AppConstants {
     public static final String DATA_STORE_ENDPOINT=INTERNATIONAL_BASE_URL+"dataStore/"+MASTER_TEMPLATE+"/";
 
     public static final String INTERNATIONAL = "";
+
+    /*Reference sheet custom color codes*/
+    public static final BaseColor PSS_BLUE = new BaseColor(0, 47, 108);
+    public static final BaseColor PSS_RED = new BaseColor(186, 12, 47);
 }
