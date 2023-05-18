@@ -635,7 +635,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                 ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
         Page<DataEntry> page;
-        if (status.equals("ALL")) {
+        if (status.equals("ALL") || status.equals("")) {
             page = dataEntryRepository.findAll(pageable);
         } else {
             page = dataEntryRepository.findAllByStatus(status, pageable);
