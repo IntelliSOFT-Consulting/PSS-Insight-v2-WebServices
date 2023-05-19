@@ -45,7 +45,7 @@ public class DataEntryController {
     @GetMapping("/response")
     public ResponseEntity<?> listDataEntry(String dataEntryPersonId, @RequestParam(value = "limit", required = false) String limit, @RequestParam(value = "status", required = false) String status, @RequestParam(value = "pageNo", required = false) String pageNo) {
 
-        int limitNo = 10;
+        int limitNo = 40;
         if (limit != null && !limit.equals("")) {
             limitNo = Integer.parseInt(limit);
         }

@@ -21,4 +21,5 @@ public class NotificationSubscription {
     private String email;
     private String phone;
     private Boolean isActive = Boolean.TRUE;
+    private String userId;
 }

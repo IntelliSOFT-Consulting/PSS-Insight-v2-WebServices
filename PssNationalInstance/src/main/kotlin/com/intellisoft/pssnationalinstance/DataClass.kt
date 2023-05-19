@@ -12,7 +12,23 @@ data class DbResultsApi(
     val code: Int,
     @JsonProperty("details")
     val details: Any?
+)data class NotificationSubscription(
+        @JsonProperty("id")
+        val id: Long?,
+        @JsonProperty("firstName")
+        val firstName: String?,
+        @JsonProperty("lastName")
+        val lastName: String?,
+        @JsonProperty("email")
+        val email: String,
+        @JsonProperty("phone")
+        val phone: String?,
+        @JsonProperty("isActive")
+        val isActive: Boolean = true,
+        @JsonProperty("userId")
+        val userId: String?
 )
+
 
 data class DbResults(
     val count: Int,
@@ -509,6 +525,7 @@ data class DbSurveyRespondentDataDerails(
 
 )
 data class DbNotificationSub(
+    val id:String?,
     val firstName: String?,
     val lastName: String?,
     val email:String,

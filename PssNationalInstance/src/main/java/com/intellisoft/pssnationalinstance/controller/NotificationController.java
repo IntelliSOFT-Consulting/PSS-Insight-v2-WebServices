@@ -5,6 +5,7 @@ import com.intellisoft.pssnationalinstance.service_impl.impl.SurveyRespondentsSe
 import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -59,7 +60,15 @@ public class NotificationController {
         return formatterClass.getResponse(results);
     }
 
+    @GetMapping("/subscription-details")
+    public ResponseEntity<?> getSubscriptionDetails(@RequestParam("userId") String userId) {
+        Results results = notificationService.getSubscriptionDetails(userId);
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
 
-
+    @PutMapping("/update-subscription")
+    public ResponseEntity<Results> updateSubscription(@RequestBody DbNotificationSub dbNotificationSub) {
+        return ResponseEntity.status(HttpStatus.OK).body(notificationService.updateSubscription(dbNotificationSub));
+    }
 
 }

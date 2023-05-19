@@ -18,4 +18,8 @@ public interface NotificationService {
      void createNotification(NotificationEntity notificationEntity);
 
      Results sendNotification(DbSendNotification dbSendNotification);
+
+     Results getSubscriptionDetails(String userId);
+
+     Results updateSubscription(DbNotificationSub dbNotificationSub);
 }

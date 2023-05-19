@@ -59,69 +59,170 @@ public class SurveysServiceImpl implements SurveysService {
 
     @Override
     public Results listAdminSurveys(String creatorId, String status) {
-        if (status == null || status.isEmpty()) {
-            status = "ALL";
-        }
 
-        List<Surveys> surveysList;
+        /**
+         * if status = DRAFT, get surveys with the DRAFT status
+         * if status = PENDING,VERIFIED,CANCELLED,EXPIRED get survey non-respondent guys
+         */
+
         if (creatorId != null) {
+            // Logic specific to the "listAdminSurvey" controller
+            List<Surveys> surveysList;
             if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())) {
                 surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, status);
             } else {
-                surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, SurveyStatus.SENT.name());
+                String surveyStatus = SurveyStatus.SENT.name();
+                surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, surveyStatus);
             }
+
+            List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
+            for (Surveys surveys : surveysList) {
+
+                Long id = surveys.getId();
+                String surveyName = surveys.getName();
+                String surveyDesc = surveys.getDescription();
+                String surveyStatusValue = surveys.getStatus();
+                String landingPage = surveys.getLandingPage();
+                //Get respondents under this with required status
+
+                List<DbRespondent> dbRespondentList = new ArrayList<>();
+                List<SurveyRespondents> respondentsList =
+                        surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status);
+
+                for (SurveyRespondents surveyRespondents : respondentsList) {
+
+                    String respId = String.valueOf(surveyRespondents.getId());
+                    String emailAddress = surveyRespondents.getEmailAddress();
+                    String date = String.valueOf(surveyRespondents.getCreatedAt());
+                    String expiryDate = surveyRespondents.getExpiryTime();
+
+
+                    if (status.equals(SurveySubmissionStatus.EXPIRED.name())) {
+
+                        String respondentStatus = surveyRespondents.getRespondentsStatus();
+
+                        boolean isExpired = formatterClass.isPastToday(expiryDate);
+                        if (isExpired) {
+                            DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
+                                    null, null);
+                            //Link has expired
+                            dbRespondent.setExpiryDate(expiryDate);
+                            dbRespondent.setNewLinkRequested(
+                                    respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                            dbRespondentList.add(dbRespondent);
+
+                        }
+
+                    } else {
+                        DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
+                                expiryDate, null);
+                        dbRespondentList.add(dbRespondent);
+
+                    }
+
+                }
+
+                if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())) {
+                    DbSurveyDetails details = new DbSurveyDetails(
+                            String.valueOf(id),
+                            surveyName,
+                            surveyStatusValue,
+                            surveyDesc,
+                            landingPage,
+                            dbRespondentList);
+                    dbSurveyDetailsList.add(details);
+                } else {
+                    if (!dbRespondentList.isEmpty()) {
+                        DbSurveyDetails details = new DbSurveyDetails(
+                                String.valueOf(id),
+                                surveyName,
+                                surveyStatusValue,
+                                surveyDesc,
+                                landingPage,
+                                dbRespondentList);
+                        dbSurveyDetailsList.add(details);
+                    }
+                }
+            }
+
+            DbResults dbResults = new DbResults(
+                    dbSurveyDetailsList.size(),
+                    dbSurveyDetailsList);
+
+            return new Results(200, dbResults);
+
         } else {
-            Iterable<Surveys> allSurveys = surveysRepo.findAll();
-            surveysList = new ArrayList<>();
-            allSurveys.forEach(surveysList::add);
-        }
+            // Logic specific to the "listAllSurveys" controller
+            if (status == null || status.isEmpty()) {
+                status = "ALL";
+            }
+            Iterable<Surveys> surveysList = surveysRepo.findAll();
+            List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
 
-        List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
-        for (Surveys survey : surveysList) {
-            Long id = survey.getId();
-            String surveyName = survey.getName();
-            String surveyDesc = survey.getDescription();
-            String surveyStatusValue = survey.getStatus();
-            String landingPage = survey.getLandingPage();
+            for (Surveys survey : surveysList) {
+                Long id = survey.getId();
+                String surveyName = survey.getName();
+                String surveyDesc = survey.getDescription();
+                String surveyStatusValue = survey.getStatus();
+                String landingPage = survey.getLandingPage();
 
-            List<DbRespondent> dbRespondentList = new ArrayList<>();
-            List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status);
+                List<DbRespondent> dbRespondentList = new ArrayList<>();
+                List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status);
 
-            for (SurveyRespondents respondent : respondentsList) {
-                String respId = String.valueOf(respondent.getId());
-                String emailAddress = respondent.getEmailAddress();
-                String createdAt = String.valueOf(respondent.getCreatedAt());
-                String expiryDate = respondent.getExpiryTime();
+                for (SurveyRespondents respondent : respondentsList) {
+                    String respId = String.valueOf(respondent.getId());
+                    String emailAddress = respondent.getEmailAddress();
+                    String createdAt = String.valueOf(respondent.getCreatedAt());
+                    String expiryDate = respondent.getExpiryTime();
 
-                if (status.equals(SurveySubmissionStatus.EXPIRED.name())) {
-                    String respondentStatus = respondent.getRespondentsStatus();
-                    boolean isExpired = formatterClass.isPastToday(expiryDate);
+                    if (status.equals(SurveySubmissionStatus.EXPIRED.name())) {
+                        String respondentStatus = respondent.getRespondentsStatus();
+                        boolean isExpired = formatterClass.isPastToday(expiryDate);
 
-                    if (isExpired) {
-                        DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, createdAt, null, null);
-                        dbRespondent.setExpiryDate(expiryDate);
-                        dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                        if (isExpired) {
+                            DbRespondent dbRespondent = new DbRespondent(
+                                    respId,
+                                    emailAddress,
+                                    createdAt,
+                                    null,
+                                    null
+                            );
+                            dbRespondent.setExpiryDate(expiryDate);
+                            dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                            dbRespondentList.add(dbRespondent);
+                        }
+                    } else {
+                        DbRespondent dbRespondent = new DbRespondent(
+                                respId,
+                                emailAddress,
+                                createdAt,
+                                expiryDate,
+                                null
+                        );
                         dbRespondentList.add(dbRespondent);
                     }
-                } else {
-                    DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, createdAt, expiryDate, null);
-                    dbRespondentList.add(dbRespondent);
                 }
-            }
 
-            if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())) {
-                if (!dbRespondentList.isEmpty()) {
-                    DbSurveyDetails details = new DbSurveyDetails(String.valueOf(id), surveyName, surveyStatusValue, surveyDesc, landingPage, dbRespondentList);
-                    dbSurveyDetailsList.add(details);
-                }
-            } else {
-                DbSurveyDetails details = new DbSurveyDetails(String.valueOf(id), surveyName, surveyStatusValue, surveyDesc, landingPage, dbRespondentList);
+                DbSurveyDetails details = new DbSurveyDetails(
+                        String.valueOf(id),
+                        surveyName,
+                        surveyStatusValue,
+                        surveyDesc,
+                        landingPage,
+                        dbRespondentList
+                );
                 dbSurveyDetailsList.add(details);
             }
+
+            DbResults dbResults = new DbResults(
+                    dbSurveyDetailsList.size(),
+                    dbSurveyDetailsList
+            );
+
+
+            return new Results(200, dbResults);
         }
 
-        DbResults dbResults = new DbResults(dbSurveyDetailsList.size(), dbSurveyDetailsList);
-        return new Results(200, dbResults);
     }
 
 
