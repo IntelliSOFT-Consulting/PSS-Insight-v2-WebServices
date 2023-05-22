@@ -1,9 +1,6 @@
 package com.intellisoft.pssnationalinstance.controller;
 
-import com.intellisoft.pssnationalinstance.DbDataEntryData;
-import com.intellisoft.pssnationalinstance.DbVersions;
-import com.intellisoft.pssnationalinstance.FormatterClass;
-import com.intellisoft.pssnationalinstance.Results;
+import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -102,6 +99,11 @@ public class DataEntryController {
     @PutMapping("/{id}/reject")
     public ResponseEntity<Results> rejectDataEntry(@PathVariable Long id){
         return ResponseEntity.status(HttpStatus.OK).body(dataEntryService.rejectDataEntry(id));
+    }
+
+    @PostMapping("/resend/{id}")
+    public ResponseEntity<?> resendRoutineDataEntry(@PathVariable("id") Long id, @RequestBody DbResendDataEntry resendDataEntry){
+        return ResponseEntity.status(HttpStatus.OK).body(dataEntryService.resendRoutineDataEntry(id, resendDataEntry));
     }
 
 

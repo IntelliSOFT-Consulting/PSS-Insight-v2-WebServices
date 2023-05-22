@@ -35,6 +35,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     private final PeriodConfigurationService periodConfigurationService;
     private final InternationalTemplateService internationalTemplateService;
     private final SurveysRepo surveysRepo;
+    private final JavaMailSenderService javaMailSenderService;
 
 
     @Override
@@ -486,10 +487,6 @@ public class DataEntryServiceImpl implements DataEntryService {
                 status);
 
         for (DataEntry dataEntry : dataEntryList) {
-
-            System.out.println("dataEntry"+dataEntry);
-
-
             List<String> stringList = new ArrayList<>();
             List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
 
@@ -644,4 +641,47 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         return page.getContent();
     }
+
+    @Override
+    public Results resendRoutineDataEntry(Long id, DbResendDataEntry resendDataEntry) {
+
+        Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(id);
+        if (optionalDataEntry.isPresent()) {
+
+            DataEntry dataEntry = optionalDataEntry.get();
+            List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
+            DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(
+                    dataEntry.getId(),
+                    dataEntry.getSelectedPeriod(),
+                    dataEntry.getStatus(),
+                    dataEntry.getDataEntryPersonId(),
+                    dataEntry.getDataEntryDate(),
+                    dataEntry.getCreatedAt(),
+                    dataEntryResponseList, null);
+
+            String versionNumber = dataEntry.getVersionNumber();
+            if (versionNumber != null) {
+
+                DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNumber);
+                if (dbPublishedVersion != null) {
+                    dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                }
+
+            } else {
+                String versionNo = getCurrentVersion();
+                DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNo);
+                if (dbPublishedVersion != null) {
+                    dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                }
+            }
+
+            return new Results(200, new DbDetails("We have resent the data entry."));
+
+        }
+
+        return new Results(400, "There was an issue with this request.");
+    }
+
+
+
 }
