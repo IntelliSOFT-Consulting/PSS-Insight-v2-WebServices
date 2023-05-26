@@ -1,7 +1,9 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
+import com.intellisoft.pssnationalinstance.repository.IndicatorEditsRepository;
 import com.intellisoft.pssnationalinstance.repository.VersionEntityRepository;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
@@ -30,6 +32,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
     private final VersionEntityRepository versionEntityRepository;
     private final InternationalTemplateService internationalTemplateService;
     private final NationalTemplateService nationalTemplateService;
+    private final IndicatorEditsRepository indicatorEditsRepository;
 
 
 
@@ -229,8 +232,41 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                 String versionNo = versionEntity.getVersionName();
                 if (versionNo != null){
                     dbPublishedVersion = getThePreviousIndicators(versionNo);
+
+                    for (DbIndicators dbIndicators : dbPublishedVersion.getDetails()) {
+                        for (DbIndicatorValues indicatorValue : dbIndicators.getIndicators()) {
+                            String categoryId = String.valueOf(indicatorValue.getCategoryId());
+
+                            // check if the indicator has been edited: If edited, take it and replace the existing indicator name:
+
+                            IndicatorEdits indicatorEdit = new IndicatorEdits();
+                            Optional<IndicatorEdits> optionalIndicatorEdits = indicatorEditsRepository.findFirstByCategoryIdOrderByIdDesc(categoryId);
+
+                            if (optionalIndicatorEdits.isPresent()){
+                                indicatorEdit = optionalIndicatorEdits.get();
+                                String editedIndicatorName = indicatorEdit.getEdit();
+                                indicatorValue.setIndicatorName(editedIndicatorName);
+                            }
+                        }
+                    }
                 }else {
                     dbPublishedVersion = internationalTemplateService.interNationalPublishedIndicators();// getAvailableVersion();
+
+                    for (DbIndicators dbIndicators : dbPublishedVersion.getDetails()) {
+                        for (DbIndicatorValues indicatorValue : dbIndicators.getIndicators()) {
+                            String categoryId = String.valueOf(indicatorValue.getCategoryId());
+
+                            // check if the indicator has been edited: If edited, take it and replace the existing indicator name:
+                            IndicatorEdits indicatorEdits = new IndicatorEdits();
+                            Optional<IndicatorEdits> optionalIndicatorEdits = indicatorEditsRepository.findFirstByCategoryIdOrderByIdDesc(categoryId);
+
+                            if (optionalIndicatorEdits.isPresent()){
+                                indicatorEdits = optionalIndicatorEdits.get();
+                                String editedIndicatorName = indicatorEdits.getEdit();
+                                indicatorValue.setIndicatorName(editedIndicatorName);
+                            }
+                        }
+                    }
                 }
 
                 DbVersionDataDetails dbVersionDataDetails = new DbVersionDataDetails(
