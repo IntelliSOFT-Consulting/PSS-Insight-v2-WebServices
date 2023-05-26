@@ -2,17 +2,11 @@ package com.intellisoft.pssnationalinstance.controller;
 
 
 import com.intellisoft.pssnationalinstance.*;
-import com.intellisoft.pssnationalinstance.service_impl.service.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import com.intellisoft.pssnationalinstance.service_impl.service.AboutUsService;
+import com.intellisoft.pssnationalinstance.service_impl.service.PeriodConfigurationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URISyntaxException;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(value = "/api/v1/configuration/")

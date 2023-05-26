@@ -10,4 +10,6 @@ public interface IndicatorEditsRepository extends CrudRepository<IndicatorEdits,
     Optional<IndicatorEdits> findByCategoryIdAndIndicatorIdAndCreatorId(String categoryId, String indicatorId, String creatorId);
     void deleteAllByCreatorId(String creatorId);
     List<IndicatorEdits> findByCreatorId(String creatorId);
+
+    Optional<IndicatorEdits> findFirstByCategoryIdOrderByIdDesc(String categoryId);
 }
