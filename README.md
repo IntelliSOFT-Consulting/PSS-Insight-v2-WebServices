@@ -13,6 +13,9 @@ The pipeline workflow is in the .github/workflows/maven.publish.yml
 
 The high-level architecture is [pipeline](https://drive.google.com/file/d/16nqTQUpqRb1L-nCLvKKxxdASW6YE5WSV/view?usp=sharing) 
 
+
+<img width="306" alt="image" src="https://github.com/IntelliSOFT-Consulting/PSS-Insight-v2-WebServices/assets/1963527/62532501-cf10-4e78-903f-7b5dca998ed7">
+
 # Microservice Architecture
 The system is developed into 2 microservices:
 - InternationalInstance
