@@ -5,6 +5,7 @@ import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
 import com.intellisoft.internationalinstance.util.AppConstants;
+import com.intellisoft.internationalinstance.util.FormulaUtil;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -66,17 +67,33 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                         }else {
                             DbIndicatorDetails indicatorDetails = new DbIndicatorDetails(
                                     Description, indicatorCode,
-                                    null,null,null,
-                                    null,null,null,
-                                    null,null,null,
-                                    null,null,null,
-                                    null,null,null,
-                                    null
+                                    null, null, null, null,
+                                    null, null, null,
+                                    null, null,
+                                    null, null, null, null, null,
+                                    null, null, null, null, null
                             );
                             detailsList.add(indicatorDetails);
                         }
 
                     }
+
+                    /**
+                     * TODO: Computation of result based on formula
+                     */
+                    // Compute result based on formula
+                    /**
+                     DbFormula formula = dbIndicatorDetails.getFormula();
+                     if (formula != null) {
+                     List<Double> values = new ArrayList<>();
+                     // Add values required for computation
+
+                     double result = FormulaUtil.computeResult(formula, values);
+                     // Set the computed result in dbIndicatorDetails
+                     // dbIndicatorDetails.setResult(result);
+                     System.out.println("result" +result);
+                     }*/
+
                     //Post record
                     var response = GenericWebclient.putForSingleObjResponse(
                             url,

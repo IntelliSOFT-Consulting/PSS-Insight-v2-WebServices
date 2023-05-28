@@ -332,8 +332,14 @@ data class DbIndicatorDetails(
     var topic: Any?,
     @JsonProperty("definition")
     var definition: Any?,
+    @JsonProperty("systemComponent") // new field
+    var systemComponent: Any?,
+    @JsonProperty("systemElement") //new field
+    var systemElement: Any?,
     @JsonProperty("assessmentQuestions")
     var assessmentQuestions: List<DbAssessmentQuestion>?,
+    @JsonProperty("formula")
+    var formula: DbFormula?, // Added new formula object
     @JsonProperty("purposeAndIssues")
     var purposeAndIssues: Any?,
     @JsonProperty("preferredDataSources")
@@ -351,6 +357,15 @@ data class DbIndicatorDetails(
     @JsonProperty("createdBy")
     var createdBy: DbCreatedBy?,
 
+)
+
+data class DbFormula(
+     @JsonProperty("numerator")
+     var numerator: String?,
+     @JsonProperty("denominator")
+     var denominator: String?,
+     @JsonProperty("format")
+     var format: String?
 )
 data class DbCreatedBy(
     @JsonProperty("id")
