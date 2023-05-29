@@ -14,6 +14,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import reactor.core.publisher.Flux;
 
 import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -30,8 +31,25 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
          Remember to add comments and uploads
          */
 
-
-        try{
+        try {
+            // Extract values from dbIndicatorDetails payload:
+            String indicatorName = String.valueOf(dbIndicatorDetails.getIndicatorName());
+            String topic = String.valueOf(dbIndicatorDetails.getTopic());
+            String indicatorCode = String.valueOf(dbIndicatorDetails.getIndicatorCode());
+            String definition = String.valueOf(dbIndicatorDetails.getDefinition());
+            String systemComponent = String.valueOf(dbIndicatorDetails.getSystemComponent());
+            String systemElement = String.valueOf(dbIndicatorDetails.getSystemElement());
+            String dataType = String.valueOf(dbIndicatorDetails.getDataType());
+            String purposeAndIssues = String.valueOf(dbIndicatorDetails.getPurposeAndIssues());
+            String preferredDataSources = String.valueOf(dbIndicatorDetails.getPreferredDataSources());
+            String proposedScoring = String.valueOf(dbIndicatorDetails.getProposedScoring());
+            String expectedFrequencyDataDissemination = String.valueOf(dbIndicatorDetails.getExpectedFrequencyDataDissemination());
+            String indicatorReference = String.valueOf(dbIndicatorDetails.getIndicatorReference());
+            String indicatorSource = String.valueOf(dbIndicatorDetails.getIndicatorSource());
+            String methodOfEstimation = String.valueOf(dbIndicatorDetails.getMethodOfEstimation());
+            List<DbAssessmentQuestion> assessmentQuestions = dbIndicatorDetails.getAssessmentQuestions();
+            DbFormula formula = dbIndicatorDetails.getFormula();
+            DbCreatedBy createdBy = dbIndicatorDetails.getCreatedBy();
 
             String uuid = formatterClass.getUUid();
             dbIndicatorDetails.setUuid(uuid);
@@ -46,17 +64,17 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             List<DbIndicatorDescription> responseList = responseFlux.collectList().block();
 
 
-            if (responseList != null){
+            if (responseList != null) {
 
-                if (!responseList.isEmpty()){
+                if (!responseList.isEmpty()) {
                     List<DbIndicatorDetails> detailsList = new ArrayList<>();
 
-                    for(DbIndicatorDescription dbIndicatorDescription: responseList){
-                        String indicatorCode = dbIndicatorDescription.getIndicator_Code();
+                    for (DbIndicatorDescription dbIndicatorDescription : responseList) {
+//                        String indicatorCode = dbIndicatorDescription.getIndicator_Code();
                         String Description = dbIndicatorDescription.getDescription();
 
-                        if (indicatorCode != null && code != null ){
-                            if (code.equals(indicatorCode)){
+                        if (indicatorCode != null && code != null) {
+                            if (code.equals(indicatorCode)) {
 
                                 // Update Record
                                 dbIndicatorDetails.setDescription(Description);
@@ -64,18 +82,32 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                                 detailsList.add(dbIndicatorDetails);
 
                             }
-                        }else {
+                        } else {
                             DbIndicatorDetails indicatorDetails = new DbIndicatorDetails(
-                                    Description, indicatorCode,
-                                    null, null, null, null,
-                                    null, null, null,
-                                    null, null,
-                                    null, null, null, null, null,
-                                    null, null, null, null, null
+                                    Description,
+                                    indicatorCode,
+                                    uuid,
+                                    LocalDate.now(),
+                                    indicatorName,
+                                    indicatorCode,
+                                    dataType,
+                                    topic,
+                                    definition,
+                                    systemComponent,
+                                    systemElement,
+                                    assessmentQuestions,
+                                    formula,
+                                    purposeAndIssues,
+                                    preferredDataSources,
+                                    methodOfEstimation,
+                                    proposedScoring,
+                                    expectedFrequencyDataDissemination,
+                                    indicatorReference,
+                                    indicatorSource,
+                                    createdBy
                             );
                             detailsList.add(indicatorDetails);
                         }
-
                     }
 
                     /**
@@ -100,7 +132,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                             detailsList,
                             List.class,
                             Response.class);
-                    if (response.getHttpStatusCode() == 200){
+                    if (response.getHttpStatusCode() == 200) {
                         return new Results(200, new DbDetails("The indicators values have been updated."));
                     }
 
@@ -108,7 +140,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
             return new Results(400, "There was an issue processing your request.");
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return new Results(400, "Please try again after some time");
 
