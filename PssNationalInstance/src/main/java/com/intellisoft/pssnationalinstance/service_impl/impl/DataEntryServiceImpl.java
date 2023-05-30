@@ -506,11 +506,11 @@ public class DataEntryServiceImpl implements DataEntryService {
 
             //fetch the data of the person who made the entry and add it to a list::>>>
 
-            List<DataEntry> optionalDataEntry = dataEntryRepository.findByDataEntryPersonId(dataEntry.getDataEntryPersonId());
+            Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(dataEntry.getId());
             List<DataEntryPerson> dataEntryPersonList = new ArrayList<>();
 
-            if (!optionalDataEntry.isEmpty()) {
-                for (DataEntry dataEntryFound : optionalDataEntry) {
+            if (optionalDataEntry.isPresent()) {
+                DataEntry dataEntryFound = optionalDataEntry.get();
 
                     DataEntryPerson dataEntryPerson = new DataEntryPerson(
                             dataEntryFound.getUsername(),
@@ -537,7 +537,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     }
 
                     dataEntryPersonList.add(dataEntryPerson);
-                }
+
             }
 
 
@@ -614,14 +614,7 @@ public class DataEntryServiceImpl implements DataEntryService {
         return new Results(200, dbResults);
     }
 
-
-    private List<DataEntry> getPagedDataEntryData(
-            int pageNo,
-            int pageSize,
-            String sortField,
-            String sortDirection,
-            String status,
-            String userId) {
+    private List<DataEntry> getPagedDataEntryData(int pageNo, int pageSize, String sortField, String sortDirection, String status, String userId) {
         String sortPageField = "";
         String sortPageDirection = "";
 
@@ -640,11 +633,14 @@ public class DataEntryServiceImpl implements DataEntryService {
                 ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
         Page<DataEntry> page;
-        if (status.equals("ALL") && userId == null || userId.equals("")) {
+        if (status.equals("ALL") && (userId == null || userId.equals(""))) {
             page = dataEntryRepository.findAll(pageable);
-        } else {
+        } else if (status.equals("ALL") && (userId!=null && !userId.equals(""))){
             page = dataEntryRepository.findAllByDataEntryPersonId(userId, pageable);
+        } else{
+            page = dataEntryRepository.findAllByStatus(status, pageable);
         }
+
         return page.getContent();
     }
 

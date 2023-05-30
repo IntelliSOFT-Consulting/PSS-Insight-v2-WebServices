@@ -288,7 +288,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 return new Results(400, "This link is expired.");
             }
 
-            surveyRespondents.setSurveyStatus(status);
+            surveyRespondents.setSurveyStatus(SurveyStatus.SENT.name()); //status of sent survey
+            surveyRespondents.setRespondentsStatus(SurveySubmissionStatus.PENDING.name()); //status of survey_respondent
             respondentsRepo.save(surveyRespondents);
         }
 
