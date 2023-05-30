@@ -5,6 +5,7 @@ import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
 import com.intellisoft.internationalinstance.util.AppConstants;
+import com.intellisoft.internationalinstance.util.FormulaUtil;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,10 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -23,80 +27,57 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     @Override
     public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
+        try {
+            // Generate UUID
+            String uuid = UUID.randomUUID().toString();
 
-        /**
-         * TODO: Check on how to create indicators into the datastore,
-         Remember to add comments and uploads
-         */
+            // Add timestamp to dbIndicatorDetails object
+            Instant now = Instant.now();
+            Date date = Date.from(now);
 
-
-        try{
-
-            String uuid = formatterClass.getUUid();
             dbIndicatorDetails.setUuid(uuid);
+            dbIndicatorDetails.setDate(date);
+
             String url = AppConstants.INDICATOR_DESCRIPTIONS;
 
-            String code = dbIndicatorDetails.getIndicator_Code();
+            // Retrieve existing JSON collection of Indicator_References from the INDICATOR_DESCRIPTIONS API
+            List<DbIndicatorDetails> responseList = fetchExistingIndicatorDetails(url);
 
-            Flux<DbIndicatorDescription> responseFlux = GenericWebclient.getForCollectionResponse(
-                    url,
-                    DbIndicatorDescription.class
-            );
-            List<DbIndicatorDescription> responseList = responseFlux.collectList().block();
+            if (responseList != null && !responseList.isEmpty()) {
+                // Append new indicator details to the existing data dictionary
+                responseList.add(dbIndicatorDetails);
 
+                // Convert the updated list to JSON
+                String updatedIndicatorList = convertToJson(responseList);
 
-            if (responseList != null){
-
-                if (!responseList.isEmpty()){
-                    List<DbIndicatorDetails> detailsList = new ArrayList<>();
-
-                    for(DbIndicatorDescription dbIndicatorDescription: responseList){
-                        String indicatorCode = dbIndicatorDescription.getIndicator_Code();
-                        String Description = dbIndicatorDescription.getDescription();
-
-                        if (indicatorCode != null && code != null ){
-                            if (code.equals(indicatorCode)){
-
-                                // Update Record
-                                dbIndicatorDetails.setDescription(Description);
-                                dbIndicatorDetails.setIndicator_Code(indicatorCode);
-                                detailsList.add(dbIndicatorDetails);
-
-                            }
-                        }else {
-                            DbIndicatorDetails indicatorDetails = new DbIndicatorDetails(
-                                    Description, indicatorCode,
-                                    null,null,null,
-                                    null,null,null,
-                                    null,null,null,
-                                    null,null,null,
-                                    null,null,null,
-                                    null
-                            );
-                            detailsList.add(indicatorDetails);
-                        }
-
-                    }
-                    //Post record
-                    var response = GenericWebclient.putForSingleObjResponse(
-                            url,
-                            detailsList,
-                            List.class,
-                            Response.class);
-                    if (response.getHttpStatusCode() == 200){
-                        return new Results(200, new DbDetails("The indicators values have been updated."));
-                    }
-
+                // Send a PUT request to update the Indicator_References API with the updated JSON data
+                if (updateIndicatorDetails(url, updatedIndicatorList)) {
+                    return new Results(200, new DbDetails("The indicator values have been added."));
                 }
             }
-            return new Results(400, "There was an issue processing your request.");
 
-        }catch (Exception e){
+            return new Results(400, "There was an issue processing your request.");
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
             return new Results(400, "Please try again after some time");
-
         }
     }
+
+    private List<DbIndicatorDetails> fetchExistingIndicatorDetails(String url) throws URISyntaxException {
+        Flux<DbIndicatorDetails> indicatorFlux = GenericWebclient.getForCollectionResponse(url, DbIndicatorDetails.class);
+        return indicatorFlux.collectList().block();
+    }
+
+    private String convertToJson(List<DbIndicatorDetails> indicatorList) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(indicatorList);
+    }
+
+    private boolean updateIndicatorDetails(String url, String updatedIndicatorList) throws URISyntaxException {
+        var response = GenericWebclient.putForSingleObjResponse(url, updatedIndicatorList, String.class, Response.class);
+        return response.getHttpStatusCode() == 200;
+    }
+
 
     @Override
     public Results listIndicatorDictionary() {

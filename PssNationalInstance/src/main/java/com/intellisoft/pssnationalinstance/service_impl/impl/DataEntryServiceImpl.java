@@ -476,7 +476,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
     @Override
-    public Results listDataEntry(int no, int size, String status) {
+    public Results listDataEntry(int no, int size, String status, String dataEntryPersonId) {
 
         List<DbSubmissionsResponse> responseList = new ArrayList<>();
         List<DataEntry> dataEntryList = getPagedDataEntryData(
@@ -484,9 +484,11 @@ public class DataEntryServiceImpl implements DataEntryService {
                 size,
                 "",
                 "",
-                status);
+                status,
+                dataEntryPersonId);
 
         for (DataEntry dataEntry : dataEntryList) {
+
             List<String> stringList = new ArrayList<>();
             List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
 
@@ -504,39 +506,39 @@ public class DataEntryServiceImpl implements DataEntryService {
 
             //fetch the data of the person who made the entry and add it to a list::>>>
 
-            Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(dataEntry.getId());
+            List<DataEntry> optionalDataEntry = dataEntryRepository.findByDataEntryPersonId(dataEntry.getDataEntryPersonId());
             List<DataEntryPerson> dataEntryPersonList = new ArrayList<>();
 
-            if (optionalDataEntry.isPresent()) {
-                DataEntry dataEntryFound = optionalDataEntry.get();
+            if (!optionalDataEntry.isEmpty()) {
+                for (DataEntry dataEntryFound : optionalDataEntry) {
 
-                DataEntryPerson dataEntryPerson = new DataEntryPerson(
-                        dataEntryFound.getUsername(),
-                        dataEntryFound.getId().toString(),
-                        dataEntryFound.getSurname(),
-                        dataEntryFound.getFirstName(),
-                        dataEntryFound.getEmail());
+                    DataEntryPerson dataEntryPerson = new DataEntryPerson(
+                            dataEntryFound.getUsername(),
+                            dataEntryFound.getId().toString(),
+                            dataEntryFound.getSurname(),
+                            dataEntryFound.getFirstName(),
+                            dataEntryFound.getEmail());
 
-                // Check for null values and assign them as-is
-                if (dataEntryFound.getUsername() == null) {
-                    dataEntryPerson.setUsername(null);
-                }
-                if (dataEntryFound.getId() == null) {
-                    dataEntryPerson.setId(String.valueOf(0));
-                }
-                if (dataEntryFound.getSurname() == null) {
-                    dataEntryPerson.setSurname(null);
-                }
-                if (dataEntryFound.getFirstName() == null) {
-                    dataEntryPerson.setFirstName(null);
-                }
-                if (dataEntryFound.getEmail() == null) {
-                    dataEntryPerson.setEmail(null);
-                }
+                    // Check for null values and assign them as-is
+                    if (dataEntryFound.getUsername() == null) {
+                        dataEntryPerson.setUsername(null);
+                    }
+                    if (dataEntryFound.getId() == null) {
+                        dataEntryPerson.setId(String.valueOf(0));
+                    }
+                    if (dataEntryFound.getSurname() == null) {
+                        dataEntryPerson.setSurname(null);
+                    }
+                    if (dataEntryFound.getFirstName() == null) {
+                        dataEntryPerson.setFirstName(null);
+                    }
+                    if (dataEntryFound.getEmail() == null) {
+                        dataEntryPerson.setEmail(null);
+                    }
 
-                dataEntryPersonList.add(dataEntryPerson);
+                    dataEntryPersonList.add(dataEntryPerson);
+                }
             }
-
 
 
             if (dbPrograms != null) {
@@ -613,7 +615,13 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
 
-    private List<DataEntry> getPagedDataEntryData(int pageNo, int pageSize, String sortField, String sortDirection, String status) {
+    private List<DataEntry> getPagedDataEntryData(
+            int pageNo,
+            int pageSize,
+            String sortField,
+            String sortDirection,
+            String status,
+            String userId) {
         String sortPageField = "";
         String sortPageDirection = "";
 
@@ -632,15 +640,15 @@ public class DataEntryServiceImpl implements DataEntryService {
                 ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
         Page<DataEntry> page;
-        if (status.equals("ALL") || status.equals("")) {
+        if (status.equals("ALL") && userId == null || userId.equals("")) {
             page = dataEntryRepository.findAll(pageable);
         } else {
-            page = dataEntryRepository.findAllByStatus(status, pageable);
+            page = dataEntryRepository.findAllByDataEntryPersonId(userId, pageable);
         }
-
-
         return page.getContent();
     }
+
+
 
     @Override
     public Results resendRoutineDataEntry(Long id, DbResendDataEntry resendDataEntry) {

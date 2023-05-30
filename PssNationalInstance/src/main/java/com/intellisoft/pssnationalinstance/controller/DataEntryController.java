@@ -44,22 +44,28 @@ public class DataEntryController {
      * @return
      */
     @GetMapping("/response")
-    public ResponseEntity<?> listDataEntry(String dataEntryPersonId, @RequestParam(value = "limit", required = false) String limit, @RequestParam(value = "status", required = false) String status, @RequestParam(value = "pageNo", required = false) String pageNo) {
+    public ResponseEntity<?> listDataEntry(
+            @RequestParam(value = "dataEntryPersonId", required = false) String dataEntryPersonId,
+            @RequestParam(value = "limit", required = false) String limit,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "pageNo", required = false) String pageNo
+    ) {
 
-        int limitNo = 40;
-        if (limit != null && !limit.equals("")) {
+        int limitNo = 10;
+        if (limit != null && !limit.equals("")){
             limitNo = Integer.parseInt(limit);
         }
         String statusValue = "ALL";
-        if (status != null && !status.equals("")) {
+        if (status != null && !status.equals("")){
             statusValue = status;
         }
         int pageNumber = 1;
-        if (pageNo != null && !pageNo.equals("")) {
+        if (pageNo != null && !pageNo.equals("")){
             pageNumber = Integer.parseInt(pageNo);
         }
 
-        Results results = dataEntryService.listDataEntry(pageNumber, limitNo, statusValue);
+        Results results = dataEntryService.listDataEntry(
+                pageNumber, limitNo, statusValue, dataEntryPersonId);
         return formatterClass.getResponse(results);
     }
 
