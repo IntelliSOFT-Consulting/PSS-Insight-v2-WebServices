@@ -508,7 +508,9 @@ data class DbVersionDataDetails(
     val status: String?,
     val createdBy: Any?,
     val publishedBy: String?,
-    var indicators: Any?
+    val isLatest:Boolean,
+    var indicators: Any?,
+
 )
 data class DbSurveyData(
     val id:Long?,

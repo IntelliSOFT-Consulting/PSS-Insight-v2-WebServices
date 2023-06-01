@@ -47,31 +47,33 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         String publishedBy = dbVersions.getPublishedBy();
         List<DbVersionDate> dbVersionsIndicators = dbVersions.getIndicators();
         List<String> indicatorList = new ArrayList<>();
-        for (DbVersionDate dbVersionDate : dbVersionsIndicators){
+        for (DbVersionDate dbVersionDate : dbVersionsIndicators) {
             String id = dbVersionDate.getId();
+            boolean isLatest = dbVersionDate.isLatest();
             indicatorList.add(id);
+
+
+            String status = PublishStatus.DRAFT.name();
+
+            if (publishedBy == null) publishedBy = "";
+            if (isPublished) status = PublishStatus.PUBLISHED.name();
+
+            VersionEntity versionEntity = new VersionEntity();
+            versionEntity.setVersionDescription(versionDescription);
+            versionEntity.setIndicators(indicatorList);
+            versionEntity.setCreatedBy(createdBy);
+            versionEntity.setStatus(status);
+            versionEntity.setPublishedBy(publishedBy);
+            versionEntity.setLatest(isLatest);
+            VersionEntity savedVersionEntity = versionEntityRepository.save(versionEntity);
+
+            if (isPublished) {
+                nationalTemplateService.savePublishedVersion(
+                        createdBy,
+                        String.valueOf(savedVersionEntity.getId()),
+                        dbVersionsIndicators);
+            }
         }
-
-        String status = PublishStatus.DRAFT.name();
-
-        if (publishedBy == null) publishedBy = "";
-        if (isPublished) status = PublishStatus.PUBLISHED.name();
-
-        VersionEntity versionEntity = new VersionEntity();
-        versionEntity.setVersionDescription(versionDescription);
-        versionEntity.setIndicators(indicatorList);
-        versionEntity.setCreatedBy(createdBy);
-        versionEntity.setStatus(status);
-        versionEntity.setPublishedBy(publishedBy);
-        VersionEntity savedVersionEntity = versionEntityRepository.save(versionEntity);
-
-        if (isPublished){
-            nationalTemplateService.savePublishedVersion(
-                    createdBy,
-                    String.valueOf(savedVersionEntity.getId()),
-                    dbVersionsIndicators);
-        }
-
         return new Results(201, new DbDetails("The version has been saved successfully."));
     }
 
@@ -276,6 +278,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                         versionEntity.getStatus(),
                         versionEntity.getCreatedBy(),
                         versionEntity.getPublishedBy(),
+                        versionEntity.isLatest(),
                         null);
 
                 List<String> indicators = versionEntity.getIndicators();
