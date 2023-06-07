@@ -86,6 +86,8 @@ data class DbPrograms(
     var aboutUs: Any?,
     @JsonProperty("contactUs")
     var contactUs: Any?,
+    @JsonProperty("indicatorDetails")
+    var indicatorDetails: List<DbIndicatorDetails>?,
 
 
 )
@@ -548,3 +550,95 @@ data class DbEmailConfiguration(
     val password:String
 )
 
+data class DbIndicatorDetails(
+        @JsonProperty("Description")
+        var Description: String?,
+        @JsonProperty("Indicator_Code")
+        var Indicator_Code: String?,
+
+        @JsonProperty("uuid")
+        var uuid: Any?,
+        @JsonProperty("date")
+        var date: Any?,
+        @JsonProperty("indicatorName")
+        var indicatorName: Any?,
+        @JsonProperty("indicatorCode")
+        var indicatorCode: Any?,
+        @JsonProperty("dataType")
+        var dataType: Any?,
+        @JsonProperty("topic")
+        var topic: Any?,
+        @JsonProperty("definition")
+        var definition: Any?,
+        @JsonProperty("systemComponent") // new field
+        var systemComponent: Any?,
+        @JsonProperty("systemElement") //new field
+        var systemElement: Any?,
+        @JsonProperty("assessmentQuestions")
+        var assessmentQuestions: List<DbAssessmentQuestion>?,
+        @JsonProperty("formula")
+        var formula: DbFormula?, // Added new formula object
+        @JsonProperty("purposeAndIssues")
+        var purposeAndIssues: Any?,
+        @JsonProperty("preferredDataSources")
+        var preferredDataSources: Any?,
+        @JsonProperty("methodOfEstimation")
+        var methodOfEstimation: Any?,
+        @JsonProperty("proposedScoring")
+        var proposedScoring: Any?,
+        @JsonProperty("expectedFrequencyDataDissemination")
+        var expectedFrequencyDataDissemination: Any?,
+        @JsonProperty("indicatorReference")
+        var indicatorReference: Any?,
+        @JsonProperty("indicatorSource")
+        var indicatorSource: Any?,
+        @JsonProperty("createdBy")
+        var createdBy: DbCreatedBy?,
+)
+
+data class DbAssessmentQuestion(
+        @JsonProperty("valueType")
+        val valueType: Any?,
+        @JsonProperty("name")
+        val name: Any?
+)
+
+data class DbFormula(
+        @JsonProperty("numerator")
+        var numerator: String?,
+        @JsonProperty("denominator")
+        var denominator: String?,
+        @JsonProperty("format")
+        var format: String?
+)
+data class DbCreatedBy(
+        @JsonProperty("id")
+        val id:Any?,
+        @JsonProperty("code")
+        val code:Any?,
+        @JsonProperty("name")
+        val name:Any?,
+        @JsonProperty("username")
+        val username:Any?,
+        @JsonProperty("displayName")
+        val displayName:Any?,
+)
+
+data class DbApplicationValues(
+        val internationalUrl :String?,
+        val username :String?,
+        val password :String?,
+        val program :String?,
+        val masterTemplate :String?,
+)
+
+enum class IndicatorDropDowns {
+    SELECTION,
+    TEXT,
+    NUMBER,
+}
+
+data class DbIndicatorTypes(
+        val topics:Any?,
+        val valueType: Any?
+)

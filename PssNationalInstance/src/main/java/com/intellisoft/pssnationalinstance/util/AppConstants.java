@@ -26,6 +26,12 @@ public class AppConstants {
     public static final String FILES_RESOURCES_ENDPOINT =NATIONAL_BASE_URL+"fileResources";
     public static final String DOCUMENT_RESOURCES_ENDPOINT =NATIONAL_BASE_URL+"documents/";
 
+    // indicator dictionary
+    public static  final String INDICATOR_DESCRIPTIONS= INTERNATIONAL_BASE_URL+"dataStore/Indicator_description/V1";
+    public static final String MASTER_TEMPLATE =new FormatterClass().getMasterTemplate().getMasterTemplate();
+    public static final String DATA_STORE_ENDPOINT=INTERNATIONAL_BASE_URL+"dataStore/"+MASTER_TEMPLATE+"/";
+
+
 
 
 
