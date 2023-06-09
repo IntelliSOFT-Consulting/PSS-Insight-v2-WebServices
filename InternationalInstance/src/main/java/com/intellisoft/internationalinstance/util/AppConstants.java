@@ -20,4 +20,11 @@ public class AppConstants {
     /*Reference sheet custom color codes*/
     public static final BaseColor PSS_BLUE = new BaseColor(0, 47, 108);
     public static final BaseColor PSS_RED = new BaseColor(186, 12, 47);
+
+    public static  final String CREATE_DATA_ELEMENT= INTERNATIONAL_BASE_URL+"metadata";
+    public static  final String ADD_DATA_ELEMENT_TO_PSS_PROGRAM= INTERNATIONAL_BASE_URL+"programStages";
+    public static  final String PSS_PROGRAM_ID="T4EBleGG9mU";
+    public static  final String PSS_PROGRAM_STAGE_ID="DugOfoE4Cjx";
+
+
 }
