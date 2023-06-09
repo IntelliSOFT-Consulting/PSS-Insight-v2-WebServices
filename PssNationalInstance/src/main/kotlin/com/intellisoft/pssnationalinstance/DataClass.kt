@@ -642,3 +642,19 @@ data class DbIndicatorTypes(
         val topics:Any?,
         val valueType: Any?
 )
+
+data class DbDataImport(
+        val program: String,
+        val orgUnit: String,
+        val eventDate: String,
+        val status: String,
+        val storedBy: String,
+        val dataValues: List<DataValue>
+)
+
+data class DataValue(
+        val dataElement: String,
+        val value: String
+)
+
+
