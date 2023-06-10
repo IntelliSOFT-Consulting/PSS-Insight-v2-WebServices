@@ -226,7 +226,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results getSubscriptionDetails(String userId) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findByUserId(userId);
+        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findFirstByUserId(userId);
         return optionalNotificationSubscription.map(notificationSubscription ->
                 new Results(200, notificationSubscription)).orElseGet(() ->
                 new Results(400, "Resource not found"));
