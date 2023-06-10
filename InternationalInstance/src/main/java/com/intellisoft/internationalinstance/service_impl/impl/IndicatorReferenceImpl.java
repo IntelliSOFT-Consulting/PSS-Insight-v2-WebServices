@@ -1,6 +1,9 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
@@ -19,13 +22,21 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.InputStream;
+import java.net.URL;
+
 @RequiredArgsConstructor
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private final FormatterClass formatterClass = new FormatterClass();
 
-    @Override
     public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
         try {
             // Generate UUID
@@ -39,6 +50,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             dbIndicatorDetails.setDate(date);
 
             String url = AppConstants.INDICATOR_DESCRIPTIONS;
+            String createDataElementUrl = AppConstants.CREATE_DATA_ELEMENT;
 
             // Retrieve existing JSON collection of Indicator_References from the INDICATOR_DESCRIPTIONS API
             List<DbIndicatorDetails> responseList = fetchExistingIndicatorDetails(url);
@@ -52,7 +64,70 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 // Send a PUT request to update the Indicator_References API with the updated JSON data
                 if (updateIndicatorDetails(url, updatedIndicatorList)) {
-                    return new Results(200, new DbDetails("The indicator values have been added."));
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    // Create the new payload based on assessmentQuestions
+                    ArrayNode dataElements = objectMapper.createArrayNode();
+
+                    for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
+                        ObjectNode dataElement = objectMapper.createObjectNode();
+                        dataElement.put("aggregationType", DataElements.AVERAGE_SUM_ORG_UNIT.name());
+                        dataElement.put("domainType", DataElements.AGGREGATE.name());
+                        dataElement.put("valueType", (String) question.getValueType());
+                        dataElement.put("name", (String) question.getName());
+                        dataElement.put("shortName", (String) question.getName());
+                        dataElement.put("code", (String) question.getName());
+                        dataElement.put("uid", uuid);
+                        dataElements.add(dataElement);
+                    }
+
+                    ObjectNode payload = objectMapper.createObjectNode();
+                    payload.set("dataElements", dataElements);
+
+                    // Convert the new payload to JSON string
+                    String newPayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload);
+
+                    System.out.println(newPayloadString);
+
+                    // Make the API POST request with the new payload
+                    if (postDataElement(createDataElementUrl, newPayloadString)) {
+                        // Add data elements to PSS program::
+
+                        // Retrieve PSS programId from DHIS2 API
+                        String programId = AppConstants.PSS_PROGRAM_ID;
+
+                        String programStageId = AppConstants.PSS_PROGRAM_STAGE_ID;
+
+                        // Create the new payload for program stage
+                        ObjectNode programStagePayload = objectMapper.createObjectNode();
+                        programStagePayload.put("name", "Program Stage Name"); // To be replaced with a valid name
+                        ObjectNode programNode = objectMapper.createObjectNode();
+                        programNode.put("id", programId);
+                        programStagePayload.set("program", programNode);
+
+                        ArrayNode programStageDataElements = objectMapper.createArrayNode();
+                        for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
+                            ObjectNode dataElementNode = objectMapper.createObjectNode();
+                            ObjectNode innerDataElementNode = objectMapper.createObjectNode();
+                            innerDataElementNode.put("id", uuid);
+                            dataElementNode.set("dataElement", innerDataElementNode);
+                            programStageDataElements.add(dataElementNode);
+                        }
+
+                        programStagePayload.set("programStageDataElements", programStageDataElements);
+
+                        // Convert the program stage payload to JSON string
+                        String programStagePayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(programStagePayload);
+
+                        System.out.println("programStagePayloadString" +programStagePayloadString);
+
+                        // Make the PUT request to update the program stage
+                        String addDataElementToPssUrl = AppConstants.ADD_DATA_ELEMENT_TO_PSS_PROGRAM+"/"+programStageId;
+
+                        if (updateProgramStage(addDataElementToPssUrl, programStagePayloadString)) {
+                            return new Results(200, new DbDetails("The indicator values have been added."));
+                        }
+                    }
                 }
             }
 
@@ -76,6 +151,24 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     private boolean updateIndicatorDetails(String url, String updatedIndicatorList) throws URISyntaxException {
         var response = GenericWebclient.putForSingleObjResponse(url, updatedIndicatorList, String.class, Response.class);
         return response.getHttpStatusCode() == 200;
+    }
+
+    private boolean postDataElement(String createDataElementUrl, String newPayloadString) throws URISyntaxException {
+        var response = GenericWebclient.postForSingleObjResponse(createDataElementUrl, newPayloadString, String.class, Response.class);
+        return response.getHttpStatusCode() == 200;
+    }
+
+    private boolean updateProgramStage(String addDataElementToPssUrl, String programStagePayloadString) throws URISyntaxException {
+        var response = GenericWebclient.putForSingleObjResponse(addDataElementToPssUrl, programStagePayloadString, String.class, Response.class);
+        return response.getHttpStatusCode() == 200;
+    }
+
+    private ObjectNode createFinalPayload(ArrayNode dataElements) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.putArray("dataElements").addAll(dataElements);
+
+        return payload;
     }
 
 
