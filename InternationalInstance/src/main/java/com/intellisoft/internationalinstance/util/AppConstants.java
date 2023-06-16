@@ -25,6 +25,9 @@ public class AppConstants {
     public static  final String ADD_DATA_ELEMENT_TO_PSS_PROGRAM= INTERNATIONAL_BASE_URL+"programStages";
     public static  final String PSS_PROGRAM_ID="T4EBleGG9mU";
     public static  final String PSS_PROGRAM_STAGE_ID="DugOfoE4Cjx";
+    public static  final String FETCH_DATA_ELEMENTS_URL = INTERNATIONAL_BASE_URL+"dataElements";
+
+    public static  final String ADD_DATA_ELEMENTS_TO_GROUP = INTERNATIONAL_BASE_URL+"dataElementGroups";
 
 
 }
