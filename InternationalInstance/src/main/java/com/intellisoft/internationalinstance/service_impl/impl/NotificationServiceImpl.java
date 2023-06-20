@@ -43,13 +43,18 @@ public class NotificationServiceImpl implements NotificationService {
             subscription.setEmail(notificationSubscription.getEmail());
 
 
-            var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
+//            var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
+            var savedSubscription = notificationSubscriptionRepo.findById(Long.valueOf(notificationSubscription.getId()));
             if (savedSubscription.isEmpty()){
-                // email does not exist, so the API can subscribe the user
+                // user does not exist, so the API can subscribe the user
                 notificationSubscriptionRepo.save(subscription);
             } else if (!savedSubscription.isEmpty() && savedSubscription.get().getIsActive() == Boolean.TRUE && savedSubscription.get().getEmail().equals(notificationSubscription.getEmail())){
+                //check if their emails are similar
                 // avoid double subscription::
                 return new Results(400, "You are already subscribed.");
+            } else if(!savedSubscription.isEmpty() && savedSubscription.get().getIsActive() == Boolean.TRUE && !savedSubscription.get().getEmail().equals(notificationSubscription.getEmail())){
+                notificationSubscriptionRepo.save(subscription);
+                return new Results(200, notificationSubscription);
             }
 
             return new Results(200, notificationSubscription);

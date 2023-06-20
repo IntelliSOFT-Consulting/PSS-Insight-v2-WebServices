@@ -46,6 +46,7 @@ data class DbIndicatorDataValues(
     var categoryName: Any?,
     var indicatorName: Any?,
     var indicatorDataValue: List<DbDataGrouping>,
+    var uuid: Any?
 )
 data class DbDataGrouping(
     val code: String?,
