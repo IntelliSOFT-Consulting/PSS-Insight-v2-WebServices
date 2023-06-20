@@ -56,7 +56,6 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationSubscriptionRepo.save(subscription);
                 return new Results(200, notificationSubscription);
             }
-
             return new Results(200, notificationSubscription);
         }
         catch (Exception e){
