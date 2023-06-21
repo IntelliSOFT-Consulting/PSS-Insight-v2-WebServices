@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/InternationalInstance/InternationalInstance.iml" filepath="$PROJECT_DIR$/InternationalInstance/InternationalInstance.iml" />
       <module fileurl="file://$PROJECT_DIR$/PssDhisCustomApp.iml" filepath="$PROJECT_DIR$/PssDhisCustomApp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/PssNationalInstance/PssNationalInstance.iml" filepath="$PROJECT_DIR$/PssNationalInstance/PssNationalInstance.iml" />
     </modules>
   </component>
 </project>

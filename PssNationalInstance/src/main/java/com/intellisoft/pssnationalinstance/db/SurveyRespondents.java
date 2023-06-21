@@ -24,7 +24,6 @@ public class SurveyRespondents {
     private String expiryTime; // yyyy-MM-dd HH:mm:ss
     private String surveyId;
     private String password;
-
     private String surveyStatus;
     private String respondentsStatus;
     private String customUrl;
