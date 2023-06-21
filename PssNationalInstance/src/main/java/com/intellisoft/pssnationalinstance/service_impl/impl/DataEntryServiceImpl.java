@@ -671,20 +671,40 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dbDataEntryResponse.setIndicators(dbPublishedVersion);
                 }
 
+                //change data entry status to 'REVISED'
+                dataEntry.setStatus(PublishStatus.REVISED.name());
+
+                //update on dB:
+                dataEntryRepository.save(dataEntry);
+
             } else {
                 String versionNo = getCurrentVersion();
                 DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNo);
                 if (dbPublishedVersion != null) {
                     dbDataEntryResponse.setIndicators(dbPublishedVersion);
                 }
+
+                //change data entry status to 'REVISED'
+                dataEntry.setStatus(PublishStatus.REVISED.name());
+
+                //update on dB:
+                dataEntryRepository.save(dataEntry);
             }
 
-            return new Results(200, new DbDetails("We have resent the data entry."));
+
+            DbResendDataEntry dbResendDataEntry = new DbResendDataEntry(
+                    "We have resent the data entry",
+                    resendDataEntry.getComments(),
+                    resendDataEntry.getIndicators()
+                    );
+
+            return new Results(200, dbResendDataEntry);
 
         }
 
         return new Results(400, "There was an issue with this request.");
     }
+
 
 
 
