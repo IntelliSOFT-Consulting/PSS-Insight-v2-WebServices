@@ -70,8 +70,8 @@ public class InternationalServiceImpl implements InternationalService {
         return new Results(400, "There was an error.");
     }
 
-    public List<DbIndicatorsValue> getIndicatorsValues(){
-        try{
+    public List<DbIndicatorsValue> getIndicatorsValues() {
+        try {
             List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
 
             String url = AppConstants.METADATA_JSON_ENDPOINT;
@@ -86,7 +86,7 @@ public class InternationalServiceImpl implements InternationalService {
                     indicatorDescriptionUrl, String.class);
             JSONArray jsonArray = new JSONArray(indicatorDescription);
 
-            if (dbGroupsData != null){
+            if (dbGroupsData != null) {
                 List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
 
                 List<DbGroupings> groupingsList = dbGroupsData.getDataElementGroups();
@@ -124,9 +124,11 @@ public class InternationalServiceImpl implements InternationalService {
 
                     String description = "";
                     String uuid = null;
+                    JSONObject jsonObject = null;
                     for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        jsonObject = jsonArray.getJSONObject(i);
                         uuid = jsonObject.getString("uuid");
+                        JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
                         if (jsonObject.has("Indicator_Code") && !jsonObject.isNull("Indicator_Code")) {
                             String Indicator_Code = jsonObject.getString("Indicator_Code");
                             if (categoryName.equals(Indicator_Code)) {
@@ -167,6 +169,20 @@ public class InternationalServiceImpl implements InternationalService {
                             dbDataGroupingList,
                             uuid
                     );
+
+                    // Extract assessmentQuestions array and populate indicatorDataValue
+                    JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
+                    List<DbDataGrouping> assessmentQuestions = new ArrayList<>();
+                    for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
+                        JSONObject assessmentQuestionObj = assessmentQuestionsArray.getJSONObject(j);
+                        String valueType = assessmentQuestionObj.optString("valueType");
+                        String name = assessmentQuestionObj.getString("name");
+
+                        DbDataGrouping assessmentQuestion = new DbDataGrouping(null, name, null, valueType);
+                        assessmentQuestions.add(assessmentQuestion);
+                    }
+                    dbIndicatorDataValues.setIndicatorDataValue(assessmentQuestions);
+
                     dbIndicatorDataValuesList.add(dbIndicatorDataValues);
 
                 }
@@ -174,12 +190,12 @@ public class InternationalServiceImpl implements InternationalService {
 
                 Map<String, List<DbIndicatorDataValues>> categoryMap = new HashMap<>();
 
-                for (DbIndicatorDataValues dataValues: dbIndicatorDataValuesList){
+                for (DbIndicatorDataValues dataValues : dbIndicatorDataValuesList) {
                     String name = (String) dataValues.getCategoryName();
                     String categoryName = formatterClass.mapIndicatorNameToCategory(name);
 
-                    if (!categoryName.equals("Others")){
-                        if (!categoryMap.containsKey(categoryName)){
+                    if (!categoryName.equals("Others")) {
+                        if (!categoryMap.containsKey(categoryName)) {
                             categoryMap.put(categoryName, new ArrayList<>());
                         }
 
@@ -197,9 +213,8 @@ public class InternationalServiceImpl implements InternationalService {
             }
 
 
-
             return dbIndicatorsValueList;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();
         }
