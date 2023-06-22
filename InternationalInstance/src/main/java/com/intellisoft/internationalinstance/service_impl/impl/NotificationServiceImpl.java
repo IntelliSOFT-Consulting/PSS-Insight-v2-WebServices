@@ -43,18 +43,13 @@ public class NotificationServiceImpl implements NotificationService {
             subscription.setEmail(notificationSubscription.getEmail());
 
 
-//            var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
-            var savedSubscription = notificationSubscriptionRepo.findById(Long.valueOf(notificationSubscription.getId()));
+            var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
             if (savedSubscription.isEmpty()){
                 // user does not exist, so the API can subscribe the user
                 notificationSubscriptionRepo.save(subscription);
-            } else if (!savedSubscription.isEmpty() && savedSubscription.get().getIsActive() == Boolean.TRUE && savedSubscription.get().getEmail().equals(notificationSubscription.getEmail())){
-                //check if their emails are similar
-                // avoid double subscription::
+            } else {
+                //their emails are similar, hence avoid double subscription::
                 return new Results(400, "You are already subscribed.");
-            } else if(!savedSubscription.isEmpty() && savedSubscription.get().getIsActive() == Boolean.TRUE && !savedSubscription.get().getEmail().equals(notificationSubscription.getEmail())){
-                notificationSubscriptionRepo.save(subscription);
-                return new Results(200, notificationSubscription);
             }
             return new Results(200, notificationSubscription);
         }
@@ -67,6 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results unsubscribe(String email) {
         var savedSubscription = notificationSubscriptionRepo.findByEmail(email);
+
         if (savedSubscription.isEmpty())
             return new Results(400, "Resource not found.");
 
