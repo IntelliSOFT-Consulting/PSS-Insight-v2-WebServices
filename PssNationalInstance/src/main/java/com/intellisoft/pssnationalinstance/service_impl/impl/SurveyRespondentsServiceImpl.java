@@ -206,18 +206,24 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(respondentId);
-        if (optionalSurveyRespondents.isPresent()){
+        if (optionalSurveyRespondents.isPresent()) {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             String expiryDate = surveyRespondents.getExpiryTime();
+            String respondentsStatus = surveyRespondents.getRespondentsStatus();
 
             boolean isExpired = formatterClass.isPastToday(expiryDate);
-            if (isExpired){
+            if (isExpired) {
                 return new Results(400, "This link is expired.");
             }
 
             String passwordDb = surveyRespondents.getPassword();
-            if (password.equals(passwordDb)){
-                return new Results(200, new DbDetails("Verification success."));
+            if (password.equals(passwordDb)) {
+                // check if the survey respondent had submitted the survey:
+                if (respondentsStatus.equals(SurveySubmissionStatus.PENDING)) {
+                    return new Results(400, "You have already submitted the survey. Access denied");
+                } else {
+                    return new Results(200, new DbDetails("Verification success."));
+                }
             }
         }
 
