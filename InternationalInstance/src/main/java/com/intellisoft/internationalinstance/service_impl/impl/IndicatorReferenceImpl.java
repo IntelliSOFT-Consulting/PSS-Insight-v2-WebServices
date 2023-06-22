@@ -1,6 +1,9 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
@@ -8,16 +11,27 @@ import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.FormulaUtil;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import reactor.core.publisher.Flux;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
+
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.net.URL;
 
 @RequiredArgsConstructor
 @Service
@@ -25,7 +39,6 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private final FormatterClass formatterClass = new FormatterClass();
 
-    @Override
     public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
         try {
             // Generate UUID
@@ -39,6 +52,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             dbIndicatorDetails.setDate(date);
 
             String url = AppConstants.INDICATOR_DESCRIPTIONS;
+            String createDataElementUrl = AppConstants.CREATE_DATA_ELEMENT;
 
             // Retrieve existing JSON collection of Indicator_References from the INDICATOR_DESCRIPTIONS API
             List<DbIndicatorDetails> responseList = fetchExistingIndicatorDetails(url);
@@ -52,7 +66,159 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 // Send a PUT request to update the Indicator_References API with the updated JSON data
                 if (updateIndicatorDetails(url, updatedIndicatorList)) {
-                    return new Results(200, new DbDetails("The indicator values have been added."));
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    // Create the new payload based on assessmentQuestions
+                    ArrayNode dataElements = objectMapper.createArrayNode();
+
+                    for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
+                        ObjectNode dataElement = objectMapper.createObjectNode();
+                        dataElement.put("aggregationType", DataElements.AVERAGE_SUM_ORG_UNIT.name());
+                        dataElement.put("domainType", DataElements.AGGREGATE.name());
+                        dataElement.put("valueType", (String) question.getValueType());
+                        dataElement.put("name", (String) question.getName());
+                        dataElement.put("shortName", (String) question.getName());
+                        dataElement.put("code", (String) question.getName());
+                        dataElement.put("uid", uuid);
+                        dataElements.add(dataElement);
+                    }
+
+                    ObjectNode payload = objectMapper.createObjectNode();
+                    payload.set("dataElements", dataElements);
+
+                    // Convert the new payload to JSON string
+                    String newPayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload);
+
+                    System.out.println(newPayloadString);
+
+                    // Make the API POST request with the new payload
+                    if (postDataElement(createDataElementUrl, newPayloadString)) {
+                        // Add data elements to PSS program::
+
+                        // Retrieve PSS programId from DHIS2 API
+                        String programId = AppConstants.PSS_PROGRAM_ID;
+
+                        String programStageId = AppConstants.PSS_PROGRAM_STAGE_ID;
+
+                        // Create the new payload for program stage
+                        ObjectNode programStagePayload = objectMapper.createObjectNode();
+                        programStagePayload.put("name", "Program Stage Name"); // To be replaced with a valid name
+                        ObjectNode programNode = objectMapper.createObjectNode();
+                        programNode.put("id", programId);
+                        programStagePayload.set("program", programNode);
+
+                        ArrayNode programStageDataElements = objectMapper.createArrayNode();
+                        for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
+                            ObjectNode dataElementNode = objectMapper.createObjectNode();
+                            ObjectNode innerDataElementNode = objectMapper.createObjectNode();
+                            innerDataElementNode.put("id", uuid);
+                            dataElementNode.set("dataElement", innerDataElementNode);
+                            programStageDataElements.add(dataElementNode);
+                        }
+
+                        programStagePayload.set("programStageDataElements", programStageDataElements);
+
+                        // Convert the program stage payload to JSON string
+                        String programStagePayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(programStagePayload);
+
+                        System.out.println("programStagePayloadString" + programStagePayloadString);
+
+                        // Make the PUT request to update the program stage
+                        String addDataElementToPssUrl = AppConstants.ADD_DATA_ELEMENT_TO_PSS_PROGRAM + "/" + programStageId;
+
+                        if (updateProgramStage(addDataElementToPssUrl, programStagePayloadString)) {
+                            /*
+                             * Create a new Data Element Group - If dealing with a new indicator
+                             * Use existing one if indicator already exists
+                             * Add the new data elements to their respective Data Element Group.
+                             */
+
+                            // Fetch data element IDs
+                            try {
+                                // Create a URL object from the fetch data elements URL
+                                URL fetchDataElementsURL = new URL(AppConstants.FETCH_DATA_ELEMENTS_URL);
+
+                                // Open a connection to the URL
+                                HttpURLConnection connection = (HttpURLConnection) fetchDataElementsURL.openConnection();
+                                connection.setRequestMethod("GET");
+
+                                // Get the response code
+                                int responseCode = connection.getResponseCode();
+
+                                if (responseCode == HttpURLConnection.HTTP_OK) {
+                                    // Read the response
+                                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                                    StringBuilder response = new StringBuilder();
+                                    String line;
+                                    while ((line = reader.readLine()) != null) {
+                                        response.append(line);
+                                    }
+                                    reader.close();
+
+                                    // Parse the XML response
+                                    SAXBuilder builder = new SAXBuilder();
+                                    Document document = builder.build(new ByteArrayInputStream(response.toString().getBytes()));
+
+
+                                    // Get the root element of the XML
+                                    Element rootElement = document.getRootElement();
+
+                                    // Get the "dataElements" element
+                                    Element dataElementsElement = rootElement.getChild("dataElements");
+
+                                    // Get all the child elements of "dataElements" (i.e., the individual data elements)
+                                    List<Element> dataElementElements = dataElementsElement.getChildren();
+
+                                    // Create a new list to store the data element IDs
+                                    List<String> dataElementIds = new ArrayList<>();
+
+                                    // Iterate over the data element elements and extract the IDs
+                                    for (Element dataElementElement : dataElementElements) {
+                                        String dataElementId = dataElementElement.getAttributeValue("id");
+                                        dataElementIds.add(dataElementId);
+                                    }
+
+                                    // Update the payload for each assessment question
+                                    for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
+                                        Map<String, Object> dataElementGroupPayload = new HashMap<>();
+
+                                        // Set the properties of the data element group
+                                        dataElementGroupPayload.put("name", dbIndicatorDetails.getIndicatorCode());
+                                        dataElementGroupPayload.put("shortName", question.getName());
+                                        dataElementGroupPayload.put("code", question.getName());
+                                        dataElementGroupPayload.put("description", dbIndicatorDetails.getTopic());
+
+                                        // Add the data element IDs to the payload
+                                        dataElementGroupPayload.put("dataElements", dataElementIds);
+
+                                        // Convert the payload to JSON string
+                                        String dataElementGroupPayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dataElementGroupPayload);
+
+                                        // Print the payload
+                                        System.out.println(dataElementGroupPayloadString);
+
+                                        // Make the POST request to add the new data elements to their respective Data Element Group
+                                        String addDataElementstoGroupUrl = AppConstants.ADD_DATA_ELEMENTS_TO_GROUP;
+
+                                        if(postDataElementToGroup(addDataElementstoGroupUrl, dataElementGroupPayloadString)){
+
+                                            return new Results(200, new DbDetails("The indicator values have been added."));
+                                        }
+                                    }
+                                } else {
+                                    // Handle the error response
+                                    System.out.println("Error: " + responseCode);
+                                }
+                                // Close the connection
+                                connection.disconnect();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JDOMException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                    }
                 }
             }
 
@@ -76,6 +242,29 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     private boolean updateIndicatorDetails(String url, String updatedIndicatorList) throws URISyntaxException {
         var response = GenericWebclient.putForSingleObjResponse(url, updatedIndicatorList, String.class, Response.class);
         return response.getHttpStatusCode() == 200;
+    }
+
+    private boolean postDataElement(String createDataElementUrl, String newPayloadString) throws URISyntaxException {
+        var response = GenericWebclient.postForSingleObjResponse(createDataElementUrl, newPayloadString, String.class, Response.class);
+        return response.getHttpStatusCode() == 200;
+    }
+
+    private boolean updateProgramStage(String addDataElementToPssUrl, String programStagePayloadString) throws URISyntaxException {
+        var response = GenericWebclient.putForSingleObjResponse(addDataElementToPssUrl, programStagePayloadString, String.class, Response.class);
+        return response.getHttpStatusCode() == 200;
+    }
+
+    private boolean postDataElementToGroup(String addDataElementstoGroupUrl, String dataElementGroupPayloadString) throws URISyntaxException {
+        var response = GenericWebclient.postForSingleObjResponse(addDataElementstoGroupUrl, dataElementGroupPayloadString, String.class, Response.class);
+        return response.getHttpStatusCode() == 200;
+    }
+
+    private ObjectNode createFinalPayload(ArrayNode dataElements) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode payload = objectMapper.createObjectNode();
+        payload.putArray("dataElements").addAll(dataElements);
+
+        return payload;
     }
 
 

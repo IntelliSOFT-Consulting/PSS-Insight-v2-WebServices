@@ -519,3 +519,12 @@ data class DbIndicatorDescription(
     @JsonProperty("Indicator_Code")
     val Indicator_Code: String?
 )
+
+
+enum class DataElements {
+    SELECTION,
+    TEXT,
+    VARIANCE,
+    AVERAGE_SUM_ORG_UNIT,
+    AGGREGATE,
+}
