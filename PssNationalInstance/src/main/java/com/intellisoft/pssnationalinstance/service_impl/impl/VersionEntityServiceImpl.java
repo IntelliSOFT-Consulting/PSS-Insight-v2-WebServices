@@ -162,44 +162,46 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
     @Override
     public Results updateVersion(String id, DbVersions dbVersions) {
-
         String description = dbVersions.getVersionDescription();
         List<DbVersionDate> dbVersionsIndicators = dbVersions.getIndicators();
         boolean isPublished = dbVersions.isPublished();
 
         List<String> indicatorList = new ArrayList<>();
-        for (DbVersionDate dbVersionDate : dbVersionsIndicators){
+        for (DbVersionDate dbVersionDate : dbVersionsIndicators) {
             String indicatorId = dbVersionDate.getId();
             indicatorList.add(indicatorId);
         }
 
-        Optional<VersionEntity> optionalVersionEntity =
-                versionEntityRepository.findById(Long.valueOf(id));
-        if(optionalVersionEntity.isPresent()){
+        Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(id));
+        if (optionalVersionEntity.isPresent()) {
             VersionEntity versionEntity = optionalVersionEntity.get();
             String status = versionEntity.getStatus();
-            if (status.equals(PublishStatus.PUBLISHED.name())){
+            if (status.equals(PublishStatus.PUBLISHED.name())) {
                 return new Results(400, "You cannot edit a published version");
             }
-            //Update database
+
+            // Update database
             versionEntity.setVersionDescription(description);
             versionEntity.setIndicators(indicatorList);
-            if (isPublished){
+
+            // Update isLatest field
+            boolean isLatest = dbVersionsIndicators.stream().anyMatch(DbVersionDate::isLatest);
+            versionEntity.setLatest(isLatest);
+
+            if (isPublished) {
                 versionEntity.setStatus(PublishStatus.PUBLISHED.name());
                 String publishedBy = dbVersions.getPublishedBy();
                 versionEntity.setPublishedBy(publishedBy);
-                nationalTemplateService.savePublishedVersion(
-                        versionEntity.getCreatedBy(),
-                        id,
-                        dbVersionsIndicators);
+                nationalTemplateService.savePublishedVersion(versionEntity.getCreatedBy(), id, dbVersionsIndicators);
             }
+
             versionEntityRepository.save(versionEntity);
             return new Results(200, versionEntity);
         }
 
         return new Results(400, "We could not find that resource.");
-
     }
+
 
     @Override
     public Results deleteTemplate(String versionId) {
@@ -227,15 +229,14 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
     @Override
     public Results getVersionDetails(String versionId) {
-
-        try{
+        try {
             DbPublishedVersion dbPublishedVersion;
 
             Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
-            if (optionalVersionEntity.isPresent()){
+            if (optionalVersionEntity.isPresent()) {
                 VersionEntity versionEntity = optionalVersionEntity.get();
                 String versionNo = versionEntity.getVersionName();
-                if (versionNo != null){
+                if (versionNo != null) {
                     dbPublishedVersion = getThePreviousIndicators(versionNo);
 
                     for (DbIndicators dbIndicators : dbPublishedVersion.getDetails()) {
@@ -243,19 +244,18 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                             String categoryId = String.valueOf(indicatorValue.getCategoryId());
 
                             // check if the indicator has been edited: If edited, take it and replace the existing indicator name:
-
                             IndicatorEdits indicatorEdit = new IndicatorEdits();
                             Optional<IndicatorEdits> optionalIndicatorEdits = indicatorEditsRepository.findFirstByCategoryIdOrderByIdDesc(categoryId);
 
-                            if (optionalIndicatorEdits.isPresent()){
+                            if (optionalIndicatorEdits.isPresent()) {
                                 indicatorEdit = optionalIndicatorEdits.get();
                                 String editedIndicatorName = indicatorEdit.getEdit();
                                 indicatorValue.setIndicatorName(editedIndicatorName);
                             }
                         }
                     }
-                }else {
-                    dbPublishedVersion = internationalTemplateService.interNationalPublishedIndicators();// getAvailableVersion();
+                } else {
+                    dbPublishedVersion = internationalTemplateService.interNationalPublishedIndicators();
 
                     for (DbIndicators dbIndicators : dbPublishedVersion.getDetails()) {
                         for (DbIndicatorValues indicatorValue : dbIndicators.getIndicators()) {
@@ -265,7 +265,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                             IndicatorEdits indicatorEdits = new IndicatorEdits();
                             Optional<IndicatorEdits> optionalIndicatorEdits = indicatorEditsRepository.findFirstByCategoryIdOrderByIdDesc(categoryId);
 
-                            if (optionalIndicatorEdits.isPresent()){
+                            if (optionalIndicatorEdits.isPresent()) {
                                 indicatorEdits = optionalIndicatorEdits.get();
                                 String editedIndicatorName = indicatorEdits.getEdit();
                                 indicatorValue.setIndicatorName(editedIndicatorName);
@@ -281,24 +281,23 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                         versionEntity.getStatus(),
                         versionEntity.getCreatedBy(),
                         versionEntity.getPublishedBy(),
-                        versionEntity.isLatest(),
+//                        versionEntity.isLatest(),
                         null);
 
                 List<String> indicators = versionEntity.getIndicators();
 
                 DbPublishedVersion publishedVersion = filterDbPublishedVersionByCategoryId(indicators, dbPublishedVersion);
+                publishedVersion.getDetails().forEach(dbIndicators -> dbIndicators.setLatest(versionEntity.isLatest())); // Set isLatest for each filtered detail
                 dbVersionDataDetails.setIndicators(publishedVersion);
                 return new Results(200, dbVersionDataDetails);
-
             }
-
-
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return new Results(400, "Resource not found.");
     }
+
     public static DbPublishedVersion filterDbPublishedVersionByCategoryId(List<String> categoryIds, DbPublishedVersion version) {
         List<DbIndicators> filteredDetails = new ArrayList<>();
         for (DbIndicators dbIndicator:version.getDetails()) {
@@ -309,7 +308,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                     })
                     .collect(Collectors.toList());
             if (!filteredIndicators.isEmpty()) {
-                filteredDetails.add(new DbIndicators(dbIndicator.getCategoryName(), filteredIndicators));
+                filteredDetails.add(new DbIndicators(dbIndicator.isLatest(), dbIndicator.getCategoryName(), filteredIndicators));
             }
         }
         filteredDetails.removeIf(Objects::isNull);

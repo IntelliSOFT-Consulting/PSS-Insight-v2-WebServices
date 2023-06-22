@@ -150,6 +150,8 @@ data class DbPublishedVersion(
     var details: List<DbIndicators>,
 )
 data class DbIndicators(
+    @JsonProperty("isLatest")
+    var isLatest: Boolean,
     @JsonProperty("categoryName")
     var categoryName: Any?,
     @JsonProperty("indicators")
@@ -512,7 +514,7 @@ data class DbVersionDataDetails(
     val status: String?,
     val createdBy: Any?,
     val publishedBy: String?,
-    val isLatest:Boolean,
+//    val isLatest:Boolean,
     var indicators: Any?,
 
 )
