@@ -90,23 +90,23 @@ public class InternationalServiceImpl implements InternationalService {
                 List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
 
                 List<DbGroupings> groupingsList = dbGroupsData.getDataElementGroups();
-                for (DbGroupings dbGroupings : groupingsList){
+                for (DbGroupings dbGroupings : groupingsList) {
 
                     String categoryName = dbGroupings.getName();
                     String categoryId = dbGroupings.getId();
                     List<DbDataElementsData> dataElementsList = dbGroupings.getDataElements();
 
                     List<DbDataGrouping> dbDataGroupingList = new ArrayList<>();
-                    for (DbDataElementsData dataElementsData: dataElementsList) {
+                    for (DbDataElementsData dataElementsData : dataElementsList) {
 
                         String code = dataElementsData.getCode();
                         String name = dataElementsData.getName();
                         String id = dataElementsData.getId();
 
-                        if(code != null){
-                            if (!code.contains("_Comments") && !code.contains("_Uploads")){
+                        if (code != null) {
+                            if (!code.contains("_Comments") && !code.contains("_Uploads")) {
                                 String valueType = getValueType(code, dbDataElementsList);
-                                if (valueType != null){
+                                if (valueType != null) {
                                     DbDataGrouping dbDataGrouping = new DbDataGrouping(
                                             code,
                                             name,
@@ -123,22 +123,24 @@ public class InternationalServiceImpl implements InternationalService {
                     String indicatorName = formatterClass.getIndicatorName(categoryName);
 
                     String description = "";
+                    String uuid = null;
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        if (jsonObject.has("Indicator_Code") && !jsonObject.isNull("Indicator_Code")){
+                        uuid = jsonObject.getString("uuid");
+                        if (jsonObject.has("Indicator_Code") && !jsonObject.isNull("Indicator_Code")) {
                             String Indicator_Code = jsonObject.getString("Indicator_Code");
-                            if(categoryName.equals(Indicator_Code)){
-                                if (jsonObject.has("Description") && !jsonObject.isNull("Description")){
+                            if (categoryName.equals(Indicator_Code)) {
+                                if (jsonObject.has("Description") && !jsonObject.isNull("Description")) {
                                     description = jsonObject.getString("Description");
                                 }
 
                                 break;
                             }
                         }
-                        if (jsonObject.has("indicator_Code") && !jsonObject.isNull("indicator_Code")){
+                        if (jsonObject.has("indicator_Code") && !jsonObject.isNull("indicator_Code")) {
                             String Indicator_Code = jsonObject.getString("indicator_Code");
-                            if(categoryName.equals(Indicator_Code)){
-                                if (jsonObject.has("description") && !jsonObject.isNull("description")){
+                            if (categoryName.equals(Indicator_Code)) {
+                                if (jsonObject.has("description") && !jsonObject.isNull("description")) {
                                     description = jsonObject.getString("description");
                                 }
 
@@ -162,7 +164,8 @@ public class InternationalServiceImpl implements InternationalService {
                             categoryId,
                             categoryName,
                             indicatorName,
-                            dbDataGroupingList
+                            dbDataGroupingList,
+                            uuid
                     );
                     dbIndicatorDataValuesList.add(dbIndicatorDataValues);
 

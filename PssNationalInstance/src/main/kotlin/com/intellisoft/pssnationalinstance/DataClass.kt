@@ -228,7 +228,8 @@ enum class PublishStatus {
     PUBLISHED,
     COMPLETED,
     REJECTED,
-    RESENT
+    RESENT,
+    REVISED
 }
 enum class SurveySubmissionStatus {
     DRAFT, //Respondent has not sent responses
@@ -424,6 +425,7 @@ data class DbResendSurvey(
 )
 
 data class DbResendDataEntry(
+        val details: String?,
         val comments: String?,
         val indicators : List<String>
 )
@@ -642,3 +644,19 @@ data class DbIndicatorTypes(
         val topics:Any?,
         val valueType: Any?
 )
+
+data class DbDataImport(
+        val program: String,
+        val orgUnit: String,
+        val eventDate: String,
+        val status: String,
+        val storedBy: String,
+        val dataValues: List<DataValue>
+)
+
+data class DataValue(
+        val dataElement: String,
+        val value: String
+)
+
+
