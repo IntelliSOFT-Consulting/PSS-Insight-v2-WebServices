@@ -101,10 +101,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         try {
             NotificationSubscription notificationSubscription = webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path(apiUrl)
-                            .queryParam("userId", userId)
-                            .build())
+                    .uri(apiUrl + "?userId={userId}", userId)
                     .retrieve()
                     .bodyToMono(NotificationSubscription.class)
                     .block();

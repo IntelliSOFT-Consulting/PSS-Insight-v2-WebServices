@@ -4,6 +4,7 @@ import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.SurveyRespondents;
 import com.intellisoft.pssnationalinstance.db.Surveys;
 import com.intellisoft.pssnationalinstance.repository.RespondentAnswersRepository;
+import com.intellisoft.pssnationalinstance.repository.SurveyRespondentsRepo;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
@@ -21,7 +22,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class SurveysServiceImpl implements SurveysService {
-
+    private final SurveyRespondentsRepo respondentsRepo;
     private final SurveysRepo surveysRepo;
     private final SurveyRespondentsService surveyRespondentsService;
     private final FormatterClass formatterClass = new FormatterClass();
@@ -103,13 +104,20 @@ public class SurveysServiceImpl implements SurveysService {
 
                         boolean isExpired = formatterClass.isPastToday(expiryDate);
                         if (isExpired) {
-                            DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
-                                    null, null);
-                            //Link has expired
-                            dbRespondent.setExpiryDate(expiryDate);
-                            dbRespondent.setNewLinkRequested(
-                                    respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
-                            dbRespondentList.add(dbRespondent);
+                            /*Only filter out the DRAFT responses
+                             */
+
+                            boolean isDraft = filterOutDraft(respId);
+                            if (isDraft) {
+
+                                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
+                                        null, null);
+                                //Link has expired
+                                dbRespondent.setExpiryDate(expiryDate);
+                                dbRespondent.setNewLinkRequested(
+                                        respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                                dbRespondentList.add(dbRespondent);
+                            }
 
                         }
 
@@ -180,16 +188,20 @@ public class SurveysServiceImpl implements SurveysService {
                         boolean isExpired = formatterClass.isPastToday(expiryDate);
 
                         if (isExpired) {
-                            DbRespondent dbRespondent = new DbRespondent(
-                                    respId,
-                                    emailAddress,
-                                    createdAt,
-                                    null,
-                                    null
-                            );
-                            dbRespondent.setExpiryDate(expiryDate);
-                            dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
-                            dbRespondentList.add(dbRespondent);
+                            boolean isDraft = filterOutDraft(respId);
+                            if (isDraft) {
+
+                                DbRespondent dbRespondent = new DbRespondent(
+                                        respId,
+                                        emailAddress,
+                                        createdAt,
+                                        null,
+                                        null
+                                );
+                                dbRespondent.setExpiryDate(expiryDate);
+                                dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                                dbRespondentList.add(dbRespondent);
+                            }
                         }
                     } else {
                         DbRespondent dbRespondent = new DbRespondent(
@@ -224,7 +236,19 @@ public class SurveysServiceImpl implements SurveysService {
         }
 
     }
-
+    private boolean filterOutDraft(String respondentId) {
+        boolean qualified = false;
+        // Load specific user details as per the survey
+        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+        if (optionalSurveyRespondents.isPresent()) {
+            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+            String status = surveyRespondents.getRespondentsStatus();
+            if (status.equalsIgnoreCase(SurveySubmissionStatus.DRAFT.name())){
+                qualified=true;
+            }
+        }
+        return qualified;
+    }
 
     @Override
     public List<String> getSurveyList(String surveyId) {
