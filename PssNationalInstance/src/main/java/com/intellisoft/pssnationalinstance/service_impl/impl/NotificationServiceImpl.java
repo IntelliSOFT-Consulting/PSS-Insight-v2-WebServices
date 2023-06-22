@@ -56,16 +56,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Results unsubscribe(String email) {
+    public Results unsubscribe(DbNotificationSub notificationSubscription) {
         String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"unsubscribe-email";
-        DbNotificationSub dbNotificationSub = new DbNotificationSub(
-                null,
-                null,
-                null,
-                email,
-                null
-        );
-        return getPostResults(dbNotificationSub, internationalBaseApi);
+        return getPostResults(notificationSubscription, internationalBaseApi);
     }
 
     @NotNull

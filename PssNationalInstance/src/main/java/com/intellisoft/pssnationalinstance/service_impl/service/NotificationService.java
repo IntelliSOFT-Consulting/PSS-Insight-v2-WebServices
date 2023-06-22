@@ -6,7 +6,7 @@ import com.intellisoft.pssnationalinstance.Results;
 
 public interface NotificationService {
      Results subscribe(DbNotificationSub notificationSubscription);
-     Results unsubscribe(String email);
+     Results unsubscribe(DbNotificationSub notificationSubscription);
 
      Results getNotifications(int no, int size, String emailAddress);
 

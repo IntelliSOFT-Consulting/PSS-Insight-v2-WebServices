@@ -26,9 +26,9 @@ public class NotificationController {
         return formatterClass.getResponse(results);
     }
     @PutMapping("unsubscribe")
-    public ResponseEntity<?> unsubscribe(@RequestParam("email") String email)  {
+    public ResponseEntity<?> unsubscribe(@RequestBody DbNotificationSub notificationSubscription)  {
 
-        Results results = notificationService.unsubscribe(email);
+        Results results = notificationService.unsubscribe(notificationSubscription);
         return formatterClass.getResponse(results);
 
     }
