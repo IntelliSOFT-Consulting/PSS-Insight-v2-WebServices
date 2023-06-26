@@ -384,7 +384,14 @@ data class DbAssessmentQuestion(
     @JsonProperty("valueType")
     val valueType: Any?,
     @JsonProperty("name")
-    val name: Any?
+    val name: Any?,
+    @JsonProperty("optionSetId")
+    val optionSetId: Any?
+)
+
+data class  OptionSet(
+    @JsonProperty("id")
+    val id: Any?,
 )
 data class DbDataValuesData(
     val code: String,
@@ -528,3 +535,29 @@ enum class DataElements {
     AVERAGE_SUM_ORG_UNIT,
     AGGREGATE,
 }
+
+data class DataElementGroupResponse(
+    @JsonProperty("pager")
+    var pager: Pager,
+    @JsonProperty("dataElementGroups")
+    var dataElementGroups: List<DataElementGroup>
+)
+
+
+data class Pager(
+    @JsonProperty("page")
+    var page: Int?,
+    @JsonProperty("pageCount")
+    var pageCount: Int?,
+    @JsonProperty("total")
+    var total: Int?,
+    @JsonProperty("pageSize")
+    var pageSize: Int?
+)
+
+data class DataElementGroup(
+    @JsonProperty("id")
+    var id: String?,
+    @JsonProperty("displayName")
+    var displayName: String?
+)

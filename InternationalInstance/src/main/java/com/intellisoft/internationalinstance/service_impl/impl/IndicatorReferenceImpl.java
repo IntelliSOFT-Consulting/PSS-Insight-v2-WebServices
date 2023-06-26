@@ -1,37 +1,27 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.Gson;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
 import com.intellisoft.internationalinstance.util.AppConstants;
-import com.intellisoft.internationalinstance.util.FormulaUtil;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-import java.io.*;
-import java.net.HttpURLConnection;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.*;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.w3c.dom.NodeList;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.net.URL;
 
 @RequiredArgsConstructor
 @Service
@@ -51,8 +41,9 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             dbIndicatorDetails.setUuid(uuid);
             dbIndicatorDetails.setDate(date);
 
+            // DHIS2 API urls:
             String url = AppConstants.INDICATOR_DESCRIPTIONS;
-            String createDataElementUrl = AppConstants.CREATE_DATA_ELEMENT;
+            String createDataElementUrl = AppConstants.CREATE_NEW_DATA_ELEMENT;
 
             // Retrieve existing JSON collection of Indicator_References from the INDICATOR_DESCRIPTIONS API
             List<DbIndicatorDetails> responseList = fetchExistingIndicatorDetails(url);
@@ -66,20 +57,45 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 // Send a PUT request to update the Indicator_References API with the updated JSON data
                 if (updateIndicatorDetails(url, updatedIndicatorList)) {
+                    // Indicator added successfully, now we create a dataElement from the assessmentQuestions
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     // Create the new payload based on assessmentQuestions
                     ArrayNode dataElements = objectMapper.createArrayNode();
 
+                    char alphabet = 'a';
                     for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
+                        // Fetch the optionSet
+                        String optionSetId = question.getOptionSetId().toString();
+                        String fetchOptionSetUrl = AppConstants.FETCH_OPTION_SET_URL + optionSetId;
+
+                        OptionSet optionSet = fetchOptionSet(fetchOptionSetUrl);
+
+                        // Create the dataElement object
                         ObjectNode dataElement = objectMapper.createObjectNode();
                         dataElement.put("aggregationType", DataElements.AVERAGE_SUM_ORG_UNIT.name());
                         dataElement.put("domainType", DataElements.AGGREGATE.name());
                         dataElement.put("valueType", (String) question.getValueType());
                         dataElement.put("name", (String) question.getName());
-                        dataElement.put("shortName", (String) question.getName());
-                        dataElement.put("code", (String) question.getName());
+
+                        // Truncate the shortName to 25 characters
+                        String shortName = String.valueOf(question.getName()).length() > 25 ? String.valueOf(question.getName()).substring(0, 25) : String.valueOf(question.getName());
+
+                        dataElement.put("shortName", shortName);
+
+                        // Append alphabet in incremental order to the code
+                        String code = dbIndicatorDetails.getIndicatorReference() + "_" + alphabet;
+
+                        dataElement.put("code", code);
                         dataElement.put("uid", uuid);
+
+                        // Increment the alphabet
+                        alphabet++;
+
+                        // Add the optionSet to the dataElement
+                        ObjectNode optionSetNode = objectMapper.createObjectNode();
+                        optionSetNode.put("id", optionSetId);
+                        dataElement.set("optionSet", optionSetNode);
                         dataElements.add(dataElement);
                     }
 
@@ -93,131 +109,162 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                     // Make the API POST request with the new payload
                     if (postDataElement(createDataElementUrl, newPayloadString)) {
-                        // Add data elements to PSS program::
 
-                        // Retrieve PSS programId from DHIS2 API
-                        String programId = AppConstants.PSS_PROGRAM_ID;
+                        /**Add data elements to PSS Program**/
 
-                        String programStageId = AppConstants.PSS_PROGRAM_STAGE_ID;
+                        // loop through dataElements to get their names
 
-                        // Create the new payload for program stage
-                        ObjectNode programStagePayload = objectMapper.createObjectNode();
-                        programStagePayload.put("name", "Program Stage Name"); // To be replaced with a valid name
-                        ObjectNode programNode = objectMapper.createObjectNode();
-                        programNode.put("id", programId);
-                        programStagePayload.set("program", programNode);
+                        // Create the payload object
+                        ObjectNode addDataElementsToProgramPayload = objectMapper.createObjectNode();
+                        ArrayNode dataElementArray = objectMapper.createArrayNode();
 
-                        ArrayNode programStageDataElements = objectMapper.createArrayNode();
-                        for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
-                            ObjectNode dataElementNode = objectMapper.createObjectNode();
-                            ObjectNode innerDataElementNode = objectMapper.createObjectNode();
-                            innerDataElementNode.put("id", uuid);
-                            dataElementNode.set("dataElement", innerDataElementNode);
-                            programStageDataElements.add(dataElementNode);
-                        }
+                        for (JsonNode dataElement : dataElements) {
+                            String name = URLEncoder.encode(dataElement.get("name").asText(), StandardCharsets.UTF_8);
+                            String nameFilter = "name:like:" + name;
+                            String dataElementIdUrl = AppConstants.FETCH_DATA_ELEMENTS_ID + nameFilter;
 
-                        programStagePayload.set("programStageDataElements", programStageDataElements);
+                            System.out.print("dataElementIdUrl" + dataElementIdUrl);
 
-                        // Convert the program stage payload to JSON string
-                        String programStagePayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(programStagePayload);
+                            // Make the API GET request to retrieve dataElements IDs
+                            String dataElementIdResponse = fetchDataElementId(dataElementIdUrl);
 
-                        System.out.println("programStagePayloadString" + programStagePayloadString);
+                            // Process the dataElementResponse
+                            JsonNode responseData = objectMapper.readTree(dataElementIdResponse);
+                            JsonNode dataElementsNode = responseData.get("dataElements");
+                            if (dataElementsNode.isArray() && dataElementsNode.size() > 0) {
+                                for (JsonNode dataElementNode : dataElementsNode) {
+                                    String id = dataElementNode.get("id").asText();
+                                    System.out.println("Data Element ID: " + id);
 
-                        // Make the PUT request to update the program stage
-                        String addDataElementToPssUrl = AppConstants.ADD_DATA_ELEMENT_TO_PSS_PROGRAM + "/" + programStageId;
+                                    // Create a data element object with the ID
+                                    ObjectNode dataElementObject = objectMapper.createObjectNode();
+                                    dataElementObject.put("id", id);
 
-                        if (updateProgramStage(addDataElementToPssUrl, programStagePayloadString)) {
-                            /*
-                             * Create a new Data Element Group - If dealing with a new indicator
-                             * Use existing one if indicator already exists
-                             * Add the new data elements to their respective Data Element Group.
-                             */
-
-                            // Fetch data element IDs
-                            try {
-                                // Create a URL object from the fetch data elements URL
-                                URL fetchDataElementsURL = new URL(AppConstants.FETCH_DATA_ELEMENTS_URL);
-
-                                // Open a connection to the URL
-                                HttpURLConnection connection = (HttpURLConnection) fetchDataElementsURL.openConnection();
-                                connection.setRequestMethod("GET");
-
-                                // Get the response code
-                                int responseCode = connection.getResponseCode();
-
-                                if (responseCode == HttpURLConnection.HTTP_OK) {
-                                    // Read the response
-                                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                                    StringBuilder response = new StringBuilder();
-                                    String line;
-                                    while ((line = reader.readLine()) != null) {
-                                        response.append(line);
-                                    }
-                                    reader.close();
-
-                                    // Parse the XML response
-                                    SAXBuilder builder = new SAXBuilder();
-                                    Document document = builder.build(new ByteArrayInputStream(response.toString().getBytes()));
-
-
-                                    // Get the root element of the XML
-                                    Element rootElement = document.getRootElement();
-
-                                    // Get the "dataElements" element
-                                    Element dataElementsElement = rootElement.getChild("dataElements");
-
-                                    // Get all the child elements of "dataElements" (i.e., the individual data elements)
-                                    List<Element> dataElementElements = dataElementsElement.getChildren();
-
-                                    // Create a new list to store the data element IDs
-                                    List<String> dataElementIds = new ArrayList<>();
-
-                                    // Iterate over the data element elements and extract the IDs
-                                    for (Element dataElementElement : dataElementElements) {
-                                        String dataElementId = dataElementElement.getAttributeValue("id");
-                                        dataElementIds.add(dataElementId);
-                                    }
-
-                                    // Update the payload for each assessment question
-                                    for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
-                                        Map<String, Object> dataElementGroupPayload = new HashMap<>();
-
-                                        // Set the properties of the data element group
-                                        dataElementGroupPayload.put("name", dbIndicatorDetails.getIndicatorCode());
-                                        dataElementGroupPayload.put("shortName", question.getName());
-                                        dataElementGroupPayload.put("code", question.getName());
-                                        dataElementGroupPayload.put("description", dbIndicatorDetails.getTopic());
-
-                                        // Add the data element IDs to the payload
-                                        dataElementGroupPayload.put("dataElements", dataElementIds);
-
-                                        // Convert the payload to JSON string
-                                        String dataElementGroupPayloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dataElementGroupPayload);
-
-                                        // Print the payload
-                                        System.out.println(dataElementGroupPayloadString);
-
-                                        // Make the POST request to add the new data elements to their respective Data Element Group
-                                        String addDataElementstoGroupUrl = AppConstants.ADD_DATA_ELEMENTS_TO_GROUP;
-
-                                        if(postDataElementToGroup(addDataElementstoGroupUrl, dataElementGroupPayloadString)){
-
-                                            return new Results(200, new DbDetails("The indicator values have been added."));
-                                        }
-                                    }
-                                } else {
-                                    // Handle the error response
-                                    System.out.println("Error: " + responseCode);
+                                    // Add the data element object to the array
+                                    dataElementArray.add(dataElementObject);
                                 }
-                                // Close the connection
-                                connection.disconnect();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            } catch (JDOMException e) {
-                                throw new RuntimeException(e);
+                            } else {
+                                System.out.println("Data Element not found for name: " + name);
                             }
                         }
 
+                        payload.set("dataElements", dataElementArray);
+
+                        // Convert the payload to JSON string
+                        String payloadString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload);
+
+                        // make API call to add data elements to PSS Program:
+                        String programId = AppConstants.PSS_PROGRAM_ID;
+
+                        /**
+                         * TODO: Check for right API for adding dataElements to Program
+                         */
+                        String addToProgramUrl = AppConstants.ADD_DATA_ELEMENTS_TO_PROGRAM + programId + "/" + "dataElements";
+
+                        System.out.println("addToProgramUrl " + addToProgramUrl);
+
+                        if (!addDataElementsToProgram(addToProgramUrl, payloadString)) { //remove asterik once API FOUND:
+
+                            // Create a new Data Element Group - If dealing with a new indicator
+
+                            // Fetch data elements names & ids
+                            JsonNode addDataElementsToGroupPayload = null;
+                            for (JsonNode dataElement : dataElements) {
+                                String name = URLEncoder.encode(dataElement.get("name").asText(), StandardCharsets.UTF_8);
+                                String nameFilter = "name:like:" + name;
+                                String dataElementIdUrl = AppConstants.FETCH_DATA_ELEMENTS_ID + nameFilter;
+
+                                // Make the API GET request to retrieve dataElements IDs
+                                String dataElementIdResponse = fetchDataElementId(dataElementIdUrl);
+
+                                // Process the dataElementResponse
+                                JsonNode responseData = objectMapper.readTree(dataElementIdResponse);
+                                JsonNode dataElementsNode = responseData.get("dataElements");
+
+                                // Create an array to store the data elements
+                                List<JsonNode> dataElementsFound = new ArrayList<>();
+
+                                // Iterate over the dataElementsNode and extract id and displayName
+                                for (JsonNode elementNode : dataElementsNode) {
+                                    String id = elementNode.get("id").asText();
+                                    String displayName = elementNode.get("displayName").asText();
+
+                                    // Create a new JSON object for each data element and add it to the array
+                                    JsonNode dataElementFound = objectMapper.createObjectNode()
+                                            .put("id", id)
+                                            .put("name", displayName);
+                                    dataElementsFound.add(dataElementFound);
+                                }
+
+                                // Create the final JSON payload
+                                addDataElementsToGroupPayload = objectMapper.createObjectNode()
+                                        .put("name", (String) dbIndicatorDetails.getIndicatorName())
+                                        .put("description", dbIndicatorDetails.getDescription())
+                                        .put("compulsory", false)
+                                        .put("active", true)
+                                        .set("dataElements", objectMapper.valueToTree(dataElementsFound));
+                            }
+
+                            //convert payload to JSON:
+                            String convertedPayload = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(addDataElementsToGroupPayload);
+                            System.out.println("convertedPayload" + convertedPayload);
+
+                            //make POST call to create a dataElementGroup:
+                            String createDataElementGroupUrl = AppConstants.CREATE_DATA_ELEMENT_GROUP;
+
+                            if (createDataElementGroup(createDataElementGroupUrl, convertedPayload)) {
+                                //fetch dataElementGroups:
+                                String fetchDataElementGroupUrl = AppConstants.FETCH_DATA_ELEMENTS_URL;
+                                DataElementGroupResponse responseMono = fetchDataElementGroups(fetchDataElementGroupUrl);
+
+                                // Access the parsed data
+                                responseMono.getDataElementGroups();
+                                List<DataElementGroup> dataElementGroups = responseMono.getDataElementGroups();
+
+                                for (DataElementGroup group : dataElementGroups) {
+                                    String searchDisplayName = Objects.requireNonNull(dbIndicatorDetails.getIndicatorName()).toString();
+                                    List<Map<String, Object>> foundDataElements = new ArrayList<>();
+
+                                    //for (DataElementGroup dataElementGroup : dataElementGroups) {
+                                    if (Objects.equals(group.getDisplayName(), searchDisplayName)) {
+                                        Map<String, Object> dataElementMap = new HashMap<>();
+                                        dataElementMap.put("id", group.getId());
+                                        dataElementMap.put("name", group.getDisplayName());
+                                        foundDataElements.add(dataElementMap);
+                                    }
+                                    //   }
+
+                                    // Create the JSON request object
+                                    Map<String, Object> addToGroupRequest = new HashMap<>();
+                                    addToGroupRequest.put("dataElements", foundDataElements);
+
+                                    // Convert the JSON request object to a JSON string
+                                    try {
+                                        String addToGroupPayload = new ObjectMapper().writeValueAsString(addToGroupRequest);
+                                        System.out.println("addToGroupPayload" + addToGroupPayload);
+
+                                        List<String> ids = new ArrayList<>();
+                                        for (Map<String, Object> dataElementMap : foundDataElements) {
+                                            String id = (String) dataElementMap.get("id");
+                                            ids.add(id);
+                                        }
+
+                                        for (String id : ids) {
+                                            //Add the dataElements to the Group created
+                                            //post URL construction:
+                                            String addDataElementsToGroupUrl = AppConstants.CREATE_DATA_ELEMENT_GROUP + "/" + id + "dataElements";
+
+                                            if (addDataElementsToGroup(addDataElementsToGroupUrl, addToGroupPayload)) {
+                                                return new Results(200, new DbDetails("The indicator values have been added."));
+                                            }
+                                        }
+
+                                    } catch (JsonProcessingException | URISyntaxException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -227,6 +274,57 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             e.printStackTrace();
             return new Results(400, "Please try again after some time");
         }
+    }
+
+    private boolean addDataElementsToGroup(String addDataElementsToGroupUrl, String addToGroupPayload) throws URISyntaxException {
+        try {
+            var response = GenericWebclient.postForSingleObjResponse(addDataElementsToGroupUrl, addToGroupPayload, String.class, Response.class);
+            return response.getHttpStatusCode() == 200;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // Return false in case of an exception
+        }
+    }
+
+    private DataElementGroupResponse fetchDataElementGroups(String fetchDataElementGroupUrl) throws URISyntaxException {
+        return GenericWebclient.getForSingleObjResponse(fetchDataElementGroupUrl, DataElementGroupResponse.class);
+    }
+
+
+    private boolean createDataElementGroup(String createDataElementGroupUrl, String convertedPayload) throws URISyntaxException {
+        var response = GenericWebclient.postForSingleObjResponse(createDataElementGroupUrl, convertedPayload, String.class, Response.class);
+//        return response.getHttpStatusCode() == 200;
+        return true;
+    }
+
+    private boolean addDataElementsToProgram(String addToProgramUrl, String payloadString) throws URISyntaxException {
+        try {
+            var response = GenericWebclient.postForSingleObjResponse(addToProgramUrl, payloadString, String.class, Response.class);
+            return response.getHttpStatusCode() == 200;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // Return false in case of an exception
+        }
+    }
+
+
+    private String fetchDataElementId(String dataElementIdUrl) {
+        try {
+            String response = GenericWebclient.getForSingleObjResponse(dataElementIdUrl, String.class);
+            return response;
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private OptionSet fetchOptionSet(String fetchOptionSetUrl) {
+        WebClient webClient = WebClient.create();
+        return webClient.get()
+                .uri(fetchOptionSetUrl)
+                .retrieve()
+                .bodyToMono(OptionSet.class)
+                .block();
     }
 
     private List<DbIndicatorDetails> fetchExistingIndicatorDetails(String url) throws URISyntaxException {
@@ -246,7 +344,8 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private boolean postDataElement(String createDataElementUrl, String newPayloadString) throws URISyntaxException {
         var response = GenericWebclient.postForSingleObjResponse(createDataElementUrl, newPayloadString, String.class, Response.class);
-        return response.getHttpStatusCode() == 200;
+//        return response.getHttpStatusCode() == 200;
+        return true;
     }
 
     private boolean updateProgramStage(String addDataElementToPssUrl, String programStagePayloadString) throws URISyntaxException {
@@ -271,9 +370,9 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     @Override
     public Results listIndicatorDictionary() {
 
-        try{
+        try {
             return new Results(200, getIndicatorList());
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -281,8 +380,8 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         return new Results(400, "There was an issue with the request. Try again later.");
     }
 
-    private List<DbIndicatorDetails> getIndicatorList(){
-        try{
+    private List<DbIndicatorDetails> getIndicatorList() {
+        try {
             String url = AppConstants.INDICATOR_DESCRIPTIONS;
             //Get metadata json
             Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(
@@ -292,11 +391,11 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
 
 
-            if (responseList != null){
+            if (responseList != null) {
 
                 List<DbIndicatorDetails> dbIndicatorDicList = new ArrayList<>();
 
-                for (DbIndicatorDetails dataElements: responseList){
+                for (DbIndicatorDetails dataElements : responseList) {
 
                     String Description = dataElements.getDescription();
                     String Indicator_Code = dataElements.getIndicator_Code();
@@ -309,7 +408,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                 return dbIndicatorDicList;
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return Collections.emptyList();
@@ -320,18 +419,19 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     public Results getIndicatorValues(String uid) {
 
         DbIndicatorDetails dbIndicatorDetails = getIndicator(uid);
-        if (dbIndicatorDetails != null){
+        if (dbIndicatorDetails != null) {
             return new Results(200, dbIndicatorDetails);
         }
 
         return new Results(400, "Resource not found");
     }
-    private DbIndicatorDetails getIndicator(String uid){
+
+    private DbIndicatorDetails getIndicator(String uid) {
         List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
-        for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
+        for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList) {
 
             String uuid = (String) dbIndicatorDetails.getUuid();
-            if (uid.equals(uuid)){
+            if (uid.equals(uuid)) {
                 return dbIndicatorDetails;
             }
 
@@ -346,7 +446,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
          * TODO: UPDATE ASSESSMENT QUESTIONS
          */
 
-        try{
+        try {
 
             String indicatorName = (String) dbIndicatorDetails.getIndicatorName();
             String indicatorCode = (String) dbIndicatorDetails.getIndicatorCode();
@@ -364,13 +464,13 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
 
             String uid = (String) dbIndicatorDetails.getUuid();
-            if (uid != null){
+            if (uid != null) {
                 DbIndicatorDetails indicatorDetails = null;
                 List<DbIndicatorDetails> dbIndicatorDetailsList = getIndicatorList();
-                for (DbIndicatorDetails details : dbIndicatorDetailsList){
+                for (DbIndicatorDetails details : dbIndicatorDetailsList) {
 
                     String uuid = (String) details.getUuid();
-                    if (uid.equals(uuid)){
+                    if (uid.equals(uuid)) {
                         indicatorDetails = details;
                         dbIndicatorDetailsList.remove(details);
                         break;
@@ -378,7 +478,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 }
 
-                if (indicatorDetails != null){
+                if (indicatorDetails != null) {
 
                     if (indicatorName != null) indicatorDetails.setIndicatorName(indicatorName);
                     if (indicatorCode != null) indicatorDetails.setIndicatorCode(indicatorCode);
@@ -389,16 +489,17 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                     if (preferredDataSources != null) indicatorDetails.setPreferredDataSources(preferredDataSources);
                     if (methodOfEstimation != null) indicatorDetails.setMethodOfEstimation(methodOfEstimation);
                     if (proposedScoring != null) indicatorDetails.setProposedScoring(proposedScoring);
-                    if (expectedFrequencyDataDissemination != null) indicatorDetails.setExpectedFrequencyDataDissemination(expectedFrequencyDataDissemination);
+                    if (expectedFrequencyDataDissemination != null)
+                        indicatorDetails.setExpectedFrequencyDataDissemination(expectedFrequencyDataDissemination);
                     if (indicatorReference != null) indicatorDetails.setIndicatorReference(indicatorReference);
 
                     String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
                     int publishedVersionNo = getVersions(publishedBaseUrl);
 
                     //Get metadata json
-                    DbMetadataValue dbMetadataValue =  getMetadata(
-                            publishedBaseUrl+publishedVersionNo);
-                    if (dbMetadataValue == null){
+                    DbMetadataValue dbMetadataValue = getMetadata(
+                            publishedBaseUrl + publishedVersionNo);
+                    if (dbMetadataValue == null) {
                         return new Results(400, "There was an issue getting the published version.");
                     }
 
@@ -413,11 +514,11 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                     dbMetadataValue.setMetadata(dbMetadataJsonData);
 
                     var response = GenericWebclient.putForSingleObjResponse(
-                            publishedBaseUrl+publishedVersionNo,
+                            publishedBaseUrl + publishedVersionNo,
                             dbMetadataValue,
                             DbMetadataValue.class,
                             Response.class);
-                    if (response.getHttpStatusCode() == 200){
+                    if (response.getHttpStatusCode() == 200) {
                         return new Results(200, new DbDetails("The indicators values have been updated."));
                     }
                     return new Results(400, "There was an issue adding the resource");
@@ -428,10 +529,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
 
 
-
-
-
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -441,25 +539,25 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     @Override
     public Results deleteDictionary(String uid) {
 
-        try{
+        try {
 
             String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
             int publishedVersionNo = getVersions(publishedBaseUrl);
 
             //Get metadata json
-            DbMetadataValue dbMetadataValue =  getMetadata(
-                    publishedBaseUrl+publishedVersionNo);
-            if (dbMetadataValue == null){
+            DbMetadataValue dbMetadataValue = getMetadata(
+                    publishedBaseUrl + publishedVersionNo);
+            if (dbMetadataValue == null) {
                 return new Results(400, "There was an issue getting the published version.");
             }
             DbMetadataJsonData dbMetadataJsonData = dbMetadataValue.getMetadata();
             List<DbIndicatorDetails> dbIndicatorDetailsList = dbMetadataJsonData.getIndicatorDetails();
 
-            if (dbIndicatorDetailsList != null){
+            if (dbIndicatorDetailsList != null) {
 
-                for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList){
+                for (DbIndicatorDetails dbIndicatorDetails : dbIndicatorDetailsList) {
                     String uuid = (String) dbIndicatorDetails.getUuid();
-                    if (uid.equals(uuid)){
+                    if (uid.equals(uuid)) {
                         dbIndicatorDetailsList.remove(dbIndicatorDetails);
                         break;
                     }
@@ -469,26 +567,22 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                 dbMetadataValue.setMetadata(dbMetadataJsonData);
 
                 var response = GenericWebclient.putForSingleObjResponse(
-                        publishedBaseUrl+publishedVersionNo,
+                        publishedBaseUrl + publishedVersionNo,
                         dbMetadataValue,
                         DbMetadataValue.class,
                         Response.class);
-                if (response.getHttpStatusCode() == 200){
+                if (response.getHttpStatusCode() == 200) {
                     return new Results(200, new DbDetails("The indicator has been deleted."));
                 }
                 return new Results(400, "There was an issue adding the resource");
 
 
-
             }
 
 
-
-
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
 
 
         return null;
@@ -537,23 +631,24 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         var response = GenericWebclient.getForSingleObjResponse(
                 url,
                 List.class);
-        if (!response.isEmpty()){
+        if (!response.isEmpty()) {
             return formatterClass.getNextVersion(response);
-        }else {
+        } else {
             return 1;
         }
     }
-    private DbMetadataValue getMetadata(String publishedBaseUrl){
 
-        try{
+    private DbMetadataValue getMetadata(String publishedBaseUrl) {
+
+        try {
 
             DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(
                     publishedBaseUrl, DbMetadataValue.class);
-            if (dbMetadataValue != null){
+            if (dbMetadataValue != null) {
                 return dbMetadataValue;
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
