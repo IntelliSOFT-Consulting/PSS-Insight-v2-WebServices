@@ -21,7 +21,7 @@ public class AppConstants {
     public static final BaseColor PSS_BLUE = new BaseColor(0, 47, 108);
     public static final BaseColor PSS_RED = new BaseColor(186, 12, 47);
 
-    public static  final String CREATE_DATA_ELEMENT= INTERNATIONAL_BASE_URL+"metadata";
+    public static  final String CREATE_NEW_DATA_ELEMENT= INTERNATIONAL_BASE_URL+"29/metadata";
     public static  final String ADD_DATA_ELEMENT_TO_PSS_PROGRAM= INTERNATIONAL_BASE_URL+"programStages";
     public static  final String PSS_PROGRAM_ID="T4EBleGG9mU";
     public static  final String PSS_PROGRAM_STAGE_ID="DugOfoE4Cjx";
@@ -29,5 +29,15 @@ public class AppConstants {
 
     public static  final String ADD_DATA_ELEMENTS_TO_GROUP = INTERNATIONAL_BASE_URL+"dataElementGroups";
 
+    public static final String FETCH_OPTION_SET_URL = INTERNATIONAL_BASE_URL+"optionSets/";
 
+    public static final  String CHECK_INDICATOR_EXISTS= INTERNATIONAL_BASE_URL+"indicators?filter=name:"; //YourIndicatorName
+
+    public static final String FETCH_DATA_ELEMENTS_ID = INTERNATIONAL_BASE_URL+ "dataElements?filter=";
+
+    public static  final String ADD_DATA_ELEMENTS_TO_PROGRAM = INTERNATIONAL_BASE_URL+"programs/";
+
+    public static  final String CREATE_DATA_ELEMENT_GROUP = INTERNATIONAL_BASE_URL+"dataElementGroups";
+
+    public static final String PROXY_REDIRECT_URL = "https://ghoapi.azureedge.net/api/";
 }
