@@ -1,9 +1,6 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
-import com.intellisoft.pssnationalinstance.DbNotificationSub;
-import com.intellisoft.pssnationalinstance.DbResultsApi;
-import com.intellisoft.pssnationalinstance.NotificationSubscription;
-import com.intellisoft.pssnationalinstance.Results;
+import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.NotificationService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
@@ -116,14 +113,24 @@ public class NotificationServiceImpl implements NotificationService {
             WebClient webClient = WebClient.create();
 
             // Send the update request with the provided DbNotificationSub object
-            NotificationSubscription notificationSubscription = webClient.put()
+            UnsubscribeResponse response = webClient.put()
                     .uri(internationalBaseApi)
                     .bodyValue(dbNotificationSub)
                     .retrieve()
-                    .bodyToMono(NotificationSubscription.class)
+                    .bodyToMono(UnsubscribeResponse.class)
                     .block();
 
-            if (notificationSubscription != null) {
+            if (response != null && response.getCode() == 200 && response.getDetails() != null) {
+                NotificationSubscription details = response.getDetails();
+                NotificationSubscription notificationSubscription = new NotificationSubscription(
+                        details.getId(),
+                        details.getFirstName(),
+                        details.getLastName(),
+                        details.getEmail(),
+                        details.getPhone(),
+                        details.isActive(),
+                        details.getUserId()
+                );
                 return new Results(200, notificationSubscription);
             } else {
                 return new Results(400, "Resource not found, update not successful");
@@ -133,5 +140,6 @@ public class NotificationServiceImpl implements NotificationService {
             return new Results(400, "An error occurred while processing the request");
         }
     }
+
 
 }

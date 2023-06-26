@@ -32,19 +32,22 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results subscribe(DbNotificationSub notificationSubscription) {
-        try{
+        try {
 
             NotificationSubscription subscription = new NotificationSubscription();
-            if(notificationSubscription.getId() != null) subscription.setUserId(notificationSubscription.getId());
-            if (notificationSubscription.getLastName() != null) subscription.setLastName(notificationSubscription.getLastName());
-            if (notificationSubscription.getPhoneNumber() != null) subscription.setPhone(notificationSubscription.getPhoneNumber());
-            if (notificationSubscription.getFirstName() != null) subscription.setFirstName(notificationSubscription.getFirstName());
+            if (notificationSubscription.getId() != null) subscription.setUserId(notificationSubscription.getId());
+            if (notificationSubscription.getLastName() != null)
+                subscription.setLastName(notificationSubscription.getLastName());
+            if (notificationSubscription.getPhoneNumber() != null)
+                subscription.setPhone(notificationSubscription.getPhoneNumber());
+            if (notificationSubscription.getFirstName() != null)
+                subscription.setFirstName(notificationSubscription.getFirstName());
 
             subscription.setEmail(notificationSubscription.getEmail());
 
 
             var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
-            if (savedSubscription.isEmpty()){
+            if (savedSubscription.isEmpty()) {
                 // user does not exist, so the API can subscribe the user
                 notificationSubscriptionRepo.save(subscription);
             } else {
@@ -52,8 +55,7 @@ public class NotificationServiceImpl implements NotificationService {
                 return new Results(400, "You are already subscribed.");
             }
             return new Results(200, notificationSubscription);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return new Results(400, "Saving resource not possible.");
         }
@@ -85,20 +87,20 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Results getNotifications(int no, int size,String emailAddress) {
+    public Results getNotifications(int no, int size, String emailAddress) {
 
         Optional<NotificationSubscription> subscriptionOptional =
                 notificationSubscriptionRepo.findByEmail(emailAddress);
-        if (subscriptionOptional.isEmpty()){
+        if (subscriptionOptional.isEmpty()) {
             return new Results(400, "We don't have a record of the email address.");
         }
-        if (!subscriptionOptional.get().getIsActive()){
+        if (!subscriptionOptional.get().getIsActive()) {
             return new Results(400, "The user is not subscribed to the notifications.");
         }
 
         List<DbNotification> dbNotificationList = new ArrayList<>();
         List<NotificationEntity> notificationEntityList = notificationEntityRepo.findByEmailAddress(emailAddress);
-        for (NotificationEntity notification: notificationEntityList){
+        for (NotificationEntity notification : notificationEntityList) {
             DbNotification dbNotification = new DbNotification(
                     notification.getTitle(),
                     notification.getMessage(),
@@ -138,12 +140,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void createNotification(NotificationEntity notificationEntity) {
 
-        try{
+        try {
             NotificationEntity notification = notificationEntityRepo.save(notificationEntity);
             List<String> emailList = notification.getEmailList();
 
-            if (!emailList.isEmpty()){
-                System.out.println("----- "+emailList);
+            if (!emailList.isEmpty()) {
+                System.out.println("----- " + emailList);
 
                 DbNotificationData dbNotificationData = new DbNotificationData(
                         emailList,
@@ -153,7 +155,7 @@ public class NotificationServiceImpl implements NotificationService {
                 );
                 formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("************ 3 error");
 
@@ -175,24 +177,24 @@ public class NotificationServiceImpl implements NotificationService {
             List<String> dbEmailList = new ArrayList<>();
 
             boolean sendAll = Boolean.TRUE.equals(dbSendNotification.getSendAll());
-            if (!sendAll){
+            if (!sendAll) {
                 // Check if the user wants to send to specific people
-                if(emailList.isEmpty()){
+                if (emailList.isEmpty()) {
                     // Check if the email list is provided
                     return new Results(400, "If the send all is not selected, the email list cannot be empty");
-                }else {
+                } else {
                     dbEmailList = emailList;
                 }
-            }else {
+            } else {
                 List<NotificationSubscription> notificationSubscriptionList =
                         notificationSubscriptionRepo.findAllByIsActive(true);
-                for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+                for (NotificationSubscription notificationSubscription : notificationSubscriptionList) {
                     String emailAddress = notificationSubscription.getEmail();
                     dbEmailList.add(emailAddress);
                 }
             }
 
-            if (!dbEmailList.isEmpty()){
+            if (!dbEmailList.isEmpty()) {
                 //Save to entity
                 NotificationEntity notificationEntity = new NotificationEntity();
                 notificationEntity.setTitle(title);
@@ -211,12 +213,12 @@ public class NotificationServiceImpl implements NotificationService {
                 formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
 
                 return new Results(200, new DbDetails("Notification has been sent"));
-            }else {
+            } else {
                 return new Results(400, "We can't find any email list");
 
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return new Results(400, "There was an issue sending the email address.");
         }
@@ -235,22 +237,22 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findByUserId(dbNotificationSub.getId());
-        if (optionalNotificationSubscription.isPresent()) {
+        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findFirstByUserId(dbNotificationSub.getId());
 
+        if (optionalNotificationSubscription.isPresent()) {
             NotificationSubscription notificationSubscription = optionalNotificationSubscription.get();
 
-            // update with new email
+            // Update the email address
             notificationSubscription.setEmail(dbNotificationSub.getEmail());
 
-            //update on dB:
+            // Save the record
             notificationSubscriptionRepo.save(notificationSubscription);
 
             return new Results(200, notificationSubscription);
         } else {
+            // The record does not exist, so return a 400 error
             return new Results(400, "Resource not found, update not successful");
         }
     }
-
 
 }
