@@ -31,6 +31,8 @@ public class AppConstants {
     public static final String MASTER_TEMPLATE =new FormatterClass().getMasterTemplate().getMasterTemplate();
     public static final String DATA_STORE_ENDPOINT=INTERNATIONAL_BASE_URL+"dataStore/"+MASTER_TEMPLATE+"/";
 
+    public static final  String FETCH_BENCHMARKS_API=INTERNATIONAL_BASE_URL+"38/dataStore/Benchmarks/V1";
+
 
 
 

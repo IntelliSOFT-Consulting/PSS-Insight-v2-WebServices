@@ -8,9 +8,12 @@ import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -21,36 +24,78 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
     private final FormatterClass formatterClass = new FormatterClass();
 
 
-    @Override
+    private static List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() throws URISyntaxException {
+        String url = AppConstants.FETCH_BENCHMARKS_API;
+        Flux<IndicatorBenchmark> responseFlux = GenericWebclient.getForCollectionResponse(url, IndicatorBenchmark.class);
+        List<IndicatorBenchmark> benchmarkList = responseFlux.collectList().block();
+
+        if (benchmarkList != null) {
+            List<IndicatorBenchmark> indicatorBenchmarks = new ArrayList<>();
+            for (IndicatorBenchmark benchmarks : benchmarkList) {
+                String Benchmark = (String) benchmarks.getBenchmark();
+                String Indicator_Code = (String) benchmarks.getIndicatorCode();
+                indicatorBenchmarks.add(benchmarks);
+            }
+            return indicatorBenchmarks;
+        }
+        return Collections.emptyList();
+    }
+
     public Results getInternationalIndicators() {
-
-        try{
-
+        try {
             List<DbTemplateDetails> dbTemplateDetailsList = new ArrayList<>();
             String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
 
-            DbPublishedVersion interNationalPublishedIndicators =
-                    interNationalPublishedIndicators();
-            if (interNationalPublishedIndicators != null){
-
+            DbPublishedVersion interNationalPublishedIndicators = interNationalPublishedIndicators();
+            if (interNationalPublishedIndicators != null) {
                 int versionNo = getVersions(publishedBaseUrl);
-                DbTemplateDetails dbTemplateDetails =
-                        new DbTemplateDetails(versionNo, getInterNationalPublishedIndicators());
+                DbTemplateDetails dbTemplateDetails = new DbTemplateDetails(versionNo, getInterNationalPublishedIndicators());
                 dbTemplateDetailsList.add(dbTemplateDetails);
             }
 
             DbTemplateDetails dbTemplateDetails = getRecentPublishedData(publishedBaseUrl);
             dbTemplateDetailsList.add(dbTemplateDetails);
 
-            return new Results(200, dbTemplateDetailsList);
+            List<IndicatorBenchmark> indicatorCodes = getIndicatorCodesFromBenchmarksAPI();
 
-        } catch (Exception syntaxException){
+            for (DbTemplateDetails dbTemplateDetailsItem : dbTemplateDetailsList) {
+                Object indicators = dbTemplateDetailsItem.getIndicators();
+                if (indicators instanceof DbPublishedVersionDetails) {
+                    DbPublishedVersionDetails publishedVersionDetails = (DbPublishedVersionDetails) indicators;
+                    List<DbIndicators> details = publishedVersionDetails.getDetails();
+                    for (DbIndicators detail : details) {
+                        Object categoryName = detail.getCategoryName();
+                        List<DbIndicatorValues> indicatorValues = detail.getIndicators();
+                        for (DbIndicatorValues indicatorValue : indicatorValues) {
+                            Object indicatorCategoryName = indicatorValue.getCategoryName();
+                            if (indicatorCategoryName != null && indicatorCategoryName instanceof String) {
+
+                                // Compare indicatorCategoryName with indicatorCodes
+                                for (IndicatorBenchmark indicatorCode : indicatorCodes) {
+                                    if (indicatorCategoryName.equals(indicatorCode.getIndicatorCode())) {
+
+                                        // Access benchmark information from the matched indicatorCode
+                                        String benchmark = (String) indicatorCode.getBenchmark();
+                                        
+                                        // Update indicatorDataValue with benchmark key value
+                                        List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
+                                        for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
+                                            indicatorDataValue.setBenchmark(benchmark);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return new Results(200, dbTemplateDetailsList);
+        } catch (Exception syntaxException) {
             syntaxException.printStackTrace();
         }
-
         return new Results(400, "The international indicators could not be found.");
-
     }
+
 
     public DbPublishedVersionDetails getInterNationalPublishedIndicators(){
         String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
@@ -116,7 +161,6 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                             refSheet,
                             indicators.getCount(),
                             indicators.getDetails());
-
                     return new DbTemplateDetails(
                             recentVersionNo,
                             dbPublishedVersionDetails);

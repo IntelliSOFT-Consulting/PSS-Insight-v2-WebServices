@@ -184,6 +184,8 @@ data class DbIndicatorDataValues(
     var name: Any?,
     @JsonProperty("valueType")
     var valueType: Any?,
+    @JsonProperty("benchmark")
+    var benchmark: Any?,
 )
 data class DbIndicatorDescription(
     @JsonProperty("Description")
@@ -665,4 +667,11 @@ data class DbDataImport(
 data class DataValue(
     val dataElement: String,
     val value: String
+)
+
+data class IndicatorBenchmark(
+    @JsonProperty("Benchmark")
+    val Benchmark:Any?,
+    @JsonProperty("indicator Code")
+    val indicatorCode:Any,
 )
