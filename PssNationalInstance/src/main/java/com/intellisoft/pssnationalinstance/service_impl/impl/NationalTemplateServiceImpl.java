@@ -410,7 +410,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }
             }
             if (!newIndicators.isEmpty()){
-                DbIndicators dbNewIndicators = new DbIndicators(false,
+                DbIndicators dbNewIndicators = new DbIndicators(
                         categoryName, newIndicators);
                 dbIndicatorsList.add(dbNewIndicators);
             }
