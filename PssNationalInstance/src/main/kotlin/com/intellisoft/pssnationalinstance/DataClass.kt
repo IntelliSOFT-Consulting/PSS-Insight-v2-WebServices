@@ -156,8 +156,6 @@ data class DbPublishedVersion(
     var details: List<DbIndicators>,
 )
 data class DbIndicators(
-    @JsonProperty("isLatest")
-    var isLatest: Boolean,
     @JsonProperty("categoryName")
     var categoryName: Any?,
     @JsonProperty("indicators")
@@ -170,6 +168,8 @@ data class DbIndicatorValues(
     var categoryId: Any?,
     @JsonProperty("categoryName")
     var categoryName: Any?,
+    @JsonProperty("isLatest")
+    var isLatest: Boolean?,
     @JsonProperty("indicatorName")
     var indicatorName: Any?,
     @JsonProperty("indicatorDataValue")
@@ -610,7 +610,11 @@ data class DbAssessmentQuestion(
         @JsonProperty("valueType")
         val valueType: Any?,
         @JsonProperty("name")
-        val name: Any?
+        val name: Any?,
+        @JsonProperty("id")
+        val id: Any?,
+        @JsonProperty("code")
+        val code: Any?
 )
 
 data class DbFormula(

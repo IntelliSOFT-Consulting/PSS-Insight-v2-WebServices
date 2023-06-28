@@ -576,13 +576,14 @@ public class DataEntryServiceImpl implements DataEntryService {
                                         dbIndicatorValues.getDescription(),
                                         dbIndicatorValues.getCategoryId(),
                                         dbIndicatorValues.getCategoryName(),
+                                        null,
                                         dbIndicatorValues.getIndicatorName(),
                                         dbIndicatorDataValuesList);
                                 dbIndicatorValuesList.add(indicatorValues);
                             }
                         }
 
-                        DbIndicators indicators = new DbIndicators(false,
+                        DbIndicators indicators = new DbIndicators(
                                 dbIndicators.getCategoryName(),
                                 dbIndicatorValuesList);
                         dbIndicatorsArrayList.add(indicators);

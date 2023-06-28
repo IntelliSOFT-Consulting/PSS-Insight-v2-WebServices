@@ -675,7 +675,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
                 }
 
-                DbIndicators newDbIndicators = new DbIndicators(false,
+                DbIndicators newDbIndicators = new DbIndicators(
                         categoryName, newIndicatorList);
                 newDbIndicatorsList.add(newDbIndicators);
 
