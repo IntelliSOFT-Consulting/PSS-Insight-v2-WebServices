@@ -21,12 +21,15 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.lang.reflect.Type;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -146,9 +149,18 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return null;
     }
 
-    private DbPublishedVersionDetails getPublishedDetails() {
+    private DbPublishedVersionDetails getPublishedDetails() throws URISyntaxException {
         DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, null, null, Collections.emptyList());
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+        String dataDictionaryUrl = AppConstants.INDICATOR_DESCRIPTIONS;
+
+        //Get metadata json
+        Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(
+                dataDictionaryUrl,
+                DbIndicatorDetails.class
+        );
+        List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
+
         DbMetadataJson dbMetadataJson =
                 internationalTemplateService.getPublishedData(publishedBaseUrl);
         if (dbMetadataJson != null) {
@@ -175,9 +187,38 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     }
                 }
             }
+
+            for (DbIndicatorDetails indicatorDetails : responseList) {
+                for (DbAssessmentQuestion dbAssessmentQuestion : indicatorDetails.getAssessmentQuestions()) {
+                    String assessmentQuestionName = (String) dbAssessmentQuestion.getName();
+
+                    for (DbIndicators dbIndicators : details.getDetails()) {
+                        for (DbIndicatorValues dbIndicatorValues : dbIndicators.getIndicators()) {
+                            List<DbIndicatorDataValues> indicatorDataValues = dbIndicatorValues.getIndicatorDataValue();
+
+                            // Find the matching DbIndicatorDataValues object
+                            Optional<DbIndicatorDataValues> matchingDataValue = indicatorDataValues.stream()
+                                    .filter(dataValue -> assessmentQuestionName.equals(dataValue.getName()))
+                                    .findFirst();
+
+                            if (matchingDataValue.isPresent()) {
+                                // Set the id, code, and value type
+                                DbIndicatorDataValues dataValue = matchingDataValue.get();
+                                dataValue.setId(dbAssessmentQuestion.getId());
+                                dataValue.setCode(dbAssessmentQuestion.getCode());
+                                dataValue.setValueType(dbAssessmentQuestion.getValueType());
+                                dataValue.setValueType(dbAssessmentQuestion.getValueType());
+                            }
+                        }
+                    }
+                }
+            }
         }
         return details;
     }
+
+
+
 
     @Override
     public Results getIndicatorDescription(String pssCode) {

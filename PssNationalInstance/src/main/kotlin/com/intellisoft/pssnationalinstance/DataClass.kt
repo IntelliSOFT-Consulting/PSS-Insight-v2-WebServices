@@ -610,7 +610,11 @@ data class DbAssessmentQuestion(
         @JsonProperty("valueType")
         val valueType: Any?,
         @JsonProperty("name")
-        val name: Any?
+        val name: Any?,
+        @JsonProperty("id")
+        val id: Any?,
+        @JsonProperty("code")
+        val code: Any?
 )
 
 data class DbFormula(
