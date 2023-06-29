@@ -84,23 +84,6 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                                         indicatorDataValue.setBenchmark(benchmarkValue);
                                     }
                                 }
-
-
-
-//                                // Compare indicatorCategoryName with indicatorCodes
-//                                for (IndicatorBenchmark indicatorCode : indicatorCodes) {
-//                                    if (indicatorCategoryName.equals(indicatorCode.getIndicatorCode())) {
-//
-//                                        // Access benchmark information from the matched indicatorCode
-//                                        String benchmark = (String) indicatorCode.getBenchmark();
-//
-//                                        // Update indicatorDataValue with benchmark key value
-//                                        List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
-//                                        for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
-//                                            indicatorDataValue.setBenchmark(benchmark);
-//                                        }
-//                                    }
-//                                }
                             }
                         }
                     }
