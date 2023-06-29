@@ -1,14 +1,12 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.AboutUs;
+import com.intellisoft.pssnationalinstance.db.Benchmarks;
 import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
 import com.intellisoft.pssnationalinstance.db.VersionEntity;
 import com.intellisoft.pssnationalinstance.repository.AboutUsRepository;
+import com.intellisoft.pssnationalinstance.repository.BenchmarksRepository;
 import com.intellisoft.pssnationalinstance.repository.VersionEntityRepository;
 import com.intellisoft.pssnationalinstance.service_impl.service.AboutUsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
@@ -18,18 +16,15 @@ import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -43,7 +38,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private final IndicatorEditsService indicatorEditsService;
     private final AboutUsService aboutUsService;
     private final AboutUsRepository aboutUsRepository;
-
+    private final BenchmarksRepository benchmarksRepository;
     @Override
     public Results getNationalPublishedVersion() {
 
@@ -188,6 +183,8 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }
             }
 
+            List<IndicatorBenchmark> indicatorCodes = getIndicatorCodesFromBenchmarksAPI();
+
             for (DbIndicatorDetails indicatorDetails : responseList) {
                 for (DbAssessmentQuestion dbAssessmentQuestion : indicatorDetails.getAssessmentQuestions()) {
                     String assessmentQuestionName = (String) dbAssessmentQuestion.getName();
@@ -209,6 +206,16 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                                 dataValue.setValueType(dbAssessmentQuestion.getValueType());
                                 dataValue.setValueType(dbAssessmentQuestion.getValueType());
                             }
+
+
+                            Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(dbIndicatorValues.getCategoryName());
+                            if (optionalBenchmarks.isPresent()) {
+                                Benchmarks benchmarks = optionalBenchmarks.get();
+                                String benchmarkValue = benchmarks.getValue();
+                                for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
+                                    indicatorDataValue.setBenchmark(benchmarkValue);
+                                }
+                            }
                         }
                     }
                 }
@@ -217,8 +224,22 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return details;
     }
 
+    private static List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() throws URISyntaxException {
+        String url = AppConstants.FETCH_BENCHMARKS_API;
+        Flux<IndicatorBenchmark> responseFlux = GenericWebclient.getForCollectionResponse(url, IndicatorBenchmark.class);
+        List<IndicatorBenchmark> benchmarkList = responseFlux.collectList().block();
 
-
+        if (benchmarkList != null) {
+            List<IndicatorBenchmark> indicatorBenchmarks = new ArrayList<>();
+            for (IndicatorBenchmark benchmarks : benchmarkList) {
+                String Benchmark = (String) benchmarks.getBenchmark();
+                String Indicator_Code = (String) benchmarks.getIndicatorCode();
+                indicatorBenchmarks.add(benchmarks);
+            }
+            return indicatorBenchmarks;
+        }
+        return Collections.emptyList();
+    }
 
     @Override
     public Results getIndicatorDescription(String pssCode) {
