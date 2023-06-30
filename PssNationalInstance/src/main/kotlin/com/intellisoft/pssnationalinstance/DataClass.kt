@@ -186,6 +186,8 @@ data class DbIndicatorDataValues(
     var valueType: Any?,
     @JsonProperty("benchmark")
     var benchmark: Any?,
+    @JsonProperty("internationalBenchmark")
+    var internationalBenchmark: Any?,
 )
 data class DbIndicatorDescription(
     @JsonProperty("Description")

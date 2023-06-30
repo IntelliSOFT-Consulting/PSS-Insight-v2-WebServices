@@ -214,6 +214,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                                 String benchmarkValue = benchmarks.getValue();
                                 for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
                                     indicatorDataValue.setBenchmark(benchmarkValue);
+                                    indicatorDataValue.setInternationalBenchmark(benchmarkValue);
                                 }
                             }
                         }

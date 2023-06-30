@@ -82,6 +82,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                                     List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
                                     for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
                                         indicatorDataValue.setBenchmark(benchmarkValue);
+                                        indicatorDataValue.setInternationalBenchmark(benchmarkValue);
                                     }
                                 }
                             }
