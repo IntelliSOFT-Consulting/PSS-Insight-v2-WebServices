@@ -167,6 +167,7 @@ class FormatterClass {
         // Add subtitles and values
         val subTitleFont = FontFactory.getFont("Gill Sans", 18f, Font.BOLD, BaseColor.BLACK)
         val valueFont = FontFactory.getFont("Gill Sans", 12f, Font.NORMAL, BaseColor.BLACK)
+        val leftColumFont = FontFactory.getFont("Gill Sans", 12f, Font.NORMAL, BaseColor.WHITE)
         val subTitleList = dbPdfData.subTitleList
         for (subTitle in subTitleList){
 
@@ -185,7 +186,7 @@ class FormatterClass {
             val valueList = subTitle.valueList
             for (valueKey in valueList){
                 val blueColor: BaseColor = AppConstants.PSS_BLUE //custom blue from PSS palette
-                valueTable.addCell(createCell(valueKey.key, blueColor, valueFont))
+                valueTable.addCell(createCell(valueKey.key, blueColor, leftColumFont))
                 valueTable.addCell(createCell(valueKey.value, BaseColor.WHITE, valueFont))
             }
 

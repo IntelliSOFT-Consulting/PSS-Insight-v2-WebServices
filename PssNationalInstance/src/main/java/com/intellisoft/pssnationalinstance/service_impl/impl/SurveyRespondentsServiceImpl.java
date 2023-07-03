@@ -13,12 +13,17 @@ import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService
 import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
+import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -231,7 +236,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     }
 
     @Override
-    public Results getAssignedSurvey(String respondentId) {
+    public Results getAssignedSurvey(String respondentId) throws JSONException, URISyntaxException {
 
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
@@ -309,7 +314,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             String respondentId,
             String questions,
             String responses,
-            String respondentDetails) {
+            String respondentDetails) throws JSONException, URISyntaxException {
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(Long.valueOf(respondentId));
@@ -396,6 +401,9 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                 }
 
 
+//                System.out.println("dbResponseDetailsValues" +dbResponseDetailsValues);
+
+
                 DbResponseDetails dbResponseDetails =
                         getRespondentsQuestions(surveyId, respondentId);
                 if (dbResponseDetails != null){
@@ -403,6 +411,8 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                             dbResponseDetails.getQuestions()
                     );
                 }
+
+                System.out.println("dbResponseDetails" +dbResponseDetails);
             }
 
 
@@ -607,78 +617,96 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }
     }
 
-    private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId){
+    private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId) throws JSONException, URISyntaxException {
 
         List<String> indicatorList = new ArrayList<>();
         Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
-        if (optionalSurvey.isPresent()){
+        if (optionalSurvey.isPresent()) {
             Surveys surveys = optionalSurvey.get();
             indicatorList = surveys.getIndicators();
-
-
         }
 
-        DbPublishedVersion dbPublishedVersion =
-                nationalTemplateService.nationalPublishedIndicators();
-        if (dbPublishedVersion != null){
+        DbPublishedVersion dbPublishedVersion = nationalTemplateService.nationalPublishedIndicators();
+
+        String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
+        String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+        JSONArray jsonArray = new JSONArray(indicatorDescription);
+
+        if (dbPublishedVersion != null) {
 
             List<DbIndicators> newDbIndicatorsList = new ArrayList<>();
             List<DbDataEntryResponses> dataEntryResponsesList = new ArrayList<>();
 
             List<DbIndicators> dbIndicatorsList = dbPublishedVersion.getDetails();
-            for (DbIndicators dbIndicators : dbIndicatorsList){
+            for (DbIndicators dbIndicators : dbIndicatorsList) {
 
                 String categoryName = (String) dbIndicators.getCategoryName();
                 List<DbIndicatorValues> newIndicatorList = new ArrayList<>();
 
                 List<DbIndicatorValues> dbIndicatorValuesList = dbIndicators.getIndicators();
-                for (DbIndicatorValues dbIndicatorValues : dbIndicatorValuesList){
+                for (DbIndicatorValues dbIndicatorValues : dbIndicatorValuesList) {
 
                     String categoryId = (String) dbIndicatorValues.getCategoryId();
-                    if (indicatorList.contains(categoryId)){
+                    if (indicatorList.contains(categoryId)) {
                         newIndicatorList.add(dbIndicatorValues);
                         List<DbIndicatorDataValues> dataValuesList =
                                 dbIndicatorValues.getIndicatorDataValue();
 
-                        for (DbIndicatorDataValues dbIndicatorDataValues: dataValuesList){
-                            String indicatorId = (String) dbIndicatorDataValues.getId();
-                            //get responses
 
-                            List<RespondentAnswers> respondentAnswersList = respondentAnswersRepository
-                                    .findByIndicatorIdAndRespondentId(indicatorId, respondentId);
-                            if (!respondentAnswersList.isEmpty()){
+                        JSONObject jsonObject = null;
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            jsonObject = jsonArray.getJSONObject(i);
+                            JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
 
-                                String answer = "";
-                                String comments = "";
-                                String attachment = "";
-                                for (RespondentAnswers respondentAnswers: respondentAnswersList){
-                                    answer = respondentAnswers.getAnswer();
-                                    comments = respondentAnswers.getComments();
-                                    attachment = respondentAnswers.getAttachment();
+                            for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
+                                JSONObject question = assessmentQuestionsArray.getJSONObject(j);
+                                String name = question.getString("name");
 
+                                for (DbIndicatorDataValues dbIndicatorDataValues : dataValuesList) {
+                                    String indicatorId = (String) dbIndicatorDataValues.getId();
+
+                                    if (dbIndicatorDataValues.getName().equals(name)) {
+
+                                        String id = question.getString("id");
+                                        String code = question.getString("code");
+
+                                        dbIndicatorDataValues.setId(id);
+                                        dbIndicatorDataValues.setCode(code);
+                                    }
+
+                                    //get responses
+                                    List<RespondentAnswers> respondentAnswersList = respondentAnswersRepository
+                                            .findByIndicatorIdAndRespondentId(indicatorId, respondentId);
+                                    if (!respondentAnswersList.isEmpty()) {
+
+                                        String answer = "";
+                                        String comments = "";
+                                        String attachment = "";
+                                        for (RespondentAnswers respondentAnswers : respondentAnswersList) {
+                                            answer = respondentAnswers.getAnswer();
+                                            comments = respondentAnswers.getComments();
+                                            attachment = respondentAnswers.getAttachment();
+                                        }
+
+                                        DbDataEntryResponses dbIndicatorDataResponses =
+                                                new DbDataEntryResponses(
+                                                        indicatorId,
+                                                        answer,
+                                                        comments,
+                                                        attachment);
+                                        dataEntryResponsesList.add(dbIndicatorDataResponses);
+
+                                    }
 
                                 }
 
-                                DbDataEntryResponses dbIndicatorDataResponses =
-                                        new DbDataEntryResponses(
-                                                indicatorId,
-                                                answer,
-                                                comments,
-                                                attachment);
-                                dataEntryResponsesList.add(dbIndicatorDataResponses);
-
                             }
-
                         }
-
                     }
-
                 }
 
-                DbIndicators newDbIndicators = new DbIndicators(
-                        categoryName, newIndicatorList);
+                DbIndicators newDbIndicators = new DbIndicators(categoryName, newIndicatorList);
                 newDbIndicatorsList.add(newDbIndicators);
-
             }
 
             return new DbResponseDetails(

@@ -348,7 +348,7 @@ data class DbDataEntryResponse(
     val dataEntryDate: String?,
     val createdAt: Any?,
     val responses: Any?,
-    var indicators: Any? = null,
+    var indicators: Any?,
 )
 
 data class DbSubmissionsResponse(

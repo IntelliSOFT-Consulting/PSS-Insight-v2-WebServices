@@ -10,6 +10,9 @@ import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONException;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +21,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -265,7 +269,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
     @Override
-    public Results viewDataEntry(String id) {
+    public Results viewDataEntry(String id) throws JSONException, URISyntaxException {
 
         Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(Long.valueOf(id));
         if (optionalDataEntry.isPresent()) {
@@ -285,7 +289,40 @@ public class DataEntryServiceImpl implements DataEntryService {
             String versionNumber = dataEntry.getVersionNumber();
             if (versionNumber != null) {
 
+                String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
+                String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+                JSONArray jsonArray = new JSONArray(indicatorDescription);
+
                 DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNumber);
+                assert dbPublishedVersion != null;
+
+                JSONObject jsonObject = null;
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    jsonObject = jsonArray.getJSONObject(i);
+                    JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
+
+                    for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
+                        JSONObject question = assessmentQuestionsArray.getJSONObject(j);
+                        String name = question.getString("name");
+
+                        for (DbIndicators dbIndicator : dbPublishedVersion.getDetails()) {
+                            for (DbIndicatorValues indicatorValue : dbIndicator.getIndicators()) {
+                                List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
+                                for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValues) {
+                                    if (dbIndicatorDataValues.getName().equals(name)) {
+
+                                        String indicatorId = question.getString("id");
+                                        String code = question.getString("code");
+
+                                        dbIndicatorDataValues.setId(indicatorId);
+                                        dbIndicatorDataValues.setCode(code);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (dbPublishedVersion != null) {
                     dbDataEntryResponse.setIndicators(dbPublishedVersion);
                 }
