@@ -1,6 +1,8 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.Benchmarks;
+import com.intellisoft.pssnationalinstance.repository.BenchmarksRepository;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
@@ -15,6 +17,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Log4j2
@@ -22,6 +25,7 @@ import java.util.List;
 public class InternationalTemplateServiceImpl implements InternationalTemplateService {
 
     private final FormatterClass formatterClass = new FormatterClass();
+    private final BenchmarksRepository benchmarksRepository;
 
 
     private static List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() throws URISyntaxException {
@@ -70,18 +74,15 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                             Object indicatorCategoryName = indicatorValue.getCategoryName();
                             if (indicatorCategoryName != null && indicatorCategoryName instanceof String) {
 
-                                // Compare indicatorCategoryName with indicatorCodes
-                                for (IndicatorBenchmark indicatorCode : indicatorCodes) {
-                                    if (indicatorCategoryName.equals(indicatorCode.getIndicatorCode())) {
 
-                                        // Access benchmark information from the matched indicatorCode
-                                        String benchmark = (String) indicatorCode.getBenchmark();
-                                        
-                                        // Update indicatorDataValue with benchmark key value
-                                        List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
-                                        for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
-                                            indicatorDataValue.setBenchmark(benchmark);
-                                        }
+                                Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(indicatorCategoryName);
+                                if (optionalBenchmarks.isPresent()) {
+                                    Benchmarks benchmarks = optionalBenchmarks.get();
+                                    String benchmarkValue = benchmarks.getValue();
+                                    List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
+                                    for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
+                                        indicatorDataValue.setBenchmark(benchmarkValue);
+                                        indicatorDataValue.setInternationalBenchmark(benchmarkValue);
                                     }
                                 }
                             }

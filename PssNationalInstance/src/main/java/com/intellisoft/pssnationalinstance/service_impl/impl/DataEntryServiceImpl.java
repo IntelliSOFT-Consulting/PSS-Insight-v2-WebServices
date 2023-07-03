@@ -564,7 +564,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                                                     indicatorId,
                                                     dbIndicatorDataValues.getCode(),
                                                     dbIndicatorDataValues.getName(),
-                                                    dbIndicatorDataValues.getValueType(), null);
+                                                    dbIndicatorDataValues.getValueType(), null, null);
                                     dbIndicatorDataValuesList.add(indicatorDataValues);
                                 }
 
