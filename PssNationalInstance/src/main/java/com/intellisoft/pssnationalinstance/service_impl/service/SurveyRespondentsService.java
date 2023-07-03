@@ -2,8 +2,6 @@ package com.intellisoft.pssnationalinstance.service_impl.service;
 
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.db.SurveyRespondents;
-import com.intellisoft.pssnationalinstance.db.Surveys;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 
 import java.net.URISyntaxException;
 import java.util.List;
@@ -52,7 +50,7 @@ public interface SurveyRespondentsService {
     /**
      * This gets all the assigned questions for the person
      */
-    Results getAssignedSurvey(String respondentId) throws JSONException, URISyntaxException;
+    Results getAssignedSurvey(String respondentId) throws URISyntaxException;
 
 
     /**
@@ -64,7 +62,7 @@ public interface SurveyRespondentsService {
             String respondentId,
             String questions,
             String responses,
-            String respondentDetails) throws JSONException, URISyntaxException;
+            String respondentDetails) throws URISyntaxException;
 
     Results resendSurvey(String respondentId, DbResendSurvey dbResendSurvey);
     Results confirmSurvey(String respondentId, DbConfirmSurvey dbConfirmSurvey);

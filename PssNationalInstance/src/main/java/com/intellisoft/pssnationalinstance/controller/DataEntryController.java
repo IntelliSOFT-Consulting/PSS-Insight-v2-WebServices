@@ -7,7 +7,6 @@ import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.Results;
 import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,7 +73,7 @@ public class DataEntryController {
      * Get Data entry Details
      */
     @GetMapping(value = "/response/{id}")
-    public ResponseEntity<?> getDataEntryDetails(@PathVariable("id") String id) throws JSONException, URISyntaxException {
+    public ResponseEntity<?> getDataEntryDetails(@PathVariable("id") String id) throws URISyntaxException {
         Results results = dataEntryService.viewDataEntry(id);
         return formatterClass.getResponse(results);
     }

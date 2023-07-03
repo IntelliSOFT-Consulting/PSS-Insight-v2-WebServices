@@ -3,7 +3,6 @@ package com.intellisoft.pssnationalinstance.controller;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.configurationprocessor.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +22,7 @@ public class SurveyRespondentsController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addSurveyRespondent(
-            @RequestBody DbSurveyRespondent dbSurveyRespondent) throws IOException {
+            @RequestBody DbSurveyRespondent dbSurveyRespondent) {
 
         Results results = surveyRespondentsService
                 .addSurveyRespondent(dbSurveyRespondent);
@@ -61,7 +60,7 @@ public class SurveyRespondentsController {
             @RequestParam(value = "questions", required = false) String questions,
             @RequestParam(value = "responses", required = false) String responses,
             @RequestParam(value = "respondentDetails", required = false) String respondentDetails
-    ) throws JSONException, URISyntaxException {
+    ) throws URISyntaxException {
         Results results = surveyRespondentsService
                 .getRespondentDetails(
                         respondentId,
