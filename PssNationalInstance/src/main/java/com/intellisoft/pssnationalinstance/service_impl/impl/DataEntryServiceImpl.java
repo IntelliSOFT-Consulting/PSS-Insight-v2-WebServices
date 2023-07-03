@@ -10,9 +10,8 @@ import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -269,7 +268,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
     @Override
-    public Results viewDataEntry(String id) throws JSONException, URISyntaxException {
+    public Results viewDataEntry(String id) throws URISyntaxException {
 
         Optional<DataEntry> optionalDataEntry = dataEntryRepository.findById(Long.valueOf(id));
         if (optionalDataEntry.isPresent()) {
