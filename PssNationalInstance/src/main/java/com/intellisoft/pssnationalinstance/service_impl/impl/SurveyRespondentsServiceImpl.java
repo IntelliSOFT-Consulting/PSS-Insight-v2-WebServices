@@ -16,18 +16,14 @@ import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondent
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.configurationprocessor.json.JSONArray;
-import org.springframework.boot.configurationprocessor.json.JSONException;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.scheduling.annotation.Async;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -236,7 +232,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
     }
 
     @Override
-    public Results getAssignedSurvey(String respondentId) throws JSONException, URISyntaxException {
+    public Results getAssignedSurvey(String respondentId) throws URISyntaxException {
 
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
@@ -314,7 +310,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
             String respondentId,
             String questions,
             String responses,
-            String respondentDetails) throws JSONException, URISyntaxException {
+            String respondentDetails) throws URISyntaxException {
 
         Optional<SurveyRespondents> optionalSurveyRespondents =
                 respondentsRepo.findById(Long.valueOf(respondentId));
@@ -617,7 +613,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }
     }
 
-    private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId) throws JSONException, URISyntaxException {
+    private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId) throws URISyntaxException {
 
         List<String> indicatorList = new ArrayList<>();
         Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
