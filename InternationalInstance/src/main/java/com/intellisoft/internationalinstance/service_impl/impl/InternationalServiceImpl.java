@@ -165,8 +165,10 @@ public class InternationalServiceImpl implements InternationalService {
                         JSONObject assessmentQuestionObj = assessmentQuestionsArray.getJSONObject(j);
                         String valueType = assessmentQuestionObj.optString("valueType");
                         String name = assessmentQuestionObj.getString("name");
+                        String code = assessmentQuestionObj.getString("code");
+                        String id = assessmentQuestionObj.getString("id");
 
-                        DbDataGrouping assessmentQuestion = new DbDataGrouping(null, name, null, valueType);
+                        DbDataGrouping assessmentQuestion = new DbDataGrouping(code, name, id, valueType);
                         assessmentQuestions.add(assessmentQuestion);
                     }
                     dbIndicatorDataValues.setIndicatorDataValue(assessmentQuestions);
