@@ -648,11 +648,34 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
                         List<DbIndicatorDataValues> dataValuesList =
                                 dbIndicatorValues.getIndicatorDataValue();
 
-
+                        String description = "";
                         JSONObject jsonObject = null;
                         for (int i = 0; i < jsonArray.length(); i++) {
                             jsonObject = jsonArray.getJSONObject(i);
                             JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
+
+                            if (jsonObject.has("Indicator_Code") && !jsonObject.isNull("Indicator_Code")) {
+                                String Indicator_Code = jsonObject.getString("Indicator_Code");
+                                if (categoryName.equals(Indicator_Code)) {
+                                    if (jsonObject.has("definition") && !jsonObject.isNull("definition")) {
+                                        description = jsonObject.getString("definition");
+                                        dbIndicatorValues.setDescription(description);
+                                    }
+
+                                    break;
+                                }
+                            }
+                            if (jsonObject.has("indicator_Code") && !jsonObject.isNull("indicator_Code")) {
+                                String Indicator_Code = jsonObject.getString("indicator_Code");
+                                if (categoryName.equals(Indicator_Code)) {
+                                    if (jsonObject.has("definition") && !jsonObject.isNull("definition")) {
+                                        description = jsonObject.getString("definition");
+                                        dbIndicatorValues.setDescription(description);
+                                    }
+
+                                    break;
+                                }
+                            }
 
                             for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
                                 JSONObject question = assessmentQuestionsArray.getJSONObject(j);
