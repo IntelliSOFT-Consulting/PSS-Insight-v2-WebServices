@@ -7,6 +7,7 @@ import com.intellisoft.internationalinstance.service_impl.service.AuditlogsServi
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -31,12 +32,13 @@ public class AuditlogsServiceImpl implements AuditlogsService {
 
     @Override
     public Results getChangelogDetail(Long version) {
-
-        Auditlogs auditlogs = auditlogsRepository.findByVersion(version);
-        if (auditlogs != null) {
-            return new Results(200, auditlogs);
-        } else {
+        List<Auditlogs> auditlogsList = auditlogsRepository.findByVersion(version);
+        if (auditlogsList.isEmpty()) {
             return new Results(404, "Changelog not found");
+        } else {
+            Auditlogs auditlogs = auditlogsList.get(0);
+            return new Results(200, auditlogs);
         }
     }
+
 }
