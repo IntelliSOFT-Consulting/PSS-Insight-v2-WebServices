@@ -285,6 +285,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                     dataEntry.getCreatedAt(),
                     dataEntryResponseList, null);
 
+
             String versionNumber = dataEntry.getVersionNumber();
             if (versionNumber != null) {
 
@@ -532,6 +533,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
                 String indicator = dataEntryResponses.getIndicator();
                 stringList.add(indicator);
+
             }
 
             String versionNumber = dataEntry.getVersionNumber();

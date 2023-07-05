@@ -95,7 +95,12 @@ public class NotificationServiceImpl implements NotificationService {
             return new Results(400, "We don't have a record of the email address.");
         }
         if (!subscriptionOptional.get().getIsActive()) {
-            return new Results(400, "The user is not subscribed to the notifications.");
+            List<DbNotification> dbNotificationList = new ArrayList<>();
+            DbResults dbResults = new DbResults(
+                    0,
+                    dbNotificationList
+            );
+            return new Results(200, dbResults);
         }
 
         List<DbNotification> dbNotificationList = new ArrayList<>();
