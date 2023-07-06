@@ -210,7 +210,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
                                 boolean stringsMatch = categoryName.equals(categoryCode);
                                 if (stringsMatch) {
-                                    Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(categoryCode);
+                                    Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findFirstByIndicatorCode(categoryCode);
                                     if (optionalBenchmarks.isPresent()) {
                                         Benchmarks benchmarks = optionalBenchmarks.get();
                                         String nationalValue = benchmarks.getNationalValue();

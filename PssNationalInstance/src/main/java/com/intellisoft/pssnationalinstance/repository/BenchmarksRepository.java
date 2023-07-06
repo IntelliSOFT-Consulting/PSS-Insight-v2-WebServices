@@ -12,4 +12,6 @@ public interface BenchmarksRepository extends JpaRepository<Benchmarks, Long> {
     Optional<Benchmarks> findByIndicatorCode(Object categoryName);
 
     Optional<Benchmarks> findByDataElementAndOrgUnit(String dataElement, String orgUnit);
+
+    Optional<Benchmarks> findFirstByIndicatorCode(String categoryCode);
 }

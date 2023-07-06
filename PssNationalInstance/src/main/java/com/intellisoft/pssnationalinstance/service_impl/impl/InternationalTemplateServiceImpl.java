@@ -80,7 +80,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                                     boolean stringsMatch = indicatorCategoryName.equals(categoryCode);
 
                                     if (stringsMatch) {
-                                        Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(categoryCode);
+                                        Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findFirstByIndicatorCode(categoryCode);
                                         if (optionalBenchmarks.isPresent()) {
                                             Benchmarks benchmarks = optionalBenchmarks.get();
                                             String nationalValue = benchmarks.getNationalValue();
