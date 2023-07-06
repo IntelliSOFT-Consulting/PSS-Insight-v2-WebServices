@@ -65,6 +65,10 @@ public class InternationalServiceImpl implements InternationalService {
             String url = AppConstants.METADATA_JSON_ENDPOINT;
             List<DbDataElements> dbDataElementsList = getDataElements(url);
 
+            System.out.println("url" +url);
+
+            System.out.println("dbDataElementsList" +dbDataElementsList);
+
             String groupUrl = AppConstants.METADATA_GROUPINGS;
             DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(
                     groupUrl, DbGroupsData.class);
@@ -73,6 +77,9 @@ public class InternationalServiceImpl implements InternationalService {
             String indicatorDescription = GenericWebclient.getForSingleObjResponse(
                     indicatorDescriptionUrl, String.class);
             JSONArray jsonArray = new JSONArray(indicatorDescription);
+
+            System.out.println("jsonArray" +jsonArray);
+
 
             if (dbGroupsData != null) {
                 List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
@@ -582,7 +589,7 @@ public class InternationalServiceImpl implements InternationalService {
     public String getDescriptionByCode(String indicatorCode, List<Map<String, String>> indicatorDescriptionsList) {
 
         for (Map<String, String> indicatorDescription : indicatorDescriptionsList) {
-           String code = indicatorDescription.get("Indicator_Code");
+            String code = indicatorDescription.get("Indicator_Code");
             if (code != null){
                 if (code.equals(indicatorCode)) {
                     return indicatorDescription.get("Description");
