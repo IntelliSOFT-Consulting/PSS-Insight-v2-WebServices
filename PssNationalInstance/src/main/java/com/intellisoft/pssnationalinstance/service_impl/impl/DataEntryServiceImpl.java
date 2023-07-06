@@ -602,7 +602,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                                                     indicatorId,
                                                     dbIndicatorDataValues.getCode(),
                                                     dbIndicatorDataValues.getName(),
-                                                    dbIndicatorDataValues.getValueType(), null, null);
+                                                    dbIndicatorDataValues.getValueType());
                                     dbIndicatorDataValuesList.add(indicatorDataValues);
                                 }
 
@@ -615,7 +615,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                                         dbIndicatorValues.getCategoryId(),
                                         dbIndicatorValues.getCategoryName(),
                                         null,
-                                        dbIndicatorValues.getIndicatorName(),
+                                        dbIndicatorValues.getIndicatorName(), null, null,
                                         dbIndicatorDataValuesList);
                                 dbIndicatorValuesList.add(indicatorValues);
                             }

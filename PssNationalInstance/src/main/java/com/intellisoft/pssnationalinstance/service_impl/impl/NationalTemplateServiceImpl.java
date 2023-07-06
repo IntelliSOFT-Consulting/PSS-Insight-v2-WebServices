@@ -204,17 +204,19 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                                 dataValue.setId(dbAssessmentQuestion.getId());
                                 dataValue.setCode(dbAssessmentQuestion.getCode());
                                 dataValue.setValueType(dbAssessmentQuestion.getValueType());
-                                dataValue.setValueType(dbAssessmentQuestion.getValueType());
-                            }
 
+                                String categoryName = (String) dbIndicatorValues.getCategoryName();
+                                String categoryCode = (String) dataValue.getCode();
 
-                            Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(dbIndicatorValues.getCategoryName());
-                            if (optionalBenchmarks.isPresent()) {
-                                Benchmarks benchmarks = optionalBenchmarks.get();
-                                String benchmarkValue = benchmarks.getValue();
-                                for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
-                                    indicatorDataValue.setBenchmark(benchmarkValue);
-                                    indicatorDataValue.setInternationalBenchmark(benchmarkValue);
+                                boolean stringsMatch = categoryName.equals(categoryCode);
+                                if (stringsMatch) {
+                                    Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(categoryCode);
+                                    if (optionalBenchmarks.isPresent()) {
+                                        Benchmarks benchmarks = optionalBenchmarks.get();
+                                        String benchmarkValue = benchmarks.getValue();
+                                        dbIndicatorValues.setBenchmark(benchmarkValue);
+                                        dbIndicatorValues.setInternationalBenchmark(benchmarkValue);
+                                    }
                                 }
                             }
                         }
