@@ -172,6 +172,10 @@ data class DbIndicatorValues(
     var isLatest: Boolean?,
     @JsonProperty("indicatorName")
     var indicatorName: Any?,
+    @JsonProperty("benchmark")
+    var benchmark: Any?,
+    @JsonProperty("internationalBenchmark")
+    var internationalBenchmark: Any?,
     @JsonProperty("indicatorDataValue")
     var indicatorDataValue: List<DbIndicatorDataValues>,
 )
@@ -184,10 +188,6 @@ data class DbIndicatorDataValues(
     var name: Any?,
     @JsonProperty("valueType")
     var valueType: Any?,
-    @JsonProperty("benchmark")
-    var benchmark: Any?,
-    @JsonProperty("internationalBenchmark")
-    var internationalBenchmark: Any?,
 )
 data class DbIndicatorDescription(
     @JsonProperty("Description")
