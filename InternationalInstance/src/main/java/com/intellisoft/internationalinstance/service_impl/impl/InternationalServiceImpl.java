@@ -58,16 +58,21 @@ public class InternationalServiceImpl implements InternationalService {
         return new Results(400, "There was an error.");
     }
 
+    public static String fetchIndicatorName(List<DbDataElements> dbDataElementsList, String indicatorCode) {
+        for (DbDataElements dataElement : dbDataElementsList) {
+            if (dataElement.getCode() != null && dataElement.getCode().equals(indicatorCode)) {
+                return (String) dataElement.getName();
+            }
+        }
+        return null;
+    }
+
     public List<DbIndicatorsValue> getIndicatorsValues() {
         try {
             List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
 
             String url = AppConstants.METADATA_JSON_ENDPOINT;
             List<DbDataElements> dbDataElementsList = getDataElements(url);
-
-            System.out.println("url" +url);
-
-            System.out.println("dbDataElementsList" +dbDataElementsList);
 
             String groupUrl = AppConstants.METADATA_GROUPINGS;
             DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(
@@ -77,9 +82,6 @@ public class InternationalServiceImpl implements InternationalService {
             String indicatorDescription = GenericWebclient.getForSingleObjResponse(
                     indicatorDescriptionUrl, String.class);
             JSONArray jsonArray = new JSONArray(indicatorDescription);
-
-            System.out.println("jsonArray" +jsonArray);
-
 
             if (dbGroupsData != null) {
                 List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
@@ -115,7 +117,7 @@ public class InternationalServiceImpl implements InternationalService {
 
                     }
 
-                    String indicatorName = formatterClass.getIndicatorName(categoryName);
+                    String indicatorName = fetchIndicatorName(dbDataElementsList, categoryName);
 
                     String description = "";
                     String uuid = null;
@@ -130,31 +132,10 @@ public class InternationalServiceImpl implements InternationalService {
                                 if (jsonObject.has("definition") && !jsonObject.isNull("definition")) {
                                     description = jsonObject.getString("definition");
                                 }
-
                                 break;
                             }
                         }
-                        if (jsonObject.has("indicator_Code") && !jsonObject.isNull("indicator_Code")) {
-                            String Indicator_Code = jsonObject.getString("indicator_Code");
-                            if (categoryName.equals(Indicator_Code)) {
-                                if (jsonObject.has("definition") && !jsonObject.isNull("definition")) {
-                                    description = jsonObject.getString("definition");
-                                }
-
-                                break;
-                            }
-                        }
-
                     }
-
-//                    for (int i = 0; i < indicatorDescriptionList.size(); i++){
-//                        String code = indicatorDescriptionList.get(i).getIndicator_Code();
-//                        if (categoryName.equals(code)){
-//                            description = indicatorDescriptionList.get(i).getDescription();
-//                            break;
-//                        }
-//                    }
-
 
                     DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(
                             description,
@@ -164,27 +145,9 @@ public class InternationalServiceImpl implements InternationalService {
                             dbDataGroupingList,
                             uuid
                     );
-
-                    // Extract assessmentQuestions array and populate indicatorDataValue
-                    JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
-                    List<DbDataGrouping> assessmentQuestions = new ArrayList<>();
-                    for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
-                        JSONObject assessmentQuestionObj = assessmentQuestionsArray.getJSONObject(j);
-                        String valueType = assessmentQuestionObj.optString("valueType");
-                        String name = assessmentQuestionObj.getString("name");
-                        String code = assessmentQuestionObj.getString("code");
-                        String id = assessmentQuestionObj.getString("id");
-
-                        DbDataGrouping assessmentQuestion = new DbDataGrouping(code, name, id, valueType);
-                        assessmentQuestions.add(assessmentQuestion);
-                    }
-                    dbIndicatorDataValues.setIndicatorDataValue(assessmentQuestions);
-
                     dbIndicatorDataValuesList.add(dbIndicatorDataValues);
 
                 }
-
-
                 Map<String, List<DbIndicatorDataValues>> categoryMap = new HashMap<>();
 
                 for (DbIndicatorDataValues dataValues : dbIndicatorDataValuesList) {
@@ -198,7 +161,6 @@ public class InternationalServiceImpl implements InternationalService {
 
                         categoryMap.get(categoryName).add(dataValues);
                     }
-
                 }
 
                 for (Map.Entry<String, List<DbIndicatorDataValues>> entry : categoryMap.entrySet()) {
@@ -206,16 +168,12 @@ public class InternationalServiceImpl implements InternationalService {
                     List<DbIndicatorDataValues> indicators = entry.getValue();
                     dbIndicatorsValueList.add(new DbIndicatorsValue(category, indicators));
                 }
-
             }
-
-
             return dbIndicatorsValueList;
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();
         }
-
     }
 
     @Override
