@@ -213,9 +213,10 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                                     Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(categoryCode);
                                     if (optionalBenchmarks.isPresent()) {
                                         Benchmarks benchmarks = optionalBenchmarks.get();
-                                        String benchmarkValue = benchmarks.getValue();
-                                        dbIndicatorValues.setBenchmark(benchmarkValue);
-                                        dbIndicatorValues.setInternationalBenchmark(benchmarkValue);
+                                        String nationalValue = benchmarks.getNationalValue();
+                                        String internationalValue = benchmarks.getValue();
+                                        dbIndicatorValues.setBenchmark(nationalValue);
+                                        dbIndicatorValues.setInternationalBenchmark(internationalValue);
                                     }
                                 }
                             }

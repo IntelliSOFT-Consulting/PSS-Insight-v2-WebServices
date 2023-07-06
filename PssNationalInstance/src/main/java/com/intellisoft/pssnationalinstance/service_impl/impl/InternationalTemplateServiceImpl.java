@@ -83,9 +83,10 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                                         Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(categoryCode);
                                         if (optionalBenchmarks.isPresent()) {
                                             Benchmarks benchmarks = optionalBenchmarks.get();
-                                            String benchmarkValue = benchmarks.getValue();
-                                            indicatorValue.setBenchmark(benchmarkValue);
-                                            indicatorValue.setInternationalBenchmark(benchmarkValue);
+                                            String nationalValue = benchmarks.getNationalValue();
+                                            String internationalValue = benchmarks.getValue();
+                                            indicatorValue.setBenchmark(nationalValue);
+                                            indicatorValue.setInternationalBenchmark(internationalValue);
                                         }
                                     }
 
