@@ -29,4 +29,6 @@ public class Benchmarks {
     private String value;
     @Column
     private String indicatorCode;
+    @Column
+    private String nationalValue;
 }

@@ -74,16 +74,22 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                             Object indicatorCategoryName = indicatorValue.getCategoryName();
                             if (indicatorCategoryName != null && indicatorCategoryName instanceof String) {
 
+                                List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
+                                for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
+                                    String categoryCode = (String) indicatorDataValue.getCode();
+                                    boolean stringsMatch = indicatorCategoryName.equals(categoryCode);
 
-                                Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(indicatorCategoryName);
-                                if (optionalBenchmarks.isPresent()) {
-                                    Benchmarks benchmarks = optionalBenchmarks.get();
-                                    String benchmarkValue = benchmarks.getValue();
-                                    List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
-                                    for (DbIndicatorDataValues indicatorDataValue : indicatorDataValues) {
-//                                        indicatorDataValue.setBenchmark(benchmarkValue);
-//                                        indicatorDataValue.setInternationalBenchmark(benchmarkValue);
+                                    if (stringsMatch) {
+                                        Optional<Benchmarks> optionalBenchmarks = benchmarksRepository.findByIndicatorCode(categoryCode);
+                                        if (optionalBenchmarks.isPresent()) {
+                                            Benchmarks benchmarks = optionalBenchmarks.get();
+                                            String nationalValue = benchmarks.getNationalValue();
+                                            String internationalValue = benchmarks.getValue();
+                                            indicatorValue.setBenchmark(nationalValue);
+                                            indicatorValue.setInternationalBenchmark(internationalValue);
+                                        }
                                     }
+
                                 }
                             }
                         }
