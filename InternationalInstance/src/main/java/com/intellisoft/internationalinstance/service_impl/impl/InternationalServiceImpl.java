@@ -101,7 +101,7 @@ public class InternationalServiceImpl implements InternationalService {
                         String id = dataElementsData.getId();
 
                         if (code != null) {
-                            if (!code.contains("_Comments") && !code.contains("_Uploads")) {
+                            if (!code.contains("_Comment") && !code.contains("_Upload")) {
                                 String valueType = getValueType(code, dbDataElementsList);
                                 if (valueType != null) {
                                     DbDataGrouping dbDataGrouping = new DbDataGrouping(
