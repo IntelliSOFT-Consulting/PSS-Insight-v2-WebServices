@@ -23,8 +23,8 @@ env:
   SSH_HOST_NATIONAL: ${{ secrets.SSH_HOST_NATIONAL }}
   SSH_USER_NATIONAL: ${{ secrets.SSH_USER_NATIONAL }}
 
-  CONTAINER_NAME_NATIONAL: dhis_pss_national
-  IMAGE_NAME_NATIONAL: ${{ secrets.DOCKER_USERNAME }}/dhis_pss_national:v1
+  CONTAINER_NAME_NATIONAL: pss_ws_national
+  IMAGE_NAME_NATIONAL: ${{ secrets.DOCKER_USERNAME }}/pss_ws_national
 
 
 jobs:
