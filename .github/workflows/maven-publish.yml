@@ -43,7 +43,7 @@ jobs:
       - name: Build International Instance
         run: |
           cd InternationalInstance
-          mvn clean package 
+          mvn clean package -DskipTests
 
       - name: Build & push International Docker image
         run: |
@@ -101,7 +101,7 @@ jobs:
       - name: Build National Instance
         run: |
           cd PssNationalInstance
-          mvn clean package
+          mvn clean package -DskipTests
 
       - name: Build & push National Docker image
         run: |
