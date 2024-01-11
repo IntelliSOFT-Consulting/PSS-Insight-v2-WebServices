@@ -28,12 +28,8 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
-
-    <logger additivity="false" level="INFO" name="pss-national-instance">
-        <appender-ref ref="pss-national-instance"/>
-    </logger>
 
 </configuration>
