@@ -5,11 +5,13 @@ import com.intellisoft.pssnationalinstance.service_impl.service.NotificationServ
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+@Log4j2
 @RequiredArgsConstructor
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -19,32 +21,26 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results subscribe(DbNotificationSub notificationSubscription) {
 
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"subscribe";
+        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "subscribe";
         return getPostResults(notificationSubscription, internationalBaseApi);
 
     }
 
-    private Results getPostResults(DbNotificationSub notificationSubscription, String internationalBaseApi)  {
+    private Results getPostResults(DbNotificationSub notificationSubscription, String internationalBaseApi) {
 
-        try{
-            DbResultsApi dbResultsApi = GenericWebclient.postForSingleObjResponse(
-                    internationalBaseApi,
-                    notificationSubscription,
-                    DbNotificationSub.class,
-                    DbResultsApi.class);
+        try {
+            DbResultsApi dbResultsApi = GenericWebclient.postForSingleObjResponse(internationalBaseApi, notificationSubscription, DbNotificationSub.class, DbResultsApi.class);
             if (dbResultsApi == null) {
                 return new Results(400, "There was an issue processing the request");
             }
 
-            System.out.println("**** " + dbResultsApi);
-
             if (dbResultsApi.getCode() == 200) {
                 return new Results(200, dbResultsApi.getDetails());
-            }else {
+            } else {
                 return new Results(400, dbResultsApi.getDetails());
             }
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while processing POST request to the global instance");
             return new Results(400, "There was an issue processing the request");
 
         }
@@ -54,27 +50,25 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results unsubscribe(DbNotificationSub notificationSubscription) {
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"unsubscribe-email";
+        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "unsubscribe-email";
         return getPostResults(notificationSubscription, internationalBaseApi);
     }
 
     @NotNull
     private Results getIntResults(String internationalBaseApi) {
-        try{
+        try {
 
-            DbResultsApi dbResultsApi = GenericWebclient.getForSingleObjResponse(
-                    internationalBaseApi, DbResultsApi.class);
-            if (dbResultsApi == null)
-                return new Results(400, "There was an issue processing the request");
+            DbResultsApi dbResultsApi = GenericWebclient.getForSingleObjResponse(internationalBaseApi, DbResultsApi.class);
+            if (dbResultsApi == null) return new Results(400, "There was an issue processing the request");
 
             if (dbResultsApi.getCode() == 200) {
                 return new Results(200, dbResultsApi.getDetails());
-            }else {
+            } else {
                 return new Results(400, dbResultsApi.getDetails());
             }
 
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred when fetching document details");
             return new Results(400, "There was an issue processing the request");
 
         }
@@ -82,7 +76,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results getNotifications(int no, int size, String emailAddress) {
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION +"list?email="+emailAddress;
+        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "list?email=" + emailAddress;
         return getIntResults(internationalBaseApi);
     }
 
@@ -90,18 +84,14 @@ public class NotificationServiceImpl implements NotificationService {
         String apiUrl = AppConstants.INTERNATIONAL_NOTIFICATION + "subscription-details";
 
         try {
-            NotificationSubscription notificationSubscription = webClient.get()
-                    .uri(apiUrl + "?userId={userId}", userId)
-                    .retrieve()
-                    .bodyToMono(NotificationSubscription.class)
-                    .block();
+            NotificationSubscription notificationSubscription = webClient.get().uri(apiUrl + "?userId={userId}", userId).retrieve().bodyToMono(NotificationSubscription.class).block();
 
             if (notificationSubscription == null) {
                 return new Results(400, "There was an issue processing the request");
             }
             return new Results(200, notificationSubscription);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching subscription details");
             return new Results(400, "An error occurred while processing the request");
         }
     }
@@ -113,30 +103,17 @@ public class NotificationServiceImpl implements NotificationService {
             WebClient webClient = WebClient.create();
 
             // Send the update request with the provided DbNotificationSub object
-            UnsubscribeResponse response = webClient.put()
-                    .uri(internationalBaseApi)
-                    .bodyValue(dbNotificationSub)
-                    .retrieve()
-                    .bodyToMono(UnsubscribeResponse.class)
-                    .block();
+            UnsubscribeResponse response = webClient.put().uri(internationalBaseApi).bodyValue(dbNotificationSub).retrieve().bodyToMono(UnsubscribeResponse.class).block();
 
             if (response != null && response.getCode() == 200 && response.getDetails() != null) {
                 NotificationSubscription details = response.getDetails();
-                NotificationSubscription notificationSubscription = new NotificationSubscription(
-                        details.getId(),
-                        details.getFirstName(),
-                        details.getLastName(),
-                        details.getEmail(),
-                        details.getPhone(),
-                        details.isActive(),
-                        details.getUserId()
-                );
+                NotificationSubscription notificationSubscription = new NotificationSubscription(details.getId(), details.getFirstName(), details.getLastName(), details.getEmail(), details.getPhone(), details.isActive(), details.getUserId());
                 return new Results(200, notificationSubscription);
             } else {
                 return new Results(400, "Resource not found, update not successful");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info("An error occurred while updating subscription details");
             return new Results(400, "An error occurred while processing the request");
         }
     }

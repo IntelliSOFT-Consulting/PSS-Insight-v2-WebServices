@@ -98,7 +98,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
             }
             return new Results(200, dbTemplateDetailsList);
         } catch (Exception syntaxException) {
-            syntaxException.printStackTrace();
+            log.error("An error occurred while fetching international indicators");
         }
         return new Results(400, "The international indicators could not be found.");
     }
@@ -175,7 +175,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
             }
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred when fetching published template");
         }
         return null;
     }
@@ -194,7 +194,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                 return dbMetadataJson;
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while fetching metadata");
         }
         return null;
 
@@ -213,7 +213,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                 return dbMetadataJson;
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while fetching metadata");
         }
         return null;
 
@@ -231,7 +231,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                 return dbMetadataJson;
             }
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while fetching indicators");
         }
         return null;
 
