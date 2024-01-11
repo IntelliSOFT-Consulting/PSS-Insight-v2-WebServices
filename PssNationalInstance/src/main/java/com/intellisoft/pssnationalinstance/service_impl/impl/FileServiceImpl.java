@@ -72,7 +72,7 @@ public class FileServiceImpl implements FileService {
 
 
         }catch (Exception e){
-            log.error("An error occurred during file processing", e);
+            log.error("An error occurred during file processing");
         }
 
         return new Results(400, "There was an issue with this request. Please try again.");
@@ -109,7 +109,7 @@ public class FileServiceImpl implements FileService {
             }
 
         }catch (Exception e){
-            log.error("An error occurred when fetching document details", e);
+            log.error("An error occurred when fetching document details");
         }
         return null;
 

@@ -113,7 +113,7 @@ public class NotificationServiceImpl implements NotificationService {
                 return new Results(400, "Resource not found, update not successful");
             }
         } catch (Exception e) {
-            log.info("An error occurred while updating subscription details");
+            log.error("An error occurred while updating subscription details");
             return new Results(400, "An error occurred while processing the request");
         }
     }
