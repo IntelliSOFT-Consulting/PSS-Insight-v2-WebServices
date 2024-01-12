@@ -7,6 +7,7 @@ import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorReferenceService;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -15,6 +16,7 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 
+@Log4j2
 @RequiredArgsConstructor
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
@@ -54,7 +56,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
             return new Results(400, "There was an issue processing your request.");
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            log.error("There was an issue adding indicator values to dictionary");
             return new Results(400, "Please try again after some time");
         }
     }
@@ -81,7 +83,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         try {
             return new Results(200, getIndicatorList());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("There was an issue Fetching indicators from the data dictionary");
         }
 
 
@@ -117,7 +119,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching indicator descriptions");
         }
         return Collections.emptyList();
 
@@ -238,7 +240,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while updating indicator descriptions");
         }
 
         return new Results(400, "There was an issue processing the request. Please try again.");
@@ -281,14 +283,14 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                 if (response.getHttpStatusCode() == 200) {
                     return new Results(200, new DbDetails("The indicator has been deleted."));
                 }
-                return new Results(400, "There was an issue adding the resource");
+                return new Results(400, "There was an issue deleting the resource");
 
 
             }
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while deleting the entry from the data dictionary");
         }
 
 
@@ -356,7 +358,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching metadata from DHIS2 Datastore");
         }
         return null;
     }

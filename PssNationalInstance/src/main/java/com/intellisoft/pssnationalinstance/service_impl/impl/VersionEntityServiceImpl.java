@@ -37,12 +37,9 @@ public class VersionEntityServiceImpl implements VersionEntityService {
     public static DbPublishedVersion filterDbPublishedVersionByCategoryId(List<String> categoryIds, DbPublishedVersion version) {
         List<DbIndicators> filteredDetails = new ArrayList<>();
         for (DbIndicators dbIndicator : version.getDetails()) {
-            List<DbIndicatorValues> filteredIndicators = dbIndicator.getIndicators().stream()
-                    .filter(indicatorValue -> {
-                        return indicatorValue != null
-                                && categoryIds.contains(indicatorValue.getCategoryId().toString());
-                    })
-                    .collect(Collectors.toList());
+            List<DbIndicatorValues> filteredIndicators = dbIndicator.getIndicators().stream().filter(indicatorValue -> {
+                return indicatorValue != null && categoryIds.contains(indicatorValue.getCategoryId().toString());
+            }).collect(Collectors.toList());
             if (!filteredIndicators.isEmpty()) {
                 filteredDetails.add(new DbIndicators(dbIndicator.getCategoryName(), filteredIndicators));
             }
@@ -86,10 +83,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         VersionEntity savedVersionEntity = versionEntityRepository.save(versionEntity);
 
         if (isPublished) {
-            nationalTemplateService.savePublishedVersion(
-                    createdBy,
-                    String.valueOf(savedVersionEntity.getId()),
-                    dbVersionsIndicators);
+            nationalTemplateService.savePublishedVersion(createdBy, String.valueOf(savedVersionEntity.getId()), dbVersionsIndicators);
         }
 
         return new Results(201, new DbDetails("The version has been saved successfully."));
@@ -101,32 +95,19 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         List<DbVersionDetails> dbVersionDetailsList = new ArrayList<>();
 
         if (isLatest) {
-            Optional<VersionEntity> versionEntityOptional = versionEntityRepository
-                    .findFirstByStatusOrderByCreatedAtDesc(PublishStatus.PUBLISHED.name());
+            Optional<VersionEntity> versionEntityOptional = versionEntityRepository.findFirstByStatusOrderByCreatedAtDesc(PublishStatus.PUBLISHED.name());
             if (versionEntityOptional.isPresent()) {
                 VersionEntity versionEntity = versionEntityOptional.get();
 
-                DbMetadataJson dbMetadataJson =
-                        internationalTemplateService.getPublishedData(publishedBaseUrl);
+                DbMetadataJson dbMetadataJson = internationalTemplateService.getPublishedData(publishedBaseUrl);
                 if (dbMetadataJson != null) {
                     DbPrograms metadata = dbMetadataJson.getMetadata();
                     if (metadata != null) {
                         DbPublishedVersion publishedData = metadata.getPublishedVersion();
                         if (publishedData != null) {
-                            DbVersionDetails dbVersionDetails = new DbVersionDetails(
-                                    versionEntity.getId(),
-                                    versionEntity.getVersionName(),
-                                    versionEntity.getVersionDescription(),
-                                    versionEntity.getCreatedBy(),
-                                    versionEntity.getStatus(),
-                                    versionEntity.getPublishedBy(),
-                                    String.valueOf(versionEntity.getCreatedAt()),
-                                    publishedData);
+                            DbVersionDetails dbVersionDetails = new DbVersionDetails(versionEntity.getId(), versionEntity.getVersionName(), versionEntity.getVersionDescription(), versionEntity.getCreatedBy(), versionEntity.getStatus(), versionEntity.getPublishedBy(), String.valueOf(versionEntity.getCreatedAt()), publishedData);
                             dbVersionDetailsList.add(dbVersionDetails);
-                            DbResultsData dbResultsData = new DbResultsData(
-                                    dbVersionDetailsList.size(),
-                                    dbVersionDetailsList
-                            );
+                            DbResultsData dbResultsData = new DbResultsData(dbVersionDetailsList.size(), dbVersionDetailsList);
                             return new Results(200, dbResultsData);
                         }
                     }
@@ -142,8 +123,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             dbIndicatorsList = dbPublishedVersion.getDetails();
         }
 
-        List<VersionEntity> versionEntityList = getPagedVersions(
-                page, size, "", "");
+        List<VersionEntity> versionEntityList = getPagedVersions(page, size, "", "");
         for (int i = 0; i < versionEntityList.size(); i++) {
             Long id = versionEntityList.get(i).getId();
             String versionName = versionEntityList.get(i).getVersionName();
@@ -153,25 +133,13 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             String status = versionEntityList.get(i).getStatus();
             String createdAt = String.valueOf(versionEntityList.get(i).getCreatedAt());
             List<String> indicatorList = versionEntityList.get(i).getIndicators();
-            List<DbIndicators> selectedIndicators =
-                    nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList);
-            DbVersionDetails dbVersionDetails = new DbVersionDetails(
-                    id,
-                    versionName,
-                    versionDescription,
-                    createdBy,
-                    status,
-                    publishedBy,
-                    createdAt,
-                    selectedIndicators);
+            List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList);
+            DbVersionDetails dbVersionDetails = new DbVersionDetails(id, versionName, versionDescription, createdBy, status, publishedBy, createdAt, selectedIndicators);
             dbVersionDetailsList.add(dbVersionDetails);
 
         }
 
-        DbResultsData dbResultsData = new DbResultsData(
-                dbVersionDetailsList.size(),
-                dbVersionDetailsList
-        );
+        DbResultsData dbResultsData = new DbResultsData(dbVersionDetailsList.size(), dbVersionDetailsList);
         return new Results(200, dbResultsData);
     }
 
@@ -235,7 +203,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while deleting published version");
         }
 
         return new Results(400, "Version not found.");
@@ -288,14 +256,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                     }
                 }
 
-                DbVersionDataDetails dbVersionDataDetails = new DbVersionDataDetails(
-                        versionEntity.getId(),
-                        versionEntity.getVersionName(),
-                        versionEntity.getVersionDescription(),
-                        versionEntity.getStatus(),
-                        versionEntity.getCreatedBy(),
-                        versionEntity.getPublishedBy(),
-                        null);
+                DbVersionDataDetails dbVersionDataDetails = new DbVersionDataDetails(versionEntity.getId(), versionEntity.getVersionName(), versionEntity.getVersionDescription(), versionEntity.getStatus(), versionEntity.getCreatedBy(), versionEntity.getPublishedBy(), null);
 
                 List<String> indicators = versionEntity.getIndicators();
 
@@ -307,7 +268,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
                 return new Results(200, dbVersionDataDetails);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching version details");
         }
 
         return new Results(400, "Resource not found.");
@@ -315,8 +276,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
     private DbPublishedVersion getThePreviousIndicators(String versionNumber) {
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
-        DbMetadataJson dbMetadataJson =
-                internationalTemplateService.getIndicators(publishedBaseUrl);
+        DbMetadataJson dbMetadataJson = internationalTemplateService.getIndicators(publishedBaseUrl);
 
         if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
@@ -329,8 +289,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
 
     private DbPublishedVersion getAvailableVersion() {
-        DbPublishedVersion dbPublishedVersion =
-                nationalTemplateService.nationalPublishedIndicators();
+        DbPublishedVersion dbPublishedVersion = nationalTemplateService.nationalPublishedIndicators();
         if (dbPublishedVersion != null) {
             return dbPublishedVersion;
         } else {
@@ -338,11 +297,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         }
     }
 
-    private List<VersionEntity> getPagedVersions(
-            int pageNo,
-            int pageSize,
-            String sortField,
-            String sortDirection) {
+    private List<VersionEntity> getPagedVersions(int pageNo, int pageSize, String sortField, String sortDirection) {
         String sortPageField = "";
         String sortPageDirection = "";
 
@@ -357,8 +312,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             sortPageDirection = sortField;
         }
 
-        Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
-                ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
+        Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
         Page<VersionEntity> page = versionEntityRepository.findAll(pageable);
 

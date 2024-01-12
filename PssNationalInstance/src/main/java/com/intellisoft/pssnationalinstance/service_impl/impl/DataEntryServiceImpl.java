@@ -10,6 +10,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -222,10 +224,6 @@ public class DataEntryServiceImpl implements DataEntryService {
                     ObjectMapper objectMapper = new ObjectMapper();
                     String json = objectMapper.writeValueAsString(dataEntry);
 
-                    System.out.println("--------");
-                    System.out.println(json);
-                    System.out.println("--------");
-
                     DbEvents response = GenericWebclient.postForSingleObjResponse(
                             AppConstants.EVENTS_ENDPOINT,
                             dataEntry,
@@ -238,17 +236,11 @@ public class DataEntryServiceImpl implements DataEntryService {
                         }
 
                     }
-
-
-                    System.out.println("************");
-                    System.out.println(response);
-                    System.out.println("************");
-
                 }
 
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("An error occurred during event data processing");
             }
 
 

@@ -5,6 +5,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.FileService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Base64;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
@@ -70,7 +72,7 @@ public class FileServiceImpl implements FileService {
 
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred during file processing");
         }
 
         return new Results(400, "There was an issue with this request. Please try again.");
@@ -107,7 +109,7 @@ public class FileServiceImpl implements FileService {
             }
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred when fetching document details");
         }
         return null;
 
@@ -139,7 +141,7 @@ public class FileServiceImpl implements FileService {
                     .body(response.getBody());
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred when fetching the document");
         }
 
         return null;

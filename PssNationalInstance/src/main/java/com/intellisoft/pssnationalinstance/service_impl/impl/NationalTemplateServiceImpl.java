@@ -49,7 +49,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             return new Results(200, publishedVersionValues);
 
         } catch (Exception syntaxException){
-            syntaxException.printStackTrace();
+            log.error("An error occurred while fetching national indicators");
         }
         return new Results(400, "The national indicators could not be found.");
 
@@ -112,7 +112,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
 
         } catch (Exception syntaxException){
-            syntaxException.printStackTrace();
+            log.error("An error occurred while fetching national indicators");
         }
         return new Results(400, "The national indicators could not be found.");
 
@@ -274,7 +274,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
             
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while fetching indicator description");
             return new Results(400, "Indicator could not be found.");
         }
 
@@ -333,7 +333,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 }
 
             }catch (Exception e){
-                e.printStackTrace();
+                log.error("An error occurred while saving published versions");
             }
 
             List<DbIndicators> indicatorsList = new ArrayList<>();
@@ -454,7 +454,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while saving published version");
         }
     }
 
@@ -510,7 +510,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while fetching Organisation units");
         }
 
 

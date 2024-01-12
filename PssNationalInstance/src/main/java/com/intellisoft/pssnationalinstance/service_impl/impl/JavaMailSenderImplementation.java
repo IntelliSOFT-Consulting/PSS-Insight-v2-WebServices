@@ -6,6 +6,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderSe
 import com.intellisoft.pssnationalinstance.service_impl.service.PeriodConfigurationService;
 import com.intellisoft.pssnationalinstance.util.MailConfigurationImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -18,6 +19,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.List;
 import java.util.Properties;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class JavaMailSenderImplementation implements JavaMailSenderService {
@@ -35,9 +37,8 @@ public class JavaMailSenderImplementation implements JavaMailSenderService {
 
             JavaMailSender mailSender = mailConfigurationImpl.javaMailSender();
 
-            MailConfiguration mailConfiguration =
-                    periodConfigurationService.getMailConfiguration();
-            if (mailConfiguration != null && mailSender != null){
+            MailConfiguration mailConfiguration = periodConfigurationService.getMailConfiguration();
+            if (mailConfiguration != null && mailSender != null) {
 
                 String subject = "PSS Survey";
 
@@ -52,26 +53,26 @@ public class JavaMailSenderImplementation implements JavaMailSenderService {
                 Context context = new Context();
 
                 List<DbSurveyRespondentData> dataList = dbRespondents.getRespondents();
-                for (DbSurveyRespondentData respondentData: dataList){
+                for (DbSurveyRespondentData respondentData : dataList) {
 
                     String emailAddress = respondentData.getEmailAddress();
                     String expiryDateTime = respondentData.getExpiryDate();
                     String customUrl = respondentData.getCustomUrl();
                     String password = respondentData.getPassword();
 
-                    context.setVariable("GREETING", "Dear "+formatterClass.extractName(emailAddress)+",");
+                    context.setVariable("GREETING", "Dear " + formatterClass.extractName(emailAddress) + ",");
                     context.setVariable("PASSWORD", password);
                     context.setVariable("ACCESS_LINK", customUrl);
                     context.setVariable("EXPIRY_TIME", formatterClass.getRemainingTime(expiryDateTime));
 
                     String content = "";
-                    if (status.equals(MailStatus.SEND.name())){
+                    if (status.equals(MailStatus.SEND.name())) {
                         content = templateEngine.process("email", context);
-                    }else if (status.equals(MailStatus.RESEND.name())){
+                    } else if (status.equals(MailStatus.RESEND.name())) {
                         content = templateEngine.process("resend_email", context);
-                    }else if (status.equals(MailStatus.EXPIRED.name())){
+                    } else if (status.equals(MailStatus.EXPIRED.name())) {
                         content = templateEngine.process("expired_email", context);
-                    }else if (status.equals(MailStatus.REMIND.name())){
+                    } else if (status.equals(MailStatus.REMIND.name())) {
                         content = templateEngine.process("email", context);
                     }
 
@@ -79,28 +80,11 @@ public class JavaMailSenderImplementation implements JavaMailSenderService {
                     helper.setText(content, true);
 
                     mailSender.send(message);
-
-
                 }
-
-
-
-
-
-
-
-
-
-
             }
-
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while sending email");
         }
-
-
-
-
     }
 
 }

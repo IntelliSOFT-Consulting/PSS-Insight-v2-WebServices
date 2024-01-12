@@ -5,6 +5,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService
 import com.intellisoft.pssnationalinstance.service_impl.service.FileService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Base64;
 
+@Log4j2
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(value = "/api/v1/file")
 @RestController
@@ -36,7 +38,7 @@ public class FileController {
             Results results = fileService.createFileResource(file);
             return formatterClass.getResponse(results);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred during file processing");
         }
         Results results = new Results(400, "Check on the request again");
         return formatterClass.getResponse(results);

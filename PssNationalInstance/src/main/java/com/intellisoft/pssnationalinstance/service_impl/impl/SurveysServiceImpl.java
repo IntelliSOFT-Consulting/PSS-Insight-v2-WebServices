@@ -12,6 +12,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.SurveysService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class SurveysServiceImpl implements SurveysService {
@@ -380,7 +382,7 @@ public class SurveysServiceImpl implements SurveysService {
 
 
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("An error occurred while fetching national published templates");
         }
         return null;
 
