@@ -1,6 +1,7 @@
 package com.intellisoft.internationalinstance;
 
 import com.itextpdf.text.FontFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 
+@Log4j2
 @SpringBootApplication
 public class InternationalInstanceApplication {
 
@@ -26,11 +28,9 @@ public class InternationalInstanceApplication {
     public void registerFonts() {
         try {
             File fontFile = ResourceUtils.getFile("classpath:fonts/GILLSANS.ttf");
-            // Register the custom font using the font file path
             FontFactory.register(fontFile.getAbsolutePath());
-            System.out.println(fontFile.getAbsolutePath());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error occurred, font file not found");
         }
     }
 

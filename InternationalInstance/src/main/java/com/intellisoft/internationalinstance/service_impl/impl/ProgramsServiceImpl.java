@@ -3,6 +3,7 @@ package com.intellisoft.internationalinstance.service_impl.impl;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.service_impl.service.ProgramsService;
 import com.intellisoft.internationalinstance.util.AppConstants;
+import lombok.extern.log4j.Log4j2;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,19 +15,20 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Log4j2
 @Service
 public class ProgramsServiceImpl implements ProgramsService {
 
     @Autowired
     private RestTemplate restTemplate;
-    private FormatterClass formatterClass = new FormatterClass();
+    private final FormatterClass formatterClass = new FormatterClass();
 
     @Value("${dhis.username}")
     private String username;
     @Value("${dhis.password}")
     private String password;
 
-    private HttpEntity<String> getHeaders(){
+    private HttpEntity<String> getHeaders() {
 
         String username = formatterClass.getValue().getUsername();
         String password = formatterClass.getValue().getPassword();
@@ -34,8 +36,7 @@ public class ProgramsServiceImpl implements ProgramsService {
         String auth = username + ":" + password;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Basic " +
-                Base64Utils.encodeToString(auth.getBytes()));
+        headers.set("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
 
         return new HttpEntity<>(headers);
 
@@ -47,19 +48,16 @@ public class ProgramsServiceImpl implements ProgramsService {
         Results results;
 
 
-        ResponseEntity<DbProgramsList> response = restTemplate.exchange(AppConstants.METADATA_JSON_ENDPOINT,
-                HttpMethod.GET, getHeaders(), DbProgramsList.class);
+        ResponseEntity<DbProgramsList> response = restTemplate.exchange(AppConstants.METADATA_JSON_ENDPOINT, HttpMethod.GET, getHeaders(), DbProgramsList.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             // process the response
             DbProgramsList dbProgramsList = response.getBody();
-            if (dbProgramsList != null){
+            if (dbProgramsList != null) {
                 List<DbPrograms> programsList = dbProgramsList.getPrograms();
-                DbResults dbResults = new DbResults(
-                        programsList.size(),
-                        programsList);
+                DbResults dbResults = new DbResults(programsList.size(), programsList);
                 results = new Results(200, dbResults);
-            }else {
+            } else {
                 results = new Results(400, new DbDetails("No programs could be found"));
             }
         } else {
@@ -79,12 +77,10 @@ public class ProgramsServiceImpl implements ProgramsService {
         if (response.getStatusCode() == HttpStatus.OK) {
             // process the response
             String[] list = response.getBody();
-            if (list != null){
-                DbResults dbResults = new DbResults(
-                        list.length,
-                        list);
+            if (list != null) {
+                DbResults dbResults = new DbResults(list.length, list);
                 results = new Results(200, dbResults);
-            }else {
+            } else {
                 results = new Results(400, new DbDetails("No namespaces could be found"));
             }
 
@@ -95,10 +91,9 @@ public class ProgramsServiceImpl implements ProgramsService {
         return results;
     }
 
-    private ResponseEntity<String[]> getNamespaceData(){
+    private ResponseEntity<String[]> getNamespaceData() {
 
-        return restTemplate.exchange(AppConstants.DATA_STORE_ENDPOINT_VALUE,
-                HttpMethod.GET, getHeaders(), String[].class);
+        return restTemplate.exchange(AppConstants.DATA_STORE_ENDPOINT_VALUE, HttpMethod.GET, getHeaders(), String[].class);
 
     }
 
@@ -111,12 +106,10 @@ public class ProgramsServiceImpl implements ProgramsService {
         if (response.getStatusCode() == HttpStatus.OK) {
             // process the response
             String[] list = response.getBody();
-            if (list != null){
-                DbResults dbResults = new DbResults(
-                        list.length,
-                        list);
+            if (list != null) {
+                DbResults dbResults = new DbResults(list.length, list);
                 results = new Results(200, dbResults);
-            }else {
+            } else {
                 results = new Results(400, new DbDetails("No versions could be found under this namespace"));
             }
 
@@ -127,11 +120,10 @@ public class ProgramsServiceImpl implements ProgramsService {
         return results;
     }
 
-    private ResponseEntity<String[]> getVersionsData(String namespace){
+    private ResponseEntity<String[]> getVersionsData(String namespace) {
 
         String versionUrl = AppConstants.DATA_STORE_ENDPOINT_VALUE + namespace;
-        ResponseEntity<String[]> response = restTemplate.exchange(versionUrl,
-                HttpMethod.GET, getHeaders(), String[].class);
+        ResponseEntity<String[]> response = restTemplate.exchange(versionUrl, HttpMethod.GET, getHeaders(), String[].class);
         return response;
     }
 
@@ -147,34 +139,31 @@ public class ProgramsServiceImpl implements ProgramsService {
          * Using THE namespace and THE version, get the datastore and format
          */
         ResponseEntity<String[]> versionList = getVersionsData(master_template);
-        if (versionList.getStatusCode() == HttpStatus.OK ){
+        if (versionList.getStatusCode() == HttpStatus.OK) {
 
             String[] versionDataList = versionList.getBody();
-            if (versionDataList != null){
+            if (versionDataList != null) {
 
                 ArrayList<String> versionValuesList = new ArrayList<>(List.of(versionDataList));
-                for (int j = 0; j < versionValuesList.size(); j++){
+                for (int j = 0; j < versionValuesList.size(); j++) {
                     //Get individual version
                     String versionValue = versionValuesList.get(j);
                     String templateUrl = dataStoreUrl + master_template + "/" + versionValue;
 
                     DbTemplate dbTemplate = getTemplateData(templateUrl);
-                    if (dbTemplate != null){
+                    if (dbTemplate != null) {
 
                         String description = "";
                         String program = "";
 
-                        if (dbTemplate.getDescription() != null){
+                        if (dbTemplate.getDescription() != null) {
                             description = dbTemplate.getDescription();
                         }
-                        if (dbTemplate.getProgram() != null){
+                        if (dbTemplate.getProgram() != null) {
                             program = dbTemplate.getProgram();
                         }
 
-                        DbTemplateData dbTemplateData = new DbTemplateData(
-                                versionValue,
-                                description,
-                                program);
+                        DbTemplateData dbTemplateData = new DbTemplateData(versionValue, description, program);
                         dbTemplateDataList.add(dbTemplateData);
                     }
 
@@ -189,38 +178,30 @@ public class ProgramsServiceImpl implements ProgramsService {
         //Truncate the list to the provided limit
 
 
-        DbResults dbResults = new DbResults(
-                dbTemplateDataList.size(),
-                dbTemplateDataList);
+        DbResults dbResults = new DbResults(dbTemplateDataList.size(), dbTemplateDataList);
 
         return new Results(200, dbResults);
 
     }
 
-    private DbTemplate getTemplateData(String templateUrl){
+    private DbTemplate getTemplateData(String templateUrl) {
 
-        ResponseEntity<DbTemplate> response = restTemplate.exchange(templateUrl,
-                HttpMethod.GET, getHeaders(), DbTemplate.class);
+        ResponseEntity<DbTemplate> response = restTemplate.exchange(templateUrl, HttpMethod.GET, getHeaders(), DbTemplate.class);
 
-        try{
+        try {
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 // process the response
                 DbTemplate dbTemplate = response.getBody();
-                if (dbTemplate != null) {
-                    return dbTemplate;
-                }else {
-                    return null;
-                }
-            }else {
+                return dbTemplate;
+            } else {
                 return null;
             }
 
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while fetching template data");
             return null;
         }
-
 
 
     }
@@ -238,19 +219,15 @@ public class ProgramsServiceImpl implements ProgramsService {
         String templateUrl = AppConstants.DATA_STORE_ENDPOINT + key;
 
         // Get the metadata json
-        ResponseEntity<JSONObject> metadataJson = restTemplate.exchange(AppConstants.METADATA_JSON_ENDPOINT,
-                HttpMethod.GET, getHeaders(), JSONObject.class);
+        ResponseEntity<JSONObject> metadataJson = restTemplate.exchange(AppConstants.METADATA_JSON_ENDPOINT, HttpMethod.GET, getHeaders(), JSONObject.class);
 
         if (metadataJson.getStatusCode() == HttpStatus.OK) {
 
-            DbTemplate dbTemplate = new DbTemplate(
-                    description,
-                    program,
-                    metadataJson);
+            DbTemplate dbTemplate = new DbTemplate(description, program, metadataJson);
 
             // Create the request headers
             HttpHeaders headers = new HttpHeaders();
-            String auth = username+":"+password;
+            String auth = username + ":" + password;
             byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
             String authHeader = "Basic " + new String(encodedAuth);
             headers.add("Authorization", authHeader);
@@ -258,17 +235,16 @@ public class ProgramsServiceImpl implements ProgramsService {
             // Create the request body as a Map
             HttpEntity<DbTemplate> request = new HttpEntity<>(dbTemplate, headers);
 
-            ResponseEntity<DbSaveTemplate> response = restTemplate.postForEntity(
-                    templateUrl, request, DbSaveTemplate.class);
+            ResponseEntity<DbSaveTemplate> response = restTemplate.postForEntity(templateUrl, request, DbSaveTemplate.class);
 
-            if (response.getStatusCodeValue() == 201){
+            if (response.getStatusCodeValue() == 201) {
                 results = new Results(201, new DbDetails("The template has been saved successfully."));
-            }else {
+            } else {
                 results = new Results(400, new DbDetails("The resource cannot be saved"));
             }
 
 
-        }else {
+        } else {
             results = new Results(400, new DbDetails("There was an issue in processing the request"));
 
         }

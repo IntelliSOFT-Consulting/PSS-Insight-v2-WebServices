@@ -13,6 +13,7 @@ import com.intellisoft.internationalinstance.service_impl.service.NotificationSe
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,33 +31,19 @@ import javax.transaction.Transactional;
 import java.io.File;
 import java.util.*;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class InternationalServiceImpl implements InternationalService {
-
-    @Value("${dhis.username}")
-    private String username;
-    @Value("${dhis.password}")
-    private String password;
 
     private final FormatterClass formatterClass = new FormatterClass();
     private final VersionRepos versionRepos;
     private final NotificationService notificationService;
     private final NotificationSubscriptionRepo notificationSubscriptionRepo;
-
-    @Override
-    public Results getIndicators() {
-
-        try{
-            List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
-            return new Results(200, dbIndicatorsValueList);
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return new Results(400, "There was an error.");
-    }
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
 
     public static String fetchIndicatorName(List<DbDataElements> dbDataElementsList, String indicatorCode) {
         for (DbDataElements dataElement : dbDataElementsList) {
@@ -67,6 +54,20 @@ public class InternationalServiceImpl implements InternationalService {
         return null;
     }
 
+    @Override
+    public Results getIndicators() {
+
+        try {
+            List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
+            return new Results(200, dbIndicatorsValueList);
+
+        } catch (Exception e) {
+            log.error("Error occurred while fetching indicators");
+        }
+
+        return new Results(400, "There was an error.");
+    }
+
     public List<DbIndicatorsValue> getIndicatorsValues() {
         try {
             List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
@@ -75,12 +76,10 @@ public class InternationalServiceImpl implements InternationalService {
             List<DbDataElements> dbDataElementsList = getDataElements(url);
 
             String groupUrl = AppConstants.METADATA_GROUPINGS;
-            DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(
-                    groupUrl, DbGroupsData.class);
+            DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(groupUrl, DbGroupsData.class);
 
             String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
-            String indicatorDescription = GenericWebclient.getForSingleObjResponse(
-                    indicatorDescriptionUrl, String.class);
+            String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
             JSONArray jsonArray = new JSONArray(indicatorDescription);
 
             if (dbGroupsData != null) {
@@ -104,11 +103,7 @@ public class InternationalServiceImpl implements InternationalService {
                             if (!code.contains("_Comment") && !code.contains("_Upload")) {
                                 String valueType = getValueType(code, dbDataElementsList);
                                 if (valueType != null) {
-                                    DbDataGrouping dbDataGrouping = new DbDataGrouping(
-                                            code,
-                                            name,
-                                            id,
-                                            valueType);
+                                    DbDataGrouping dbDataGrouping = new DbDataGrouping(code, name, id, valueType);
                                     dbDataGroupingList.add(dbDataGrouping);
                                 }
                             }
@@ -137,14 +132,7 @@ public class InternationalServiceImpl implements InternationalService {
                         }
                     }
 
-                    DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(
-                            description,
-                            categoryId,
-                            categoryName,
-                            indicatorName,
-                            dbDataGroupingList,
-                            uuid
-                    );
+                    DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(description, categoryId, categoryName, indicatorName, dbDataGroupingList, uuid);
                     dbIndicatorDataValuesList.add(dbIndicatorDataValues);
 
                 }
@@ -171,7 +159,7 @@ public class InternationalServiceImpl implements InternationalService {
             }
             return dbIndicatorsValueList;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error occurred while fetching indicator values");
             return Collections.emptyList();
         }
     }
@@ -187,19 +175,19 @@ public class InternationalServiceImpl implements InternationalService {
         String publishedBy = dbVersionData.getPublishedBy();
 
         String status = PublishStatus.DRAFT.name();
-        if (isPublished){
+        if (isPublished) {
             status = PublishStatus.PUBLISHED.name();
         }
 
         VersionEntity versionEntity = new VersionEntity();
         Long versionId = dbVersionData.getVersionId();
-        if (versionId != null){
+        if (versionId != null) {
             Optional<VersionEntity> optionalVersionEntity = versionRepos.findById(versionId);
-            if (optionalVersionEntity.isPresent()){
+            if (optionalVersionEntity.isPresent()) {
                 versionEntity = optionalVersionEntity.get();
 
                 String versionEntityStatus = versionEntity.getStatus();
-                if (versionEntityStatus.equals(PublishStatus.PUBLISHED.name())){
+                if (versionEntityStatus.equals(PublishStatus.PUBLISHED.name())) {
                     return new Results(400, "You cannot edit a published version");
                 }
 
@@ -210,31 +198,23 @@ public class InternationalServiceImpl implements InternationalService {
         if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
         if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
         versionEntity.setStatus(status);
-        VersionEntity savedVersionEntity =
-                versionRepos.save(versionEntity);
-        if (isPublished){
+        VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
+        if (isPublished) {
 
-            try{
+            try {
                 savedVersionEntity.setStatus(PublishStatus.AWAITING_PUBLISHING.name());
                 versionRepos.save(versionEntity);
 
                 String url = AppConstants.METADATA_JSON_ENDPOINT;
 
-                formatterClass.startBackGroundTask(
-                        url,
-                        versionDescription,
-                        savedVersionEntity,
-                        this,
-                        indicatorList
-                );
+                formatterClass.startBackGroundTask(url, versionDescription, savedVersionEntity, this, indicatorList);
 
                 sendNotification(versionEntity);
 
 
-            }catch (Exception e){
-                e.printStackTrace();
+            } catch (Exception e) {
+                log.error("An error occurred while processing the publishing template");
             }
-
 
 
         }
@@ -243,22 +223,16 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     private void sendNotification(VersionEntity savedVersionEntity) {
-        String message =
-                "A new template has been published by " +
-                        savedVersionEntity.getPublishedBy() + " from the international instance. " +
-                        "The new template has the following details: " +
-                        "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" +
-                        "Number of indicators: " + savedVersionEntity.getIndicators().size();
+        String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
         List<String> dbEmailList = new ArrayList<>();
         //Get subscribed email addresses
-        List<NotificationSubscription> notificationSubscriptionList =
-                notificationSubscriptionRepo.findAllByIsActive(true);
-        for (NotificationSubscription notificationSubscription: notificationSubscriptionList){
+        List<NotificationSubscription> notificationSubscriptionList = notificationSubscriptionRepo.findAllByIsActive(true);
+        for (NotificationSubscription notificationSubscription : notificationSubscriptionList) {
             String emailAddress = notificationSubscription.getEmail();
             String email = emailAddress.replaceAll("\\s", "");
             boolean isEmail = formatterClass.isEmailValid(email);
-            if(isEmail) dbEmailList.add(email);
+            if (isEmail) dbEmailList.add(email);
 
         }
 
@@ -276,39 +250,30 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     @Transactional
-    public void pushMetadata(
-            DbMetadataValue dbMetadataJsonData,
-            VersionEntity savedVersionEntity){
+    public void pushMetadata(DbMetadataValue dbMetadataJsonData, VersionEntity savedVersionEntity) {
         String groupUrl = AppConstants.METADATA_GROUPINGS;
         String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
 
-        try{
+        try {
 
             ObjectMapper objectMapper = new ObjectMapper();
 
-            var indicatorDescription = GenericWebclient.getForSingleObjResponse(
-                    indicatorDescriptionUrl, String.class);
+            var indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
 
-            List<DbIndicatorDescription> indicatorDescriptionList =
-                    objectMapper.readValue(indicatorDescription, List.class);
+            List<DbIndicatorDescription> indicatorDescriptionList = objectMapper.readValue(indicatorDescription, List.class);
 
-            DbGroupsData groupings = GenericWebclient.getForSingleObjResponse(
-                    groupUrl, DbGroupsData.class);
+            DbGroupsData groupings = GenericWebclient.getForSingleObjResponse(groupUrl, DbGroupsData.class);
 
             dbMetadataJsonData.getMetadata().setGroups(groupings);
             dbMetadataJsonData.getMetadata().setIndicatorDescriptions(indicatorDescriptionList);
             String versionNumber = dbMetadataJsonData.getVersion();
 
-            var response = GenericWebclient.postForSingleObjResponse(
-                    AppConstants.DATA_STORE_ENDPOINT+Integer.parseInt(versionNumber),
-                    dbMetadataJsonData,
-                    DbMetadataValue.class,
-                    Response.class);
+            var response = GenericWebclient.postForSingleObjResponse(AppConstants.DATA_STORE_ENDPOINT + Integer.parseInt(versionNumber), dbMetadataJsonData, DbMetadataValue.class, Response.class);
 
             if (response.getHttpStatusCode() < 200) {
 //                throw new CustomException("Unable to create/update record on data store"+response);
 
-            }else {
+            } else {
 
                 savedVersionEntity.setVersionName(versionNumber);
                 savedVersionEntity.setStatus(PublishStatus.PUBLISHED.name());
@@ -320,13 +285,13 @@ public class InternationalServiceImpl implements InternationalService {
             }
 
 
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while pushing metadata");
         }
 
     }
 
-    private DbPdfData getPdfData(DbMetadataValue dbMetadataValue){
+    private DbPdfData getPdfData(DbMetadataValue dbMetadataValue) {
 
 
         /**
@@ -341,48 +306,48 @@ public class InternationalServiceImpl implements InternationalService {
         List<Map<String, String>> indicatorDescriptionsList = (List<Map<String, String>>) dbMetadataJsonData.getIndicatorDescriptions();
 
         DbResults dbResults = (DbResults) dbMetadataJsonData.getPublishedVersion();
-        if (dbResults != null){
+        if (dbResults != null) {
 
             List<DbPdfSubTitle> dbPdfSubTitleList = new ArrayList<>();
             List<DbIndicatorsValue> dbIndicatorsValueList = (List<DbIndicatorsValue>) dbResults.getDetails();
-            for (DbIndicatorsValue dbIndicatorsValue: dbIndicatorsValueList){
+            for (DbIndicatorsValue dbIndicatorsValue : dbIndicatorsValueList) {
                 String subtitle = (String) dbIndicatorsValue.getCategoryName();
 
                 List<DbPdfValue> dbPdfValueList = new ArrayList<>();
                 List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
-                for (DbIndicatorDataValues dataValues: indicatorDataValuesList){
+                for (DbIndicatorDataValues dataValues : indicatorDataValuesList) {
                     String categoryName = (String) dataValues.getCategoryName();
                     String indicatorName = (String) dataValues.getIndicatorName();
 
-                    if (indicatorName != null){
+                    if (indicatorName != null) {
                         DbPdfValue dbPdfValue = new DbPdfValue("Indicator Name", indicatorName); //rename camel case
                         dbPdfValueList.add(dbPdfValue);
                     }
-                    if (categoryName != null){
+                    if (categoryName != null) {
                         DbPdfValue dbPdfValueIndicator = new DbPdfValue("Pss Insight Indicator", categoryName);
                         dbPdfValueList.add(dbPdfValueIndicator);
 
-                        if (indicatorDescriptionsList != null){
+                        if (indicatorDescriptionsList != null) {
                             String definition = getDescriptionByCode(categoryName, indicatorDescriptionsList);
-                            if (definition != null){
+                            if (definition != null) {
                                 DbPdfValue dbPdfValue = new DbPdfValue("Definition", definition);
                                 dbPdfValueList.add(dbPdfValue);
                             }
                         }
                     }
-                    if (subtitle != null){
+                    if (subtitle != null) {
                         DbPdfValue dbPdfValue = new DbPdfValue("Topic", subtitle);
                         dbPdfValueList.add(dbPdfValue);
                     }
 
                     List<String> questionList = new ArrayList<>();
                     List<DbDataGrouping> dbDataGroupingList = dataValues.getIndicatorDataValue();
-                    for (DbDataGrouping dataGrouping: dbDataGroupingList){
+                    for (DbDataGrouping dataGrouping : dbDataGroupingList) {
                         String name = dataGrouping.getName();
                         questionList.add(name);
                     }
 
-                    if (!questionList.isEmpty()){
+                    if (!questionList.isEmpty()) {
                         String assessmentQuestions = String.join("\n", questionList);
                         DbPdfValue dbPdfValue = new DbPdfValue("Assessment Questions", assessmentQuestions); //rename camel case
                         dbPdfValueList.add(dbPdfValue);
@@ -409,24 +374,15 @@ public class InternationalServiceImpl implements InternationalService {
 //                    }
 
 
-
-
                 }
 
-                if (subtitle != null){
-                    DbPdfSubTitle dbPdfSubTitle = new DbPdfSubTitle(
-                            subtitle,
-                            dbPdfValueList);
+                if (subtitle != null) {
+                    DbPdfSubTitle dbPdfSubTitle = new DbPdfSubTitle(subtitle, dbPdfValueList);
                     dbPdfSubTitleList.add(dbPdfSubTitle);
                 }
             }
 
-            DbPdfData dbPdfData = new DbPdfData(
-                    title,
-                    versionName,
-                    versionDescription,
-                    dbPdfSubTitleList
-            );
+            DbPdfData dbPdfData = new DbPdfData(title, versionName, versionDescription, dbPdfSubTitleList);
             return dbPdfData;
 
         }
@@ -435,8 +391,8 @@ public class InternationalServiceImpl implements InternationalService {
 
     }
 
-    private DbPdfValue getPdfValue(Object object, String title){
-        if (object != null){
+    private DbPdfValue getPdfValue(Object object, String title) {
+        if (object != null) {
             return new DbPdfValue(title, (String) object);
         }
         return null;
@@ -444,34 +400,24 @@ public class InternationalServiceImpl implements InternationalService {
 
     private void generatePdf(DbMetadataValue dbMetadataValue) {
 
-        try{
+        try {
 
             DbPdfData dbPdfData = getPdfData(dbMetadataValue);
-            if (dbPdfData != null){
+            if (dbPdfData != null) {
                 File file = formatterClass.generatePdfFile(dbPdfData);
                 String id = createFileResource(file);
                 String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
 
                 String publishedVersionNo = dbMetadataValue.getVersion();
                 //Get metadata json
-                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents/"+id+"/data";
+                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents/" + id + "/data";
                 dbMetadataValue.getMetadata().setReferenceSheet(id);
 
-                var response = GenericWebclient.putForSingleObjResponse(
-                        publishedBaseUrl+publishedVersionNo,
-                        dbMetadataValue,
-                        DbMetadataValue.class,
-                        Response.class);
-                System.out.println("------");
-                System.out.println("reference sheet");
-                System.out.println(response);
-                System.out.println("------");
-
+                var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class);
             }
 
-        }catch (Exception e){
-            System.out.println("************ 4 error");
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while generating PDF");
         }
 
     }
@@ -481,8 +427,7 @@ public class InternationalServiceImpl implements InternationalService {
         try {
 
             RestTemplate restTemplate = new RestTemplate();
-            String authHeader = "Basic " + Base64.getEncoder().encodeToString((
-                    username + ":" + password).getBytes());
+            String authHeader = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             headers.add("Authorization", authHeader);
@@ -491,40 +436,23 @@ public class InternationalServiceImpl implements InternationalService {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
             body.add("file", new FileSystemResource(file));
 
-            HttpEntity<MultiValueMap<String, Object>> requestEntity =
-                    new HttpEntity<>(body, headers);
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-            ResponseEntity<DbFileResources> responseEntity =
-                    restTemplate.postForEntity(
-                            AppConstants.FILES_RESOURCES_ENDPOINT,
-                            requestEntity, DbFileResources.class);
+            ResponseEntity<DbFileResources> responseEntity = restTemplate.postForEntity(AppConstants.FILES_RESOURCES_ENDPOINT, requestEntity, DbFileResources.class);
             int code = responseEntity.getStatusCodeValue();
-            if (code == 202){
-                if (responseEntity.getBody() != null){
-                    if (responseEntity.getBody().getResponse() != null){
-                        if (responseEntity.getBody().getResponse().getFileResource() != null){
+            if (code == 202) {
+                if (responseEntity.getBody() != null) {
+                    if (responseEntity.getBody().getResponse() != null) {
+                        if (responseEntity.getBody().getResponse().getFileResource() != null) {
                             String id = responseEntity.getBody().getResponse().getFileResource().getId();
-                            if (id != null){
-                                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL+"documents";
+                            if (id != null) {
+                                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents";
 
-                                DbFileData dbFileData = new DbFileData(
-                                        id,
-                                        "UPLOAD_FILE",
-                                        true,
-                                        false,
-                                        id);
+                                DbFileData dbFileData = new DbFileData(id, "UPLOAD_FILE", true, false, id);
 
-                                var response = GenericWebclient.postForSingleObjResponse(
-                                        fileUrl,
-                                        dbFileData,
-                                        DbFileData.class,
-                                        DbFileResponse.class);
-                                System.out.println("-----file");
-                                System.out.println(response.getResponse().getUid());
-                                System.out.println("-----");
-
-                                if (response.getHttpStatusCode() == 201){
-                                    if(response.getResponse() != null){
+                                var response = GenericWebclient.postForSingleObjResponse(fileUrl, dbFileData, DbFileData.class, DbFileResponse.class);
+                                if (response.getHttpStatusCode() == 201) {
+                                    if (response.getResponse() != null) {
                                         return response.getResponse().getUid();
                                     }
                                 }
@@ -536,19 +464,18 @@ public class InternationalServiceImpl implements InternationalService {
             }
 
 
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while creating file resource for upload");
         }
         return "";
     }
-
 
 
     public String getDescriptionByCode(String indicatorCode, List<Map<String, String>> indicatorDescriptionsList) {
 
         for (Map<String, String> indicatorDescription : indicatorDescriptionsList) {
             String code = indicatorDescription.get("Indicator_Code");
-            if (code != null){
+            if (code != null) {
                 if (code.equals(indicatorCode)) {
                     return indicatorDescription.get("Description");
                 }
@@ -560,63 +487,59 @@ public class InternationalServiceImpl implements InternationalService {
 
     public int getInternationalVersions() {
 
-        try{
-            var response = GenericWebclient.getForSingleObjResponse(
-                    AppConstants.DATA_STORE_ENDPOINT,
-                    List.class);
+        try {
+            var response = GenericWebclient.getForSingleObjResponse(AppConstants.DATA_STORE_ENDPOINT, List.class);
 
-            if (!response.isEmpty()){
+            if (!response.isEmpty()) {
                 return formatterClass.getNextVersion(response);
-            }else {
+            } else {
                 return 1;
             }
 
 
-        }catch (Exception e){
+        } catch (Exception e) {
             return 1;
         }
 
     }
 
-    private String getValueType(String code,List<DbDataElements> dbDataElementsList ){
-        for (DbDataElements dataElements : dbDataElementsList ){
+    private String getValueType(String code, List<DbDataElements> dbDataElementsList) {
+        for (DbDataElements dataElements : dbDataElementsList) {
             String dataElementCode = dataElements.getCode();
-            if (code.equals(dataElementCode)){
+            if (code.equals(dataElementCode)) {
                 return dataElements.getValueType();
             }
         }
         return null;
     }
 
-    private DbMetadataValue getMetadata(String publishedBaseUrl){
+    private DbMetadataValue getMetadata(String publishedBaseUrl) {
 
-        try{
+        try {
 
-            DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(
-                    publishedBaseUrl, DbMetadataValue.class);
-            if (dbMetadataValue != null){
+            DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(publishedBaseUrl, DbMetadataValue.class);
+            if (dbMetadataValue != null) {
                 return dbMetadataValue;
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
 
-    private List<DbDataElements> getDataElements(String url){
+    private List<DbDataElements> getDataElements(String url) {
 
-        try{
+        try {
 
-            DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(
-                    url, DbMetadataJsonData.class);
-            if (dbMetadataJsonData != null){
+            DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(url, DbMetadataJsonData.class);
+            if (dbMetadataJsonData != null) {
                 return dbMetadataJsonData.getDataElements();
             }
 
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("An error occurred while fetching data elements");
         }
         return Collections.emptyList();
     }

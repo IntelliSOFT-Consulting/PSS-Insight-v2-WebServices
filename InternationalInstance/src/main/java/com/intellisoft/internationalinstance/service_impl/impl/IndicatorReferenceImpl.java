@@ -12,6 +12,7 @@ import com.intellisoft.internationalinstance.service_impl.service.IndicatorRefer
 import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 
+@Log4j2
 @RequiredArgsConstructor
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
@@ -190,19 +192,12 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                                     String displayName = elementNode.get("displayName").asText();
 
                                     // Create a new JSON object for each data element and add it to the array
-                                    JsonNode dataElementFound = objectMapper.createObjectNode()
-                                            .put("id", id)
-                                            .put("name", displayName);
+                                    JsonNode dataElementFound = objectMapper.createObjectNode().put("id", id).put("name", displayName);
                                     dataElementsFound.add(dataElementFound);
                                 }
 
                                 // Create the final JSON payload
-                                addDataElementsToGroupPayload = objectMapper.createObjectNode()
-                                        .put("name", (String) dbIndicatorDetails.getIndicatorName())
-                                        .put("description", dbIndicatorDetails.getDescription())
-                                        .put("compulsory", false)
-                                        .put("active", true)
-                                        .set("dataElements", objectMapper.valueToTree(dataElementsFound));
+                                addDataElementsToGroupPayload = objectMapper.createObjectNode().put("name", (String) dbIndicatorDetails.getIndicatorName()).put("description", dbIndicatorDetails.getDescription()).put("compulsory", false).put("active", true).set("dataElements", objectMapper.valueToTree(dataElementsFound));
                             }
 
                             //convert payload to JSON:
@@ -271,7 +266,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
             return new Results(400, "There was an issue processing your request.");
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            log.error("An error occurred while processing the publishing workflow");
             return new Results(400, "Please try again after some time");
         }
     }
@@ -281,7 +276,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             var response = GenericWebclient.postForSingleObjResponse(addDataElementsToGroupUrl, addToGroupPayload, String.class, Response.class);
             return response.getHttpStatusCode() == 200;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while adding data elements to group");
             return false; // Return false in case of an exception
         }
     }
@@ -302,7 +297,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             var response = GenericWebclient.postForSingleObjResponse(addToProgramUrl, payloadString, String.class, Response.class);
             return response.getHttpStatusCode() == 200;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while adding data elements to program");
             return false; // Return false in case of an exception
         }
     }
@@ -313,18 +308,14 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             String response = GenericWebclient.getForSingleObjResponse(dataElementIdUrl, String.class);
             return response;
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching data element IDs");
         }
         return null;
     }
 
     private OptionSet fetchOptionSet(String fetchOptionSetUrl) {
         WebClient webClient = WebClient.create();
-        return webClient.get()
-                .uri(fetchOptionSetUrl)
-                .retrieve()
-                .bodyToMono(OptionSet.class)
-                .block();
+        return webClient.get().uri(fetchOptionSetUrl).retrieve().bodyToMono(OptionSet.class).block();
     }
 
     private List<DbIndicatorDetails> fetchExistingIndicatorDetails(String url) throws URISyntaxException {
@@ -373,7 +364,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         try {
             return new Results(200, getIndicatorList());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching data dictionary listing");
         }
 
 
@@ -384,10 +375,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         try {
             String url = AppConstants.INDICATOR_DESCRIPTIONS;
             //Get metadata json
-            Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(
-                    url,
-                    DbIndicatorDetails.class
-            );
+            Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(url, DbIndicatorDetails.class);
             List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
 
 
@@ -409,7 +397,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching indicator list");
         }
         return Collections.emptyList();
 
@@ -497,8 +485,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                     int publishedVersionNo = getVersions(publishedBaseUrl);
 
                     //Get metadata json
-                    DbMetadataValue dbMetadataValue = getMetadata(
-                            publishedBaseUrl + publishedVersionNo);
+                    DbMetadataValue dbMetadataValue = getMetadata(publishedBaseUrl + publishedVersionNo);
                     if (dbMetadataValue == null) {
                         return new Results(400, "There was an issue getting the published version.");
                     }
@@ -513,11 +500,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                     dbMetadataValue.setMetadata(dbMetadataJsonData);
 
-                    var response = GenericWebclient.putForSingleObjResponse(
-                            publishedBaseUrl + publishedVersionNo,
-                            dbMetadataValue,
-                            DbMetadataValue.class,
-                            Response.class);
+                    var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class);
                     if (response.getHttpStatusCode() == 200) {
                         return new Results(200, new DbDetails("The indicators values have been updated."));
                     }
@@ -530,7 +513,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while updating data dictionary");
         }
 
         return new Results(400, "There was an issue processing the request. Please try again.");
@@ -545,8 +528,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             int publishedVersionNo = getVersions(publishedBaseUrl);
 
             //Get metadata json
-            DbMetadataValue dbMetadataValue = getMetadata(
-                    publishedBaseUrl + publishedVersionNo);
+            DbMetadataValue dbMetadataValue = getMetadata(publishedBaseUrl + publishedVersionNo);
             if (dbMetadataValue == null) {
                 return new Results(400, "There was an issue getting the published version.");
             }
@@ -566,11 +548,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 dbMetadataValue.setMetadata(dbMetadataJsonData);
 
-                var response = GenericWebclient.putForSingleObjResponse(
-                        publishedBaseUrl + publishedVersionNo,
-                        dbMetadataValue,
-                        DbMetadataValue.class,
-                        Response.class);
+                var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class);
                 if (response.getHttpStatusCode() == 200) {
                     return new Results(200, new DbDetails("The indicator has been deleted."));
                 }
@@ -581,7 +559,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while deleting from the data dictionary");
         }
 
 
@@ -591,34 +569,11 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     @Override
     public Results getTopics() {
 
-        String[] myTopics = {
-                "Selection",
-                "Procurement",
-                "Distribution",
-                "Use",
-                "Coordination and leadership",
-                "Pharmaceutical Laws and Regulations",
-                "Ethics, Transparency, and Accountability",
-                "Inspection and Enforcement",
-                "Product Assessment and Registration",
-                "Quality and Safety Surveillance",
-                "Innovation, Research & Development",
-                "Intellectual Property & Trade",
-                "Costing & Pricing",
-                "Financial Risk Protection",
-                "Expenditure Tracking & Monitoring",
-                "Human Resource Development ",
-                "Human Resource Management",
-                "Information Policy and Data Standardization"
-        };
+        String[] myTopics = {"Selection", "Procurement", "Distribution", "Use", "Coordination and leadership", "Pharmaceutical Laws and Regulations", "Ethics, Transparency, and Accountability", "Inspection and Enforcement", "Product Assessment and Registration", "Quality and Safety Surveillance", "Innovation, Research & Development", "Intellectual Property & Trade", "Costing & Pricing", "Financial Risk Protection", "Expenditure Tracking & Monitoring", "Human Resource Development ", "Human Resource Management", "Information Policy and Data Standardization"};
         List<String> topicList = new ArrayList<>(Arrays.asList(myTopics));
         DbResults dbResults1 = new DbResults(topicList.size(), topicList);
 
-        String[] dropDowns = {
-                IndicatorDropDowns.TEXT.name(),
-                IndicatorDropDowns.SELECTION.name(),
-                IndicatorDropDowns.NUMBER.name(),
-        };
+        String[] dropDowns = {IndicatorDropDowns.TEXT.name(), IndicatorDropDowns.SELECTION.name(), IndicatorDropDowns.NUMBER.name(),};
         List<String> dropList = new ArrayList<>(Arrays.asList(dropDowns));
         DbResults dbResults2 = new DbResults(dropList.size(), dropList);
 
@@ -628,9 +583,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     }
 
     private int getVersions(String url) throws URISyntaxException {
-        var response = GenericWebclient.getForSingleObjResponse(
-                url,
-                List.class);
+        var response = GenericWebclient.getForSingleObjResponse(url, List.class);
         if (!response.isEmpty()) {
             return formatterClass.getNextVersion(response);
         } else {
@@ -642,14 +595,13 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
         try {
 
-            DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(
-                    publishedBaseUrl, DbMetadataValue.class);
+            DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(publishedBaseUrl, DbMetadataValue.class);
             if (dbMetadataValue != null) {
                 return dbMetadataValue;
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while fetching metadata");
         }
         return null;
     }

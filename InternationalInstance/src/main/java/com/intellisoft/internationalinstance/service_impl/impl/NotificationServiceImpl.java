@@ -10,6 +10,7 @@ import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService;
 import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -56,7 +58,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
             return new Results(200, notificationSubscription);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while saving subscription for notifications");
             return new Results(400, "Saving resource not possible.");
         }
     }
@@ -65,53 +67,39 @@ public class NotificationServiceImpl implements NotificationService {
     public Results unsubscribe(String email) {
         var savedSubscription = notificationSubscriptionRepo.findByEmail(email);
 
-        if (savedSubscription.isEmpty())
-            return new Results(400, "Resource not found.");
+        if (savedSubscription.isEmpty()) return new Results(400, "Resource not found.");
 
         savedSubscription.get().setIsActive(false);
         notificationSubscriptionRepo.save(savedSubscription.get());
 
-        return new Results(200,
-                new DbDetails(savedSubscription.get().getEmail() + " has been unsubscribed successfully."));
+        return new Results(200, new DbDetails(savedSubscription.get().getEmail() + " has been unsubscribed successfully."));
     }
 
     @Override
     public Results getNotificationDetails(String id) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription =
-                notificationSubscriptionRepo.findById(Long.valueOf(id));
-        return optionalNotificationSubscription.map(notificationSubscription ->
-                new Results(200, notificationSubscription)).orElseGet(() ->
-                new Results(400, "Resource not found"));
+        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findById(Long.valueOf(id));
+        return optionalNotificationSubscription.map(notificationSubscription -> new Results(200, notificationSubscription)).orElseGet(() -> new Results(400, "Resource not found"));
 
     }
 
     @Override
     public Results getNotifications(int no, int size, String emailAddress) {
 
-        Optional<NotificationSubscription> subscriptionOptional =
-                notificationSubscriptionRepo.findByEmail(emailAddress);
+        Optional<NotificationSubscription> subscriptionOptional = notificationSubscriptionRepo.findByEmail(emailAddress);
         if (subscriptionOptional.isEmpty()) {
             return new Results(400, "We don't have a record of the email address.");
         }
         if (!subscriptionOptional.get().getIsActive()) {
             List<DbNotification> dbNotificationList = new ArrayList<>();
-            DbResults dbResults = new DbResults(
-                    0,
-                    dbNotificationList
-            );
+            DbResults dbResults = new DbResults(0, dbNotificationList);
             return new Results(200, dbResults);
         }
 
         List<DbNotification> dbNotificationList = new ArrayList<>();
         List<NotificationEntity> notificationEntityList = notificationEntityRepo.findByEmailAddress(emailAddress);
         for (NotificationEntity notification : notificationEntityList) {
-            DbNotification dbNotification = new DbNotification(
-                    notification.getTitle(),
-                    notification.getMessage(),
-                    notification.getSender(),
-                    String.valueOf(notification.getCreatedAt())
-            );
+            DbNotification dbNotification = new DbNotification(notification.getTitle(), notification.getMessage(), notification.getSender(), String.valueOf(notification.getCreatedAt()));
             dbNotificationList.add(dbNotification);
         }
         /**
@@ -121,10 +109,7 @@ public class NotificationServiceImpl implements NotificationService {
 //        Pageable pageable = PageRequest.of(no, size);
 //        Page<NotificationEntity> page = notificationEntityRepo.findByEmailAddressPage(emailAddress, pageable);
 //        List<NotificationEntity> notificationEntities = page.getContent();
-        DbResults dbResults = new DbResults(
-                dbNotificationList.size(),
-                dbNotificationList
-        );
+        DbResults dbResults = new DbResults(dbNotificationList.size(), dbNotificationList);
 
         return new Results(200, dbResults);
     }
@@ -135,10 +120,7 @@ public class NotificationServiceImpl implements NotificationService {
         Pageable pageable = PageRequest.of(no, size);
         List<NotificationSubscription> dbNotificationList = notificationSubscriptionRepo.findAllByIsActive(true);
 //        List<NotificationSubscription> dbNotificationList = notificationSubscriptionRepo.findAllByIsActive(true,pageable);
-        DbResults dbResults = new DbResults(
-                dbNotificationList.size(),
-                dbNotificationList
-        );
+        DbResults dbResults = new DbResults(dbNotificationList.size(), dbNotificationList);
         return new Results(200, dbResults);
     }
 
@@ -152,18 +134,11 @@ public class NotificationServiceImpl implements NotificationService {
             if (!emailList.isEmpty()) {
                 System.out.println("----- " + emailList);
 
-                DbNotificationData dbNotificationData = new DbNotificationData(
-                        emailList,
-                        String.valueOf(notification.getCreatedAt()),
-                        notification.getTitle(),
-                        notification.getMessage()
-                );
+                DbNotificationData dbNotificationData = new DbNotificationData(emailList, String.valueOf(notification.getCreatedAt()), notification.getTitle(), notification.getMessage());
                 formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("************ 3 error");
-
+            log.error("An error occurred while saving notification");
         }
 
     }
@@ -191,8 +166,7 @@ public class NotificationServiceImpl implements NotificationService {
                     dbEmailList = emailList;
                 }
             } else {
-                List<NotificationSubscription> notificationSubscriptionList =
-                        notificationSubscriptionRepo.findAllByIsActive(true);
+                List<NotificationSubscription> notificationSubscriptionList = notificationSubscriptionRepo.findAllByIsActive(true);
                 for (NotificationSubscription notificationSubscription : notificationSubscriptionList) {
                     String emailAddress = notificationSubscription.getEmail();
                     dbEmailList.add(emailAddress);
@@ -209,12 +183,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationEntityRepo.save(notificationEntity);
 
                 //Send email address
-                DbNotificationData dbNotificationData = new DbNotificationData(
-                        dbEmailList,
-                        String.valueOf(notificationEntity.getCreatedAt()),
-                        notificationEntity.getTitle(),
-                        notificationEntity.getMessage()
-                );
+                DbNotificationData dbNotificationData = new DbNotificationData(dbEmailList, String.valueOf(notificationEntity.getCreatedAt()), notificationEntity.getTitle(), notificationEntity.getMessage());
                 formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
 
                 return new Results(200, new DbDetails("Notification has been sent"));
@@ -224,7 +193,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("An error occurred while sending email notification.");
             return new Results(400, "There was an issue sending the email address.");
         }
 
@@ -234,9 +203,7 @@ public class NotificationServiceImpl implements NotificationService {
     public Results getSubscriptionDetails(String userId) {
 
         Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findFirstByUserId(userId);
-        return optionalNotificationSubscription.map(notificationSubscription ->
-                new Results(200, notificationSubscription)).orElseGet(() ->
-                new Results(400, "Resource not found"));
+        return optionalNotificationSubscription.map(notificationSubscription -> new Results(200, notificationSubscription)).orElseGet(() -> new Results(400, "Resource not found"));
     }
 
     @Override
