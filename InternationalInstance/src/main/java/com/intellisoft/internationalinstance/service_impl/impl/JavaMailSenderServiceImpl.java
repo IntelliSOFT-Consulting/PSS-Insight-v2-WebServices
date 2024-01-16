@@ -17,6 +17,7 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -34,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -92,8 +94,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
 
         }catch (Exception e){
-            System.out.println("========");
-            e.printStackTrace();
+            log.error("An error occurred while processing the send email background task");
         }
 
     }

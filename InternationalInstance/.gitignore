@@ -34,3 +34,6 @@ build/
 
 ## Passwords ##
 .env
+
+logs/
+.DS_Store
