@@ -228,7 +228,8 @@ data class DbVersions(
 )
 data class DbVersionDate(
     val isLatest:Boolean,
-    val id:String
+    val id:String,
+    val indicatorName: String
 )
 enum class DhisStatus {
     ACTIVE,
@@ -245,7 +246,7 @@ enum class PublishStatus {
 }
 enum class SurveySubmissionStatus {
     DRAFT, //Respondent has not sent responses
-    PENDING, // Respondent has sent responses
+    PENDING_CONFIRMATION, // Respondent has sent responses
     VERIFIED, // Admin has confirmed
     CANCELLED, // Admin has cancelled respondents survey
     EXPIRED, // Respondent's survey has expired
@@ -255,11 +256,12 @@ enum class SurveyStatus {
     DRAFT, //Survey has just been created
     SAVED, //
     SENT, // Survey has been sent
-    COMPLETED
+    COMPLETED,
+    PENDING_CONFIRMATION
 }
 enum class SurveyRespondentStatus {
     VERIFIED,
-    PENDING,
+    PENDING_CONFIRMATION,
     RESEND_REQUEST,
     REJECTED
 }
