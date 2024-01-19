@@ -33,6 +33,8 @@ public class AppConstants {
 
     public static final  String FETCH_BENCHMARKS_API=INTERNATIONAL_BASE_URL+"38/dataStore/Benchmarks/V1";
 
+    public static final String PROXY_REDIRECT_URL = "https://ghoapi.azureedge.net/api/";
+
 
 
 

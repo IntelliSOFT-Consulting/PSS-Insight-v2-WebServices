@@ -43,9 +43,7 @@ public class SurveysServiceImpl implements SurveysService {
 //        if (isSaved)
 //            status = SurveyStatus.SENT.name();
 
-        String versionNumber = String.valueOf(
-                nationalTemplateService.getCurrentVersion(
-                        AppConstants.NATIONAL_PUBLISHED_VERSIONS));
+        String versionNumber = String.valueOf(nationalTemplateService.getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS));
 
 
         Surveys surveys = new Surveys();
@@ -58,14 +56,15 @@ public class SurveysServiceImpl implements SurveysService {
         surveys.setIndicators(indicatorList);
         surveysRepo.save(surveys);
 
-        return new Results(201, surveys);    }
+        return new Results(201, surveys);
+    }
 
     @Override
     public Results listAdminSurveys(String creatorId, String status) {
 
         /**
          * if status = DRAFT, get surveys with the DRAFT status
-         * if status = PENDING,VERIFIED,CANCELLED,EXPIRED get survey non-respondent guys
+         * if status = PENDING_CONFIRMATION,VERIFIED,CANCELLED,EXPIRED get survey non-respondent guys
          */
 
         if (creatorId != null) {
@@ -74,8 +73,10 @@ public class SurveysServiceImpl implements SurveysService {
             if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())) {
                 surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, status);
             } else {
+//                log.info("Survey STATUS {}", status);
                 String surveyStatus = SurveyStatus.SENT.name();
                 surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, surveyStatus);
+                log.info("surveysList {}", surveysList);
             }
 
             List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
@@ -89,8 +90,7 @@ public class SurveysServiceImpl implements SurveysService {
                 //Get respondents under this with required status
 
                 List<DbRespondent> dbRespondentList = new ArrayList<>();
-                List<SurveyRespondents> respondentsList =
-                        surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status);
+                List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status.replace("PENDING_RESPONSE", "PENDING"));
 
                 for (SurveyRespondents surveyRespondents : respondentsList) {
 
@@ -112,20 +112,17 @@ public class SurveysServiceImpl implements SurveysService {
                             boolean isDraft = filterOutDraft(respId);
                             if (isDraft) {
 
-                                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
-                                        null, null);
+                                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date, null, null);
                                 //Link has expired
                                 dbRespondent.setExpiryDate(expiryDate);
-                                dbRespondent.setNewLinkRequested(
-                                        respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
+                                dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
                                 dbRespondentList.add(dbRespondent);
                             }
 
                         }
 
                     } else {
-                        DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date,
-                                expiryDate, null);
+                        DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, date, expiryDate, null);
                         dbRespondentList.add(dbRespondent);
 
                     }
@@ -133,31 +130,17 @@ public class SurveysServiceImpl implements SurveysService {
                 }
 
                 if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())) {
-                    DbSurveyDetails details = new DbSurveyDetails(
-                            String.valueOf(id),
-                            surveyName,
-                            surveyStatusValue,
-                            surveyDesc,
-                            landingPage,
-                            dbRespondentList);
+                    DbSurveyDetails details = new DbSurveyDetails(String.valueOf(id), surveyName, surveyStatusValue, surveyDesc, landingPage, dbRespondentList);
                     dbSurveyDetailsList.add(details);
                 } else {
                     if (!dbRespondentList.isEmpty()) {
-                        DbSurveyDetails details = new DbSurveyDetails(
-                                String.valueOf(id),
-                                surveyName,
-                                surveyStatusValue,
-                                surveyDesc,
-                                landingPage,
-                                dbRespondentList);
+                        DbSurveyDetails details = new DbSurveyDetails(String.valueOf(id), surveyName, surveyStatusValue, surveyDesc, landingPage, dbRespondentList);
                         dbSurveyDetailsList.add(details);
                     }
                 }
             }
 
-            DbResults dbResults = new DbResults(
-                    dbSurveyDetailsList.size(),
-                    dbSurveyDetailsList);
+            DbResults dbResults = new DbResults(dbSurveyDetailsList.size(), dbSurveyDetailsList);
 
             return new Results(200, dbResults);
 
@@ -193,51 +176,30 @@ public class SurveysServiceImpl implements SurveysService {
                             boolean isDraft = filterOutDraft(respId);
                             if (isDraft) {
 
-                                DbRespondent dbRespondent = new DbRespondent(
-                                        respId,
-                                        emailAddress,
-                                        createdAt,
-                                        null,
-                                        null
-                                );
+                                DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, createdAt, null, null);
                                 dbRespondent.setExpiryDate(expiryDate);
                                 dbRespondent.setNewLinkRequested(respondentStatus.equals(SurveyRespondentStatus.RESEND_REQUEST.name()));
                                 dbRespondentList.add(dbRespondent);
                             }
                         }
                     } else {
-                        DbRespondent dbRespondent = new DbRespondent(
-                                respId,
-                                emailAddress,
-                                createdAt,
-                                expiryDate,
-                                null
-                        );
+                        DbRespondent dbRespondent = new DbRespondent(respId, emailAddress, createdAt, expiryDate, null);
                         dbRespondentList.add(dbRespondent);
                     }
                 }
 
-                DbSurveyDetails details = new DbSurveyDetails(
-                        String.valueOf(id),
-                        surveyName,
-                        surveyStatusValue,
-                        surveyDesc,
-                        landingPage,
-                        dbRespondentList
-                );
+                DbSurveyDetails details = new DbSurveyDetails(String.valueOf(id), surveyName, surveyStatusValue, surveyDesc, landingPage, dbRespondentList);
                 dbSurveyDetailsList.add(details);
             }
 
-            DbResults dbResults = new DbResults(
-                    dbSurveyDetailsList.size(),
-                    dbSurveyDetailsList
-            );
+            DbResults dbResults = new DbResults(dbSurveyDetailsList.size(), dbSurveyDetailsList);
 
 
             return new Results(200, dbResults);
         }
 
     }
+
     private boolean filterOutDraft(String respondentId) {
         boolean qualified = false;
         // Load specific user details as per the survey
@@ -245,8 +207,8 @@ public class SurveysServiceImpl implements SurveysService {
         if (optionalSurveyRespondents.isPresent()) {
             SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
             String status = surveyRespondents.getRespondentsStatus();
-            if (status.equalsIgnoreCase(SurveySubmissionStatus.DRAFT.name())){
-                qualified=true;
+            if (status.equalsIgnoreCase(SurveySubmissionStatus.DRAFT.name())) {
+                qualified = true;
             }
         }
         return qualified;
@@ -255,7 +217,7 @@ public class SurveysServiceImpl implements SurveysService {
     @Override
     public List<String> getSurveyList(String surveyId) {
         Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
-        if (optionalSurvey.isPresent()){
+        if (optionalSurvey.isPresent()) {
             Surveys surveys = optionalSurvey.get();
             return surveys.getIndicators();
         }
@@ -267,47 +229,27 @@ public class SurveysServiceImpl implements SurveysService {
     public Results getSurveyDetails(String surveyId, Boolean isRespondents) {
 
         Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
-        if (optionalSurvey.isPresent()){
+        if (optionalSurvey.isPresent()) {
             Surveys surveys = optionalSurvey.get();
             String versionNumber = surveys.getVersionNumber();
 
-            DbPublishedVersion dbPublishedVersion =
-                    getPublishedData(AppConstants.NATIONAL_PUBLISHED_VERSIONS+versionNumber);
+            DbPublishedVersion dbPublishedVersion = getPublishedData(AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber);
             List<String> indicators = surveys.getIndicators();
 
-            if (dbPublishedVersion != null){
+            if (dbPublishedVersion != null) {
                 List<DbIndicators> dbIndicatorsList = dbPublishedVersion.getDetails();
-                List<DbIndicators> selectedIndicators =
-                        nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicators);
+                List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicators);
 
                 List<DbSurveyRespondentDataDerails> dbSurveyRespondentDataDerailsList = new ArrayList<>();
-                if (isRespondents){
-                    List<SurveyRespondents> surveyRespondentsList =
-                            surveyRespondentsService.getSurveyRespondents(surveyId, "ALL");
-                    for (SurveyRespondents surveyRespondents: surveyRespondentsList){
-                        DbSurveyRespondentDataDerails dbSurveyRespondentDataDerails =
-                                new DbSurveyRespondentDataDerails(
-                                    surveyRespondents.getId(),
-                                    surveyRespondents.getEmailAddress(),
-                                    surveyRespondents.getExpiryTime(),
-                                    surveyId,
-                                    surveyRespondents.getCustomUrl(),
-                                    surveyRespondents.getRespondentsStatus()
-                                );
+                if (isRespondents) {
+                    List<SurveyRespondents> surveyRespondentsList = surveyRespondentsService.getSurveyRespondents(surveyId, "ALL");
+                    for (SurveyRespondents surveyRespondents : surveyRespondentsList) {
+                        DbSurveyRespondentDataDerails dbSurveyRespondentDataDerails = new DbSurveyRespondentDataDerails(surveyRespondents.getId(), surveyRespondents.getEmailAddress(), surveyRespondents.getExpiryTime(), surveyId, surveyRespondents.getCustomUrl(), surveyRespondents.getRespondentsStatus());
                         dbSurveyRespondentDataDerailsList.add(dbSurveyRespondentDataDerails);
                     }
                 }
 
-                DbSurveyData data = new DbSurveyData(
-                        surveys.getId(),
-                        surveys.getName(),
-                        surveys.getDescription(),
-                        surveys.getLandingPage(),
-                        surveys.getStatus(),
-                        surveys.getCreatorId(),
-                        surveys.getCreatedAt(),
-                        selectedIndicators,
-                        dbSurveyRespondentDataDerailsList);
+                DbSurveyData data = new DbSurveyData(surveys.getId(), surveys.getName(), surveys.getDescription(), surveys.getLandingPage(), surveys.getStatus(), surveys.getCreatorId(), surveys.getCreatedAt(), selectedIndicators, dbSurveyRespondentDataDerailsList);
                 return new Results(200, data);
             }
 
@@ -320,7 +262,7 @@ public class SurveysServiceImpl implements SurveysService {
     public Results updateSurvey(String surveyId, DbSurvey dbSurvey) {
 
         Optional<Surveys> optionalSurveys = surveysRepo.findById(Long.valueOf(surveyId));
-        if (optionalSurveys.isPresent()){
+        if (optionalSurveys.isPresent()) {
             Surveys surveys = optionalSurveys.get();
 
             String surveyName = dbSurvey.getSurveyName();
@@ -336,13 +278,13 @@ public class SurveysServiceImpl implements SurveysService {
 
             String status = SurveyStatus.DRAFT.name();
 
-            if (dbSurvey.isSaved()){
+            if (dbSurvey.isSaved()) {
                 // Save response
                 surveys.setStatus(status);
             }
 
 
-            return new Results(200 ,dbSurvey);
+            return new Results(200, dbSurvey);
 
         }
         return new Results(400, "Resource not found");
@@ -358,7 +300,7 @@ public class SurveysServiceImpl implements SurveysService {
             Surveys surveys = optionalSurveys.get();
             surveys.setStatus(SurveySubmissionStatus.VERIFIED.name());
             surveysRepo.save(surveys);
-            return new Results(200 ,surveys);
+            return new Results(200, surveys);
         }
 
         return new Results(400, "Resource not found");
@@ -368,20 +310,19 @@ public class SurveysServiceImpl implements SurveysService {
     public DbPublishedVersion getPublishedData(String url) {
 
         try {
-            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
-                    url, DbMetadataJson.class);
-            if (dbMetadataJson != null){
+            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(url, DbMetadataJson.class);
+            if (dbMetadataJson != null) {
                 DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-                if (dbPrograms != null){
+                if (dbPrograms != null) {
                     DbPublishedVersion dbPublishedVersion = dbPrograms.getPublishedVersion();
-                    if (dbPublishedVersion != null){
+                    if (dbPublishedVersion != null) {
                         return dbPublishedVersion;
                     }
                 }
             }
 
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("An error occurred while fetching national published templates");
         }
         return null;

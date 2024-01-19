@@ -30,16 +30,11 @@ public class IndicatorEditsServiceImpl implements IndicatorEditsService {
         String creatorId = dbIndicatorEdit.getCreatorId();
         IndicatorEdits indicatorEdits = new IndicatorEdits();
 
-        Optional<IndicatorEdits> optionalIndicatorEdits =
-                indicatorEditsRepository
-                        .findByCategoryIdAndIndicatorIdAndCreatorId(
-                                categoryId,
-                                indicatorId,
-                                creatorId);
-        if (optionalIndicatorEdits.isPresent()){
+        Optional<IndicatorEdits> optionalIndicatorEdits = indicatorEditsRepository.findByCategoryIdAndIndicatorIdAndCreatorId(categoryId, indicatorId, creatorId);
+        if (optionalIndicatorEdits.isPresent()) {
             indicatorEdits = optionalIndicatorEdits.get();
             indicatorEdits.setEdit(editValue);
-        }else {
+        } else {
             indicatorEdits.setIndicatorId(indicatorId);
             indicatorEdits.setCategoryId(categoryId);
             indicatorEdits.setCreatorId(creatorId);

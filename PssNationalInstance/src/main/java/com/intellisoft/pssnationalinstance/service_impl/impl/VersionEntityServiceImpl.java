@@ -66,6 +66,9 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             indicatorList.add(id);
             boolean isLatest = dbVersionDate.isLatest();
             isLatestList.add(isLatest);
+            indicatorList.add(String.valueOf(isLatest));
+            String indicatorName = dbVersionDate.getIndicatorName();
+            indicatorList.add(indicatorName);
         }
 
         String status = PublishStatus.DRAFT.name();

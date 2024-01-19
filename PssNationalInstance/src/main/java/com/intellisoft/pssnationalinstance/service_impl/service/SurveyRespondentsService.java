@@ -12,6 +12,7 @@ public interface SurveyRespondentsService {
      * Creates a new entry to the survey respondents table
      * Takes in emailAddress, expiryDateTime, surveyId
      * Create a password for the different users
+     *
      * @param dbSurveyRespondent
      * @return
      */
@@ -19,6 +20,7 @@ public interface SurveyRespondentsService {
 
     /**
      * This displays all the respondents in a survey id
+     *
      * @param surveyId
      * @return
      */
@@ -28,6 +30,7 @@ public interface SurveyRespondentsService {
 
     /**
      * Delete all Records associated with a survey id
+     *
      * @param surveyId
      * @return
      */
@@ -35,12 +38,14 @@ public interface SurveyRespondentsService {
 
     /**
      * Delete particular respondent details
+     *
      * @return
      */
     Results deleteRespondent(String id);
 
     /**
      * Check if the password match what we have and if the time has expired
+     *
      * @param dbVerifySurvey
      * @return
      */
@@ -58,19 +63,17 @@ public interface SurveyRespondentsService {
      */
     Results saveResponse(DbResponse dbResponse);
 
-    Results getRespondentDetails(
-            String respondentId,
-            String questions,
-            String responses,
-            String respondentDetails) throws URISyntaxException;
+    Results getRespondentDetails(String respondentId, String questions, String responses, String respondentDetails) throws URISyntaxException;
 
     Results resendSurvey(String respondentId, DbResendSurvey dbResendSurvey);
+
     Results confirmSurvey(String respondentId, DbConfirmSurvey dbConfirmSurvey);
 
     /**
      * Request new link with comment
      */
     Results requestLink(String respondentId, DbRequestLink dbRequestLink);
+
     List<SurveyRespondents> getSurveyRespondents();
 
     Results verifySurvey(String respondentId);
