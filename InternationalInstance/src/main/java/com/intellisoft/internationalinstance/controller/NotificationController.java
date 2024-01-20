@@ -25,22 +25,24 @@ public class NotificationController {
     FormatterClass formatterClass = new FormatterClass();
 
     @PostMapping("subscribe")
-    public Results subscribe(@RequestBody DbNotificationSub notificationSubscription)  {
+    public Results subscribe(@RequestBody DbNotificationSub notificationSubscription) {
 
         Results results = notificationService.subscribe(notificationSubscription);
         ResponseEntity<?> resp = formatterClass.getResponse(results);
         return results;
 
     }
+
     @PutMapping("unsubscribe")
-    public ResponseEntity<?> unsubscribe(@RequestParam("email") String email)  {
+    public ResponseEntity<?> unsubscribe(@RequestParam("email") String email) {
 
         Results results = notificationService.unsubscribe(email);
         return formatterClass.getResponse(results);
 
     }
+
     @PostMapping("unsubscribe-email")
-    public ResponseEntity<?> unsubscribePost(@RequestBody DbNotificationSub notificationSubscription)  {
+    public ResponseEntity<?> unsubscribePost(@RequestBody DbNotificationSub notificationSubscription) {
 
         String email = notificationSubscription.getEmail();
         Results results = notificationService.unsubscribe(email);
@@ -48,50 +50,45 @@ public class NotificationController {
     }
 
     @PostMapping("send")
-    public ResponseEntity<?> sendNotification(@RequestBody DbSendNotification dbSendNotification)  {
+    public ResponseEntity<?> sendNotification(@RequestBody DbSendNotification dbSendNotification) {
 
         Results results = notificationService.sendNotification(dbSendNotification);
         return formatterClass.getResponse(results);
     }
 
     @GetMapping("/list")
-    public Results getIndicatorForFrontEnd(
-            @RequestParam("email") String email,
-            @RequestParam(value = "limit", required = false) String limit,
-            @RequestParam(value = "pageNo", required = false) String pageNo
-            ) {
+    public Results getIndicatorForFrontEnd(@RequestParam("email") String email, @RequestParam(value = "limit", required = false) String limit, @RequestParam(value = "pageNo", required = false) String pageNo) {
 
         int limitNo = 10;
-        if (limit != null && !limit.equals("")){
+        if (limit != null && !limit.equals("")) {
             limitNo = Integer.parseInt(limit);
         }
         int pageNumber = 1;
-        if (pageNo != null && !pageNo.equals("")){
+        if (pageNo != null && !pageNo.equals("")) {
             pageNumber = Integer.parseInt(pageNo);
         }
         Results results = notificationService.getNotifications(limitNo, pageNumber, email);
 //        return formatterClass.getResponse(results);
         return results;
     }
+
     @GetMapping("/list-subscribed")
-    public ResponseEntity<?> getSubscribedList(
-            @RequestParam(value = "limit", required = false) String limit,
-            @RequestParam(value = "pageNo", required = false) String pageNo
-    ) {
+    public ResponseEntity<?> getSubscribedList(@RequestParam(value = "limit", required = false) String limit, @RequestParam(value = "pageNo", required = false) String pageNo) {
 
         int limitNo = 10;
-        if (limit != null && !limit.equals("")){
+        if (limit != null && !limit.equals("")) {
             limitNo = Integer.parseInt(limit);
         }
         int pageNumber = 1;
-        if (pageNo != null && !pageNo.equals("")){
+        if (pageNo != null && !pageNo.equals("")) {
             pageNumber = Integer.parseInt(pageNo);
         }
         Results results = notificationService.getSubscribedList(limitNo, pageNumber);
         return formatterClass.getResponse(results);
     }
+
     @GetMapping(value = "/notification/{id}")
-    public ResponseEntity<?> getNotificationDetails(@PathVariable("id") String id){
+    public ResponseEntity<?> getNotificationDetails(@PathVariable("id") String id) {
         Results results = notificationService.getNotificationDetails(id);
         return formatterClass.getResponse(results);
 
