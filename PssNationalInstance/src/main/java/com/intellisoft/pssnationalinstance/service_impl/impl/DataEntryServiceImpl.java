@@ -104,8 +104,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
     private String getCurrentVersion() {
-        int versionNumber = nationalTemplateService
-                .getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS);
+        int versionNumber = nationalTemplateService.getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS);
         return String.valueOf(versionNumber);
     }
 
@@ -145,11 +144,9 @@ public class DataEntryServiceImpl implements DataEntryService {
                 if (metadata != null) {
                     DbGroups groups = metadata.getGroups();
                     if (groups != null) {
-                        List<DbDataElementGroups> dataElementGroups =
-                                groups.getDataElementGroups();
+                        List<DbDataElementGroups> dataElementGroups = groups.getDataElementGroups();
                         for (DbDataElementGroups dbDataElementGroups : dataElementGroups) {
-                            List<DbDataElements> dataElementsList =
-                                    dbDataElementGroups.getDataElements();
+                            List<DbDataElements> dataElementsList = dbDataElementGroups.getDataElements();
                             for (DbDataElements dataElements : dataElementsList) {
 
                                 String id = dataElements.getId();
@@ -163,15 +160,11 @@ public class DataEntryServiceImpl implements DataEntryService {
                                     String uploadId = getCommentsUploads(uploadComments, dataElementsList);
 
                                     if (comment != null && !commentId.equals("")) {
-                                        DbDataValues dbDataValues = new DbDataValues(
-                                                commentId, comment
-                                        );
+                                        DbDataValues dbDataValues = new DbDataValues(commentId, comment);
                                         dbDataValuesList.add(dbDataValues);
                                     }
                                     if (attachment != null && !uploadId.equals("")) {
-                                        DbDataValues dbDataValues = new DbDataValues(
-                                                uploadId, attachment
-                                        );
+                                        DbDataValues dbDataValues = new DbDataValues(uploadId, attachment);
 //                                        dbDataValuesList.add(dbDataValues);
                                     }
 
@@ -191,8 +184,7 @@ public class DataEntryServiceImpl implements DataEntryService {
         }
 
         if (selectedPeriod != null) {
-            PeriodConfiguration periodConfiguration =
-                    periodConfigurationService.getConfigurationDetails(selectedPeriod);
+            PeriodConfiguration periodConfiguration = periodConfigurationService.getConfigurationDetails(selectedPeriod);
             String status = DhisStatus.ACTIVE.name();
 
             if (periodConfiguration != null) {
@@ -204,8 +196,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
             try {
 
-                DbProgramsData dbProgramsData = GenericWebclient.getForSingleObjResponse(
-                        AppConstants.NATIONAL_BASE_PROGRAMS, DbProgramsData.class);
+                DbProgramsData dbProgramsData = GenericWebclient.getForSingleObjResponse(AppConstants.NATIONAL_BASE_PROGRAMS, DbProgramsData.class);
 
                 if (dbProgramsData != null) {
                     String id = "";
@@ -213,22 +204,12 @@ public class DataEntryServiceImpl implements DataEntryService {
                     for (int i = 0; i < programsValueList.size(); i++) {
                         id = programsValueList.get(i).getId().toString();
                     }
-                    DbDataEntry dataEntry = new DbDataEntry(
-                            id,
-                            orgUnit,
-                            selectedPeriod + "-01-" + "01",
-                            status,
-                            dataEntryPersonId,
-                            dbDataValuesList);
+                    DbDataEntry dataEntry = new DbDataEntry(id, orgUnit, selectedPeriod + "-01-" + "01", status, dataEntryPersonId, dbDataValuesList);
 
                     ObjectMapper objectMapper = new ObjectMapper();
                     String json = objectMapper.writeValueAsString(dataEntry);
 
-                    DbEvents response = GenericWebclient.postForSingleObjResponse(
-                            AppConstants.EVENTS_ENDPOINT,
-                            dataEntry,
-                            DbDataEntry.class,
-                            DbEvents.class);
+                    DbEvents response = GenericWebclient.postForSingleObjResponse(AppConstants.EVENTS_ENDPOINT, dataEntry, DbDataEntry.class, DbEvents.class);
                     if (response.getHttpStatusCode() == 200) {
                         String surveyId = dbDataEntryData.getSurveyId();
                         if (surveyId != null) {
@@ -266,69 +247,73 @@ public class DataEntryServiceImpl implements DataEntryService {
         if (optionalDataEntry.isPresent()) {
 
             DataEntry dataEntry = optionalDataEntry.get();
-            List<DataEntryResponses> dataEntryResponseList =
-                    dataEntryResponsesRepository.findByDataEntry(dataEntry);
-            DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(
-                    dataEntry.getId(),
-                    dataEntry.getSelectedPeriod(),
-                    dataEntry.getStatus(),
-                    dataEntry.getDataEntryPersonId(),
-                    dataEntry.getDataEntryDate(),
-                    dataEntry.getCreatedAt(),
-                    dataEntryResponseList, null);
+            List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
 
 
-            String versionNumber = dataEntry.getVersionNumber();
-            if (versionNumber != null) {
+            String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+            DbMetadataJson dbMetadataJson = internationalTemplateService.getPublishedData(publishedBaseUrl);
 
-                String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
-                String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
-                JSONArray jsonArray = new JSONArray(indicatorDescription);
+            if (dbMetadataJson != null) {
+                DbPrograms dbPrograms = dbMetadataJson.getMetadata();
+                if (dbMetadataJson.getMetadata() != null) {
+                    String referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
 
-                DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNumber);
-                assert dbPublishedVersion != null;
+                    DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(dataEntry.getId(), dataEntry.getSelectedPeriod(), dataEntry.getStatus(), dataEntry.getDataEntryPersonId(), dataEntry.getDataEntryDate(), dataEntry.getCreatedAt(), dataEntryResponseList, referenceSheet, null);
 
-                JSONObject jsonObject = null;
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    jsonObject = jsonArray.getJSONObject(i);
-                    JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
 
-                    for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
-                        JSONObject question = assessmentQuestionsArray.getJSONObject(j);
-                        String name = question.getString("name");
+                    String versionNumber = dataEntry.getVersionNumber();
+                    if (versionNumber != null) {
 
-                        for (DbIndicators dbIndicator : dbPublishedVersion.getDetails()) {
-                            for (DbIndicatorValues indicatorValue : dbIndicator.getIndicators()) {
-                                List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
-                                for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValues) {
-                                    if (dbIndicatorDataValues.getName().equals(name)) {
+                        String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
+                        String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+                        JSONArray jsonArray = new JSONArray(indicatorDescription);
 
-                                        String indicatorId = question.getString("id");
-                                        String code = question.getString("code");
+                        DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNumber);
+                        assert dbPublishedVersion != null;
 
-                                        dbIndicatorDataValues.setId(indicatorId);
-                                        dbIndicatorDataValues.setCode(code);
+                        JSONObject jsonObject = null;
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            jsonObject = jsonArray.getJSONObject(i);
+                            JSONArray assessmentQuestionsArray = jsonObject.getJSONArray("assessmentQuestions");
+
+                            for (int j = 0; j < assessmentQuestionsArray.length(); j++) {
+                                JSONObject question = assessmentQuestionsArray.getJSONObject(j);
+                                String name = question.getString("name");
+
+                                for (DbIndicators dbIndicator : dbPublishedVersion.getDetails()) {
+                                    for (DbIndicatorValues indicatorValue : dbIndicator.getIndicators()) {
+                                        List<DbIndicatorDataValues> indicatorDataValues = indicatorValue.getIndicatorDataValue();
+                                        for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValues) {
+                                            if (dbIndicatorDataValues.getName().equals(name)) {
+
+                                                String indicatorId = question.getString("id");
+                                                String code = question.getString("code");
+
+                                                dbIndicatorDataValues.setId(indicatorId);
+                                                dbIndicatorDataValues.setCode(code);
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        if (dbPublishedVersion != null) {
+                            dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                        }
+
+                    } else {
+                        String versionNo = getCurrentVersion();
+                        DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNo);
+                        if (dbPublishedVersion != null) {
+                            dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                        }
                     }
-                }
 
-                if (dbPublishedVersion != null) {
-                    dbDataEntryResponse.setIndicators(dbPublishedVersion);
-                }
 
-            } else {
-                String versionNo = getCurrentVersion();
-                DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNo);
-                if (dbPublishedVersion != null) {
-                    dbDataEntryResponse.setIndicators(dbPublishedVersion);
+                    return new Results(200, dbDataEntryResponse);
                 }
             }
-
-
-            return new Results(200, dbDataEntryResponse);
         }
 
         return new Results(400, "Resource not found.");
@@ -336,8 +321,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
     private DbPublishedVersion getThePreviousIndicators(String versionNumber) {
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
-        DbMetadataJson dbMetadataJson =
-                internationalTemplateService.getIndicators(publishedBaseUrl);
+        DbMetadataJson dbMetadataJson = internationalTemplateService.getIndicators(publishedBaseUrl);
         if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
             if (dbPrograms != null) {
@@ -384,8 +368,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                 String attachment = dataEntryResponses.getAttachment();
 
                 List<DataEntryResponses> dataEntryResponsesList = new ArrayList<>();
-                Optional<DataEntryResponses> optionalDataEntryResponses =
-                        dataEntryResponsesRepository.findByIndicatorAndDataEntry(indicator, dataEntryAdded);
+                Optional<DataEntryResponses> optionalDataEntryResponses = dataEntryResponsesRepository.findByIndicatorAndDataEntry(indicator, dataEntryAdded);
                 if (optionalDataEntryResponses.isPresent()) {
                     DataEntryResponses dataEntryResponsesDb = optionalDataEntryResponses.get();
 
@@ -407,8 +390,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                 if (dataEntryOptional.isPresent()) {
 
                     DataEntry dataEntry1 = dataEntryOptional.get();
-                    List<DataEntryResponses> dataEntryResponseList =
-                            dataEntryResponsesRepository.findByDataEntry(dataEntry);
+                    List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
 
                     List<DbDataEntryResponses> dataEntryResponsesList = new ArrayList<>();
                     for (DataEntryResponses dataEntryResponses : dataEntryResponseList) {
@@ -416,25 +398,13 @@ public class DataEntryServiceImpl implements DataEntryService {
                         String response = dataEntryResponses.getResponse();
                         String comment = dataEntryResponses.getComment();
                         String attachment = dataEntryResponses.getAttachment();
-                        DbDataEntryResponses dbDataEntryResponses = new DbDataEntryResponses(
-                                indicator,
-                                response,
-                                comment,
-                                attachment
-                        );
+                        DbDataEntryResponses dbDataEntryResponses = new DbDataEntryResponses(indicator, response, comment, attachment);
                         dataEntryResponsesList.add(dbDataEntryResponses);
                     }
 
                     String surveyId = dbDataEntryData.getSurveyId();
 
-                    DbDataEntryData dbDataEntryResponse = new DbDataEntryData(
-                            surveyId,
-                            dataEntry1.getOrgUnit(),
-                            dataEntry1.getSelectedPeriod(),
-                            true,
-                            dataEntry1.getDataEntryPersonId(),
-                            dataEntry1.getDataEntryDate(),
-                            dataEntryResponsesList,null);
+                    DbDataEntryData dbDataEntryResponse = new DbDataEntryData(surveyId, dataEntry1.getOrgUnit(), dataEntry1.getSelectedPeriod(), true, dataEntry1.getDataEntryPersonId(), dataEntry1.getDataEntryDate(), dataEntryResponsesList, null);
                     saveEventData(dbDataEntryResponse);
 
                 }
@@ -508,13 +478,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     public Results listDataEntry(int no, int size, String status, String dataEntryPersonId) {
 
         List<DbSubmissionsResponse> responseList = new ArrayList<>();
-        List<DataEntry> dataEntryList = getPagedDataEntryData(
-                no,
-                size,
-                "",
-                "",
-                status,
-                dataEntryPersonId);
+        List<DataEntry> dataEntryList = getPagedDataEntryData(no, size, "", "", status, dataEntryPersonId);
 
         for (DataEntry dataEntry : dataEntryList) {
 
@@ -542,31 +506,26 @@ public class DataEntryServiceImpl implements DataEntryService {
             if (optionalDataEntry.isPresent()) {
                 DataEntry dataEntryFound = optionalDataEntry.get();
 
-                    DataEntryPerson dataEntryPerson = new DataEntryPerson(
-                            dataEntryFound.getUsername(),
-                            dataEntryFound.getId().toString(),
-                            dataEntryFound.getSurname(),
-                            dataEntryFound.getFirstName(),
-                            dataEntryFound.getEmail());
+                DataEntryPerson dataEntryPerson = new DataEntryPerson(dataEntryFound.getUsername(), dataEntryFound.getId().toString(), dataEntryFound.getSurname(), dataEntryFound.getFirstName(), dataEntryFound.getEmail());
 
-                    // Check for null values and assign them as-is
-                    if (dataEntryFound.getUsername() == null) {
-                        dataEntryPerson.setUsername(null);
-                    }
-                    if (dataEntryFound.getId() == null) {
-                        dataEntryPerson.setId(String.valueOf(0));
-                    }
-                    if (dataEntryFound.getSurname() == null) {
-                        dataEntryPerson.setSurname(null);
-                    }
-                    if (dataEntryFound.getFirstName() == null) {
-                        dataEntryPerson.setFirstName(null);
-                    }
-                    if (dataEntryFound.getEmail() == null) {
-                        dataEntryPerson.setEmail(null);
-                    }
+                // Check for null values and assign them as-is
+                if (dataEntryFound.getUsername() == null) {
+                    dataEntryPerson.setUsername(null);
+                }
+                if (dataEntryFound.getId() == null) {
+                    dataEntryPerson.setId(String.valueOf(0));
+                }
+                if (dataEntryFound.getSurname() == null) {
+                    dataEntryPerson.setSurname(null);
+                }
+                if (dataEntryFound.getFirstName() == null) {
+                    dataEntryPerson.setFirstName(null);
+                }
+                if (dataEntryFound.getEmail() == null) {
+                    dataEntryPerson.setEmail(null);
+                }
 
-                    dataEntryPersonList.add(dataEntryPerson);
+                dataEntryPersonList.add(dataEntryPerson);
 
             }
 
@@ -583,18 +542,12 @@ public class DataEntryServiceImpl implements DataEntryService {
                         for (DbIndicatorValues dbIndicatorValues : indicatorValuesList) {
 
                             List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
-                            List<DbIndicatorDataValues> dataValuesList =
-                                    dbIndicatorValues.getIndicatorDataValue();
+                            List<DbIndicatorDataValues> dataValuesList = dbIndicatorValues.getIndicatorDataValue();
                             for (DbIndicatorDataValues dbIndicatorDataValues : dataValuesList) {
                                 String indicatorId = (String) dbIndicatorDataValues.getId();
                                 if (stringList.contains(indicatorId)) {
 
-                                    DbIndicatorDataValues indicatorDataValues =
-                                            new DbIndicatorDataValues(
-                                                    indicatorId,
-                                                    dbIndicatorDataValues.getCode(),
-                                                    dbIndicatorDataValues.getName(),
-                                                    dbIndicatorDataValues.getValueType());
+                                    DbIndicatorDataValues indicatorDataValues = new DbIndicatorDataValues(indicatorId, dbIndicatorDataValues.getCode(), dbIndicatorDataValues.getName(), dbIndicatorDataValues.getValueType());
                                     dbIndicatorDataValuesList.add(indicatorDataValues);
                                 }
 
@@ -602,45 +555,27 @@ public class DataEntryServiceImpl implements DataEntryService {
                             }
 
                             if (!dbIndicatorDataValuesList.isEmpty()) {
-                                DbIndicatorValues indicatorValues = new DbIndicatorValues(
-                                        dbIndicatorValues.getDescription(),
-                                        dbIndicatorValues.getCategoryId(),
-                                        dbIndicatorValues.getCategoryName(),
-                                        null,
-                                        dbIndicatorValues.getIndicatorName(), null, null,
-                                        dbIndicatorDataValuesList);
+                                DbIndicatorValues indicatorValues = new DbIndicatorValues(dbIndicatorValues.getDescription(), dbIndicatorValues.getCategoryId(), dbIndicatorValues.getCategoryName(), null, dbIndicatorValues.getIndicatorName(), null, null, dbIndicatorDataValuesList);
                                 dbIndicatorValuesList.add(indicatorValues);
                             }
                         }
 
-                        DbIndicators indicators = new DbIndicators(
-                                dbIndicators.getCategoryName(),
-                                dbIndicatorValuesList);
+                        DbIndicators indicators = new DbIndicators(dbIndicators.getCategoryName(), dbIndicatorValuesList);
                         dbIndicatorsArrayList.add(indicators);
                     }
 
                 }
             }
 
-            DbPublishedVersion publishedVersion = new DbPublishedVersion(
-                    dbIndicatorsArrayList.size(),
-                    dbIndicatorsArrayList);
+            DbPublishedVersion publishedVersion = new DbPublishedVersion(dbIndicatorsArrayList.size(), dbIndicatorsArrayList);
 
 
-            DbSubmissionsResponse dbSubmissionsResponse = new DbSubmissionsResponse(
-                    dataEntry.getId(),
-                    dataEntry.getSelectedPeriod(),
-                    dataEntry.getStatus(),
-                    dataEntry.getDataEntryPersonId(),
-                    dataEntry.getDataEntryDate(),
-                    dataEntry.getCreatedAt(), dataEntryPersonList);
+            DbSubmissionsResponse dbSubmissionsResponse = new DbSubmissionsResponse(dataEntry.getId(), dataEntry.getSelectedPeriod(), dataEntry.getStatus(), dataEntry.getDataEntryPersonId(), dataEntry.getDataEntryDate(), dataEntry.getCreatedAt(), dataEntryPersonList);
             responseList.add(dbSubmissionsResponse);
         }
 
 
-        DbResults dbResults = new DbResults(
-                responseList.size(),
-                responseList);
+        DbResults dbResults = new DbResults(responseList.size(), responseList);
 
         return new Results(200, dbResults);
     }
@@ -660,21 +595,19 @@ public class DataEntryServiceImpl implements DataEntryService {
             sortPageDirection = sortField;
         }
 
-        Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
-                ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
+        Sort sort = sortPageDirection.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortPageField).ascending() : Sort.by(sortPageField).descending();
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sort);
         Page<DataEntry> page;
         if (status.equals("ALL") && (userId == null || userId.equals(""))) {
             page = dataEntryRepository.findAll(pageable);
-        } else if (status.equals("ALL") && (userId!=null && !userId.equals(""))){
+        } else if (status.equals("ALL") && (userId != null && !userId.equals(""))) {
             page = dataEntryRepository.findAllByDataEntryPersonId(userId, pageable);
-        } else{
+        } else {
             page = dataEntryRepository.findAllByStatus(status, pageable);
         }
 
         return page.getContent();
     }
-
 
 
     @Override
@@ -685,14 +618,7 @@ public class DataEntryServiceImpl implements DataEntryService {
 
             DataEntry dataEntry = optionalDataEntry.get();
             List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
-            DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(
-                    dataEntry.getId(),
-                    dataEntry.getSelectedPeriod(),
-                    dataEntry.getStatus(),
-                    dataEntry.getDataEntryPersonId(),
-                    dataEntry.getDataEntryDate(),
-                    dataEntry.getCreatedAt(),
-                    dataEntryResponseList, null);
+            DbDataEntryResponse dbDataEntryResponse = new DbDataEntryResponse(dataEntry.getId(), dataEntry.getSelectedPeriod(), dataEntry.getStatus(), dataEntry.getDataEntryPersonId(), dataEntry.getDataEntryDate(), dataEntry.getCreatedAt(), dataEntryResponseList, null, null);
 
             String versionNumber = dataEntry.getVersionNumber();
             if (versionNumber != null) {
@@ -723,11 +649,7 @@ public class DataEntryServiceImpl implements DataEntryService {
             }
 
 
-            DbResendDataEntry dbResendDataEntry = new DbResendDataEntry(
-                    "We have resent the data entry",
-                    resendDataEntry.getComments(),
-                    resendDataEntry.getIndicators()
-                    );
+            DbResendDataEntry dbResendDataEntry = new DbResendDataEntry("We have resent the data entry", resendDataEntry.getComments(), resendDataEntry.getIndicators());
 
             return new Results(200, dbResendDataEntry);
 
@@ -735,8 +657,6 @@ public class DataEntryServiceImpl implements DataEntryService {
 
         return new Results(400, "There was an issue with this request.");
     }
-
-
 
 
 }
