@@ -217,6 +217,12 @@ public class NotificationServiceImpl implements NotificationService {
             // Update the email address
             notificationSubscription.setEmail(dbNotificationSub.getEmail());
 
+            //updating other fields::
+            notificationSubscription.setUserId(dbNotificationSub.getId());
+            notificationSubscription.setFirstName(dbNotificationSub.getFirstName());
+            notificationSubscription.setLastName(dbNotificationSub.getLastName());
+            notificationSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+
             // Save the record
             notificationSubscriptionRepo.save(notificationSubscription);
 

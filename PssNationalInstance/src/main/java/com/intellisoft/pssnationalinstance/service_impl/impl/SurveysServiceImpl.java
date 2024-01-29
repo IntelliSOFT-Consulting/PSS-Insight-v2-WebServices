@@ -90,7 +90,8 @@ public class SurveysServiceImpl implements SurveysService {
                 //Get respondents under this with required status
 
                 List<DbRespondent> dbRespondentList = new ArrayList<>();
-                List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status.replace("PENDING_RESPONSE", "DRAFT"));
+                List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status.replace("PENDING_RESPONSE", "DRAFT").replace("PENDING_CONFIRMATION", "DRAFT"));
+
 
                 for (SurveyRespondents surveyRespondents : respondentsList) {
 
