@@ -350,6 +350,7 @@ data class DbDataEntryResponse(
     val dataEntryDate: String?,
     val createdAt: Any?,
     val responses: Any?,
+    var referenceSheet: String?,
     var indicators: Any?,
 )
 
