@@ -198,6 +198,7 @@ public class InternationalServiceImpl implements InternationalService {
         if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
         if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
         versionEntity.setStatus(status);
+        versionEntity.setVersionName(String.valueOf(versionId));
         VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
         if (isPublished) {
 
