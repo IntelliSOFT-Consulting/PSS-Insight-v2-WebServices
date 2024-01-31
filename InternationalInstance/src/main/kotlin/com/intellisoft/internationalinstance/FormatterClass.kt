@@ -2,6 +2,8 @@ package com.intellisoft.internationalinstance
 
 
 import com.intellisoft.internationalinstance.db.VersionEntity
+import com.intellisoft.internationalinstance.db.repso.AuditlogsRepository
+import com.intellisoft.internationalinstance.db.repso.VersionRepos
 import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl
 import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService
 import com.intellisoft.internationalinstance.util.AppConstants
@@ -15,6 +17,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.commons.lang3.RandomStringUtils
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import java.io.File
 import java.io.FileOutputStream
@@ -24,7 +27,6 @@ import java.util.regex.Pattern
 
 
 class FormatterClass {
-
 
     fun getValue(): DbApplicationValues {
         val props = Properties()
@@ -92,8 +94,10 @@ class FormatterClass {
             dbMetadataJsonData.publishedVersion = dbResults
             val versionNo = (internationalService.internationalVersions + 1).toString()
 
+
             val dbMetadataJson = DbMetadataValue(versionNo, versionDescription, dbMetadataJsonData)
             internationalService.pushMetadata(dbMetadataJson, savedVersionEntity)
+
 
         }
     }

@@ -30,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Log4j2
 @Service
@@ -198,33 +199,90 @@ public class InternationalServiceImpl implements InternationalService {
         if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
         if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
         versionEntity.setStatus(status);
-        versionEntity.setVersionName(String.valueOf(versionId));
         VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
         if (isPublished) {
-
             try {
                 savedVersionEntity.setStatus(PublishStatus.AWAITING_PUBLISHING.name());
-                versionRepos.save(versionEntity);
+                versionRepos.save(savedVersionEntity);
 
                 String url = AppConstants.METADATA_JSON_ENDPOINT;
 
-                formatterClass.startBackGroundTask(url, versionDescription, savedVersionEntity, this, indicatorList);
+                CompletableFuture<VersionEntity> future = startBackGroundTask(url, versionDescription, savedVersionEntity, this, indicatorList);
 
-                sendNotification(versionEntity);
-
+                future.thenApplyAsync(updatedVersionEntity -> {
+                    sendNotification(updatedVersionEntity);
+                    return updatedVersionEntity;
+                }).exceptionally(ex -> {
+                    log.error("An error occurred while processing the publishing template");
+                    return null;
+                });
 
             } catch (Exception e) {
                 log.error("An error occurred while processing the publishing template");
             }
-
-
         }
+
 
         return new Results(200, new DbDetails("Version request is being processed."));
     }
 
+    // Background task re-factored to JAVA::
+    public CompletableFuture<VersionEntity> startBackGroundTask(String url, String versionDescription, VersionEntity savedVersionEntity, InternationalServiceImpl internationalService, List<String> indicatorList) {
+        CompletableFuture<VersionEntity> future = new CompletableFuture<>();
+
+        CompletableFuture.runAsync(() -> {
+            VersionEntity updatedVersionEntity = doBackGroundTask(url, versionDescription, savedVersionEntity, internationalService, indicatorList);
+            future.complete(updatedVersionEntity);
+        });
+
+        return future;
+    }
+
+
+    public VersionEntity doBackGroundTask(String url, String versionDescription, VersionEntity savedVersionEntity, InternationalServiceImpl internationalService, List<String> indicatorList) {
+        List<DbIndicatorsValue> dbIndicatorsValueList = internationalService.getIndicatorsValues();
+        List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
+
+        for (DbIndicatorsValue dbIndicatorsValue : dbIndicatorsValueList) {
+            List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
+            String categoryName = (String) dbIndicatorsValue.getCategoryName();
+
+            List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
+            for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValuesList) {
+                String categoryId = (String) dbIndicatorDataValues.getCategoryId();
+                if (indicatorList.contains(categoryId)) {
+                    dbIndicatorDataValuesList.add(dbIndicatorDataValues);
+                }
+            }
+
+            if (!dbIndicatorDataValuesList.isEmpty()) {
+                DbIndicatorsValue dbIndicatorsValueNew = new DbIndicatorsValue(categoryName, dbIndicatorDataValuesList);
+                dbIndicatorsValueListNew.add(dbIndicatorsValueNew);
+            }
+        }
+
+        DbResults dbResults = new DbResults(dbIndicatorsValueListNew.size(), dbIndicatorsValueListNew);
+
+        try {
+            DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(url, DbMetadataJsonData.class);
+
+            dbMetadataJsonData.setPublishedVersion(dbResults);
+            String versionNo = String.valueOf(Integer.parseInt(String.valueOf(this.getInternationalVersions())) + 1);
+
+            savedVersionEntity.setVersionName(versionNo);
+            versionRepos.save(savedVersionEntity);
+
+            DbMetadataValue dbMetadataJson = new DbMetadataValue(versionNo, versionDescription, dbMetadataJsonData);
+            this.pushMetadata(dbMetadataJson, savedVersionEntity);
+
+        } catch (Exception e) {
+            log.error("Error occurred while executing Async background task");
+        }
+        return savedVersionEntity;
+    }
+
     private void sendNotification(VersionEntity savedVersionEntity) {
-        String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " +savedVersionEntity.getVersionName()+ "\n\n"+ "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
+        String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " + savedVersionEntity.getVersionName() + "\n\n" + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
         List<String> dbEmailList = new ArrayList<>();
         //Get subscribed email addresses
