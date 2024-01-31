@@ -282,7 +282,8 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     private void sendNotification(VersionEntity savedVersionEntity) {
-        String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " + savedVersionEntity.getVersionName() + "\n\n" + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
+       String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " + savedVersionEntity.getVersionName() + "\n\n" + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
+
 
         List<String> dbEmailList = new ArrayList<>();
         //Get subscribed email addresses
