@@ -18,13 +18,13 @@ import java.util.List;
 public class VersionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    public Long id;
 //    @Column(unique = true)
-    private String versionName;
-    private String versionDescription;
-    private String status;
-    private String createdBy;
-    private String publishedBy;
+    public String versionName;
+    public String versionDescription;
+    public String status;
+    public String createdBy;
+    public String publishedBy;
     @CreationTimestamp
     private Date createdAt;
     @UpdateTimestamp
