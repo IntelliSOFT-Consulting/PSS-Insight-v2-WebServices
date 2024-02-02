@@ -255,7 +255,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         boolean isSubmit = dbResponse.isSubmit();
         String status = SurveySubmissionStatus.DRAFT.name();
         if (isSubmit) {
-            status = SurveySubmissionStatus.PENDING_CONFIRMATION.name();
+            status = SurveySubmissionStatus.PENDING.name();
         }
 
         List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
