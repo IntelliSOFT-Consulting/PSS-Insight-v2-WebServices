@@ -34,6 +34,6 @@ public class VersionEntity {
     @ElementCollection
     private List<Boolean> version;
     @Column(name = "is_latest")
-    private boolean isLatest;
+    private boolean isLatest = true;
 
 }

@@ -95,7 +95,7 @@ data class DbIndicatorValues(
         @JsonProperty("description") var description: Any?,
         @JsonProperty("categoryId") var categoryId: Any?,
         @JsonProperty("categoryName") var categoryName: Any?,
-        @JsonProperty("isLatest") var isLatest: Boolean?,
+        @JsonProperty("latest") var latest: Boolean? = true,
         @JsonProperty("indicatorName") var indicatorName: Any?,
         @JsonProperty("benchmark") var benchmark: Any?,
         @JsonProperty("internationalBenchmark") var internationalBenchmark: Any?,

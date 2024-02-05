@@ -86,6 +86,12 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         VersionEntity savedVersionEntity = versionEntityRepository.save(versionEntity);
 
         if (isPublished) {
+            // Log the contents of dbVersionsIndicators
+            for (DbVersionDate dbVersionDate : dbVersionsIndicators) {
+                log.info("Indicator ID: {}", dbVersionDate.getId());
+                log.info("Is Latest: {}", dbVersionDate.isLatest());
+                log.info("Indicator Name: {}", dbVersionDate.getIndicatorName());
+            }
             nationalTemplateService.savePublishedVersion(createdBy, String.valueOf(savedVersionEntity.getId()), dbVersionsIndicators);
         }
 

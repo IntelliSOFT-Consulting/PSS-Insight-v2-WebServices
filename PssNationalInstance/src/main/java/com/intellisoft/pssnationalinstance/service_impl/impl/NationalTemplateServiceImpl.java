@@ -314,6 +314,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
     @Async
     public void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList){
+        log.info("indicatorList{}", indicatorList);
         try{
 
             String nationalPublishedUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
@@ -346,10 +347,22 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 String id = dbVersionDate.getId();
                 if (isLatest){
                     latestIndicators.add(id);
+//                    latestIndicators.add(String.valueOf(true));
+                    for (DbIndicators dbIndicators : indicatorsList) {
+                        List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
+                        for (DbIndicatorValues indicatorValues : indicatorValuesList) {
+                            if (id.equals(indicatorValues.getCategoryId())) {
+                                indicatorValues.setLatest(true);
+                            }
+                        }
+                    }
                 }else {
                     pastIndicators.add(id);
+                    pastIndicators.add(String.valueOf(false));
                 }
             }
+
+            log.info("Latest Indicators: {}", latestIndicators);
 
             /**
              * Get past metadata from the version number
