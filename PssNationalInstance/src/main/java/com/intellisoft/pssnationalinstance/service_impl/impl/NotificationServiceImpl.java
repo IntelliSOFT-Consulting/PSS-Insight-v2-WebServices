@@ -92,7 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
             return new Results(200, notificationSubscription);
         } catch (Exception e) {
             log.error("An error occurred while fetching subscription details");
-            return new Results(400, "An error occurred while processing the request");
+            return new Results(400, "An error occurred while processing the request, subscription details not found or is inactive");
         }
     }
 
