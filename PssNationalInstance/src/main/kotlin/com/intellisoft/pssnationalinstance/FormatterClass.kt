@@ -65,7 +65,7 @@ class FormatterClass {
         // Build remaining time string
         val sb = StringBuilder()
         if (days > 0) sb.append("$days days, ")
-        sb.append("$hours hours, $minutes minutes, and $seconds seconds remaining")
+        sb.append("$hours hours, $minutes minutes, and $seconds seconds")
         return sb.toString()
     }
     fun isDateFormatValid(dateString: String): Boolean {
