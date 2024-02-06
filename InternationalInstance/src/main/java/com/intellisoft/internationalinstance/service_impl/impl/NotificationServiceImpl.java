@@ -202,7 +202,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results getSubscriptionDetails(String userId) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findFirstByUserId(userId);
+        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findFirstByUserIdAndIsActiveTrue(userId);
         return optionalNotificationSubscription.map(notificationSubscription -> new Results(200, notificationSubscription)).orElseGet(() -> new Results(400, "Resource not found"));
     }
 
@@ -218,7 +218,6 @@ public class NotificationServiceImpl implements NotificationService {
             notificationSubscription.setEmail(dbNotificationSub.getEmail());
 
             //updating other fields::
-            notificationSubscription.setUserId(dbNotificationSub.getId());
             notificationSubscription.setFirstName(dbNotificationSub.getFirstName());
             notificationSubscription.setLastName(dbNotificationSub.getLastName());
             notificationSubscription.setPhone(dbNotificationSub.getPhoneNumber());
