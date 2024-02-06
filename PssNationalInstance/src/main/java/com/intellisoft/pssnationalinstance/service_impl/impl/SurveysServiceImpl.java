@@ -73,10 +73,8 @@ public class SurveysServiceImpl implements SurveysService {
             if (status.equals(SurveyStatus.DRAFT.name()) || status.contains(SurveyStatus.DRAFT.name())) {
                 surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, status);
             } else {
-//                log.info("Survey STATUS {}", status);
                 String surveyStatus = SurveyStatus.SENT.name();
                 surveysList = surveysRepo.findByCreatorIdAndStatus(creatorId, surveyStatus);
-                log.info("surveysList {}", surveysList);
             }
 
             List<DbSurveyDetails> dbSurveyDetailsList = new ArrayList<>();
@@ -90,7 +88,7 @@ public class SurveysServiceImpl implements SurveysService {
                 //Get respondents under this with required status
 
                 List<DbRespondent> dbRespondentList = new ArrayList<>();
-                List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status.replace("PENDING_RESPONSE", "DRAFT").replace("PENDING_CONFIRMATION", "DRAFT"));
+                List<SurveyRespondents> respondentsList = surveyRespondentsService.getSurveyRespondents(String.valueOf(id), status.replace("PENDING_RESPONSE", "DRAFT"));
 
 
                 for (SurveyRespondents surveyRespondents : respondentsList) {
