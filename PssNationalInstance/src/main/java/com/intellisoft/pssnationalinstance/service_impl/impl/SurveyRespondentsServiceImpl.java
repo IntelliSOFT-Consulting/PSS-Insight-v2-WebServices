@@ -253,38 +253,39 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         List<RespondentAnswers> respondentAnswersList = new ArrayList<>();
         String respondentId = dbResponse.getRespondentId();
         boolean isSubmit = dbResponse.isSubmit();
-        String status = SurveySubmissionStatus.DRAFT.name();
+        String status;
         if (isSubmit) {
             status = SurveySubmissionStatus.PENDING.name();
-        }
 
-        List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
-        for (int i = 0; i < dbRespondentSurveyList.size(); i++) {
 
-            LocalDate currentDateTime = LocalDate.now();
+            List<DbRespondentSurvey> dbRespondentSurveyList = dbResponse.getResponses();
+            for (int i = 0; i < dbRespondentSurveyList.size(); i++) {
 
-            String indicatorId = dbRespondentSurveyList.get(i).getIndicatorId();
-            String answer = dbRespondentSurveyList.get(i).getAnswer();
-            String comments = dbRespondentSurveyList.get(i).getComments();
-            String attachment = dbRespondentSurveyList.get(i).getAttachment();
-            RespondentAnswers respondentAnswers = new RespondentAnswers(respondentId, indicatorId, answer, comments, attachment);
-            respondentAnswers.setStatus(SurveyRespondentStatus.PENDING_CONFIRMATION.name());
-            respondentAnswersList.add(respondentAnswers);
-        }
-        //Update status on what was provided
-        Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
-        if (optionalSurveyRespondents.isPresent()) {
-            SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
+                LocalDate currentDateTime = LocalDate.now();
 
-            String expiryDate = surveyRespondents.getExpiryTime();
-            boolean isExpired = formatterClass.isPastToday(expiryDate);
-            if (isExpired) {
-                return new Results(400, "This link is expired.");
+                String indicatorId = dbRespondentSurveyList.get(i).getIndicatorId();
+                String answer = dbRespondentSurveyList.get(i).getAnswer();
+                String comments = dbRespondentSurveyList.get(i).getComments();
+                String attachment = dbRespondentSurveyList.get(i).getAttachment();
+                RespondentAnswers respondentAnswers = new RespondentAnswers(respondentId, indicatorId, answer, comments, attachment);
+                respondentAnswers.setStatus(status);
+                respondentAnswersList.add(respondentAnswers);
             }
+            //Update status on what was provided
+            Optional<SurveyRespondents> optionalSurveyRespondents = respondentsRepo.findById(Long.valueOf(respondentId));
+            if (optionalSurveyRespondents.isPresent()) {
+                SurveyRespondents surveyRespondents = optionalSurveyRespondents.get();
 
-            surveyRespondents.setSurveyStatus(SurveyStatus.SENT.name()); //status of sent survey
-            surveyRespondents.setRespondentsStatus(SurveySubmissionStatus.PENDING_CONFIRMATION.name()); //status of survey_respondent
-            respondentsRepo.save(surveyRespondents);
+                String expiryDate = surveyRespondents.getExpiryTime();
+                boolean isExpired = formatterClass.isPastToday(expiryDate);
+                if (isExpired) {
+                    return new Results(400, "This link is expired.");
+                }
+
+                surveyRespondents.setSurveyStatus(SurveyStatus.SENT.name()); //status of sent survey
+                surveyRespondents.setRespondentsStatus(status); //status of survey_respondent
+                respondentsRepo.save(surveyRespondents);
+            }
         }
 
 
