@@ -33,7 +33,8 @@ public class VersionEntity {
     private List<String> indicators;
     @ElementCollection
     private List<Boolean> version;
+    @Builder.Default
     @Column(name = "is_latest")
-    private boolean isLatest;
+    private boolean isLatest = true;
 
 }
