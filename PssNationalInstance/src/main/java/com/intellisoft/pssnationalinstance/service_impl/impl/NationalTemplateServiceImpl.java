@@ -424,7 +424,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     }
 
     public List<DbIndicators> getSelectedIndicators(List<DbIndicators> details, List<String> selectedIndicators) {
-
         List<DbIndicators> dbIndicatorsList = new ArrayList<>();
         for (DbIndicators dbIndicators : details) {
             String categoryName = (String) dbIndicators.getCategoryName();
@@ -432,17 +431,13 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             List<DbIndicatorValues> newIndicators = new ArrayList<>();
             List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
             for (DbIndicatorValues indicatorValues : indicatorValuesList) {
-                if (selectedIndicators.stream().anyMatch(indicatorValues.getCategoryId().toString()::contains)) {
-                    indicatorValues.setLatest(true);
-                    newIndicators.add(indicatorValues);
-                }
+                boolean isIndicatorSelected = selectedIndicators.stream().anyMatch(indicatorValues.getCategoryId().toString()::contains);
+                indicatorValues.setLatest(isIndicatorSelected);
+                newIndicators.add(indicatorValues);
             }
-            if (!newIndicators.isEmpty()) {
-                DbIndicators dbNewIndicators = new DbIndicators(categoryName, newIndicators);
-                dbIndicatorsList.add(dbNewIndicators);
-            }
+            DbIndicators dbNewIndicators = new DbIndicators(categoryName, newIndicators);
+            dbIndicatorsList.add(dbNewIndicators);
         }
-
         return dbIndicatorsList;
     }
 
