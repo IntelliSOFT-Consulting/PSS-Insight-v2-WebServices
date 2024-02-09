@@ -207,15 +207,25 @@ public class InternationalServiceImpl implements InternationalService {
 
                 String url = AppConstants.METADATA_JSON_ENDPOINT;
 
-                CompletableFuture<VersionEntity> future = startBackGroundTask(url, versionDescription, savedVersionEntity, this, indicatorList);
+                //Process in background
+                formatterClass.processBackgroundWork(
+                        this,
+                        url,
+                        versionDescription,
+                        savedVersionEntity,
+                        indicatorList);
 
-                future.thenApplyAsync(updatedVersionEntity -> {
-                    sendNotification(updatedVersionEntity);
-                    return updatedVersionEntity;
-                }).exceptionally(ex -> {
-                    log.error("An error occurred while processing the publishing template");
-                    return null;
-                });
+
+
+//                CompletableFuture<VersionEntity> future = startBackGroundTask(url, versionDescription, savedVersionEntity, this, indicatorList);
+//
+//                future.thenApplyAsync(updatedVersionEntity -> {
+//                    sendNotification(updatedVersionEntity);
+//                    return updatedVersionEntity;
+//                }).exceptionally(ex -> {
+//                    log.error("An error occurred while processing the publishing template");
+//                    return null;
+//                });
 
             } catch (Exception e) {
                 log.error("An error occurred while processing the publishing template");
@@ -227,20 +237,30 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     // Background task re-factored to JAVA::
-    public CompletableFuture<VersionEntity> startBackGroundTask(String url, String versionDescription, VersionEntity savedVersionEntity, InternationalServiceImpl internationalService, List<String> indicatorList) {
-        CompletableFuture<VersionEntity> future = new CompletableFuture<>();
+//    public CompletableFuture<VersionEntity> startBackGroundTask(
+//            String url,
+//            String versionDescription,
+//            VersionEntity savedVersionEntity,
+//            InternationalServiceImpl internationalService,
+//            List<String> indicatorList) {
+//        CompletableFuture<VersionEntity> future = new CompletableFuture<>();
+//
+//        CompletableFuture.runAsync(() -> {
+//            VersionEntity updatedVersionEntity = doBackGroundTask(url, versionDescription, savedVersionEntity, internationalService, indicatorList);
+//            future.complete(updatedVersionEntity);
+//        });
+//
+//        return future;
+//    }
 
-        CompletableFuture.runAsync(() -> {
-            VersionEntity updatedVersionEntity = doBackGroundTask(url, versionDescription, savedVersionEntity, internationalService, indicatorList);
-            future.complete(updatedVersionEntity);
-        });
 
-        return future;
-    }
+    public VersionEntity doBackGroundTask(
+            String url,
+            String versionDescription,
+            VersionEntity savedVersionEntity,
+            List<String> indicatorList) {
 
-
-    public VersionEntity doBackGroundTask(String url, String versionDescription, VersionEntity savedVersionEntity, InternationalServiceImpl internationalService, List<String> indicatorList) {
-        List<DbIndicatorsValue> dbIndicatorsValueList = internationalService.getIndicatorsValues();
+        List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
         List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
 
         for (DbIndicatorsValue dbIndicatorsValue : dbIndicatorsValueList) {
@@ -281,7 +301,7 @@ public class InternationalServiceImpl implements InternationalService {
         return savedVersionEntity;
     }
 
-    private void sendNotification(VersionEntity savedVersionEntity) {
+    public void sendNotification(VersionEntity savedVersionEntity) {
        String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " + savedVersionEntity.getVersionName() + "\n\n" + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
 
