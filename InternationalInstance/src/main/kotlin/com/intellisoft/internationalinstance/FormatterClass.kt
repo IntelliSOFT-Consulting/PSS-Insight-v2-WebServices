@@ -12,10 +12,7 @@ import com.itextpdf.text.*
 import com.itextpdf.text.pdf.PdfPCell
 import com.itextpdf.text.pdf.PdfPTable
 import com.itextpdf.text.pdf.PdfWriter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -57,7 +54,51 @@ class FormatterClass {
         }
     }
 
-    fun startBackGroundTask(url: String, versionDescription: String, savedVersionEntity: VersionEntity, internationalService: InternationalServiceImpl, indicatorList: List<String>) {
+    fun processBackgroundWork(
+        internationalService: InternationalServiceImpl,
+        url: String,
+        versionDescription: String?,
+        savedVersionEntity: VersionEntity,
+        indicatorList: List<String>
+    ){
+        CoroutineScope(Dispatchers.IO).launch {
+            processInBackgroundWork(
+                internationalService,
+                url,
+                versionDescription,
+                savedVersionEntity,
+                indicatorList
+            )
+        }
+
+    }
+    private suspend fun processInBackgroundWork(
+        internationalService: InternationalServiceImpl,
+        url: String,
+        versionDescription: String?,
+        savedVersionEntity: VersionEntity,
+        indicatorList: List<String>
+    ){
+        var versionEntity = VersionEntity()
+        val job = Job()
+        CoroutineScope(Dispatchers.IO + job).launch {
+            versionEntity = internationalService.doBackGroundTask(
+                url,
+                versionDescription,
+                savedVersionEntity,
+                indicatorList
+            )
+        }.join()
+
+        internationalService.sendNotification(versionEntity)
+    }
+
+    fun startBackGroundTask(
+        url: String,
+        versionDescription: String,
+        savedVersionEntity: VersionEntity,
+        internationalService: InternationalServiceImpl,
+        indicatorList: List<String>) {
         GlobalScope.launch {
             doBackGroundTask(url, versionDescription, savedVersionEntity, internationalService, indicatorList)
         }
