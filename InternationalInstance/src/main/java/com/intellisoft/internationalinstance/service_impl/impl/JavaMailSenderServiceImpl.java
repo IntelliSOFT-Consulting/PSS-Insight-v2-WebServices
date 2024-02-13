@@ -25,10 +25,14 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -47,9 +51,10 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
     private final MailConfigurationImpl mailConfigurationImpl;
     private final ConfigurationService periodConfigurationService;
+    @Value("${server.port}")
+    private String serverPort;
 
-
-    public void sendEmailBackground(DbNotificationData dbNotificationData) {
+    public void sendEmailBackground(String baseUrl, DbNotificationData dbNotificationData) {
 
         try{
 
@@ -72,6 +77,9 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
                 List<String> emailAddressList = dbNotificationData.getEmailAddress();
                 for (String emailAddress: emailAddressList) {
+                    //Add a unsubscribe link
+                    String url = baseUrl+"/api/v1/notification/unsubscribe?email="+emailAddress;
+                    context.setVariable("unsubscribe_link", url);
 
                     String title = dbNotificationData.getTitle();
                     String description = dbNotificationData.getDescription();
@@ -94,6 +102,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
 
         }catch (Exception e){
+            e.printStackTrace();
             log.error("An error occurred while processing the send email background task");
         }
 

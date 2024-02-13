@@ -41,6 +41,14 @@ public class NotificationController {
 
     }
 
+    @GetMapping("unsubscribe")
+    public ResponseEntity<?> unsubscribeEmail(@RequestParam("email") String email) {
+
+        Results results = notificationService.unsubscribe(email);
+        return formatterClass.getResponse(results);
+
+    }
+
     @PostMapping("unsubscribe-email")
     public ResponseEntity<?> unsubscribePost(@RequestBody DbNotificationSub notificationSubscription) {
 

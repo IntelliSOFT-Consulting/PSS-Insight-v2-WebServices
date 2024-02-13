@@ -2,8 +2,6 @@ package com.intellisoft.internationalinstance
 
 
 import com.intellisoft.internationalinstance.db.VersionEntity
-import com.intellisoft.internationalinstance.db.repso.AuditlogsRepository
-import com.intellisoft.internationalinstance.db.repso.VersionRepos
 import com.intellisoft.internationalinstance.service_impl.impl.InternationalServiceImpl
 import com.intellisoft.internationalinstance.service_impl.service.JavaMailSenderService
 import com.intellisoft.internationalinstance.util.AppConstants
@@ -14,8 +12,8 @@ import com.itextpdf.text.pdf.PdfPTable
 import com.itextpdf.text.pdf.PdfWriter
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.RandomStringUtils
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -42,15 +40,15 @@ class FormatterClass {
         return RandomStringUtils.randomAlphanumeric(10)
     }
 
-    fun sendEmailBackground(javaMailSenderService: JavaMailSenderService, dbNotificationData: DbNotificationData) {
+    fun sendEmailBackground(baseUrl:String, javaMailSenderService: JavaMailSenderService, dbNotificationData: DbNotificationData) {
         GlobalScope.launch {
-            sendBackgroundMail(javaMailSenderService, dbNotificationData)
+            sendBackgroundMail(baseUrl,javaMailSenderService, dbNotificationData)
         }
     }
 
-    private suspend fun sendBackgroundMail(javaMailSenderService: JavaMailSenderService, dbNotificationData: DbNotificationData) {
+    private suspend fun sendBackgroundMail(baseUrl:String,javaMailSenderService: JavaMailSenderService, dbNotificationData: DbNotificationData) {
         withContext(Dispatchers.IO) {
-            javaMailSenderService.sendEmailBackground(dbNotificationData)
+            javaMailSenderService.sendEmailBackground(baseUrl, dbNotificationData)
         }
     }
 
@@ -462,6 +460,8 @@ class FormatterClass {
             }
         }
     }
+
+
 
 
 }
