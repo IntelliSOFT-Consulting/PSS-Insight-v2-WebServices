@@ -5,5 +5,5 @@ import com.intellisoft.internationalinstance.DbNotificationData;
 
 public interface JavaMailSenderService {
 
-    void sendEmailBackground(DbNotificationData dbNotificationData);
+    void sendEmailBackground(String baseUrl, DbNotificationData dbNotificationData);
 }

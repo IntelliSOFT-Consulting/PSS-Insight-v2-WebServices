@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,6 +125,10 @@ public class NotificationServiceImpl implements NotificationService {
         return new Results(200, dbResults);
     }
 
+    public String getHostUrl() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+    }
+
     @Override
     public void createNotification(NotificationEntity notificationEntity) {
 
@@ -132,10 +137,10 @@ public class NotificationServiceImpl implements NotificationService {
             List<String> emailList = notification.getEmailList();
 
             if (!emailList.isEmpty()) {
-                System.out.println("----- " + emailList);
+                String baseUrl = getHostUrl();
 
                 DbNotificationData dbNotificationData = new DbNotificationData(emailList, String.valueOf(notification.getCreatedAt()), notification.getTitle(), notification.getMessage());
-                formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
+                formatterClass.sendEmailBackground(baseUrl, javaMailSenderService, dbNotificationData);
             }
         } catch (Exception e) {
             log.error("An error occurred while saving notification");
@@ -182,9 +187,11 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationEntity.setSender(sender);
                 notificationEntityRepo.save(notificationEntity);
 
+                String baseUrl = getHostUrl();
+
                 //Send email address
                 DbNotificationData dbNotificationData = new DbNotificationData(dbEmailList, String.valueOf(notificationEntity.getCreatedAt()), notificationEntity.getTitle(), notificationEntity.getMessage());
-                formatterClass.sendEmailBackground(javaMailSenderService, dbNotificationData);
+                formatterClass.sendEmailBackground(baseUrl, javaMailSenderService, dbNotificationData);
 
                 return new Results(200, new DbDetails("Notification has been sent"));
             } else {
