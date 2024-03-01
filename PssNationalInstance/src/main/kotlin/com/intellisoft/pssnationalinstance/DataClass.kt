@@ -121,7 +121,7 @@ data class DbIndicatorEdit(val categoryId: String, val indicatorId: String, val 
 
 data class DbVersions(val versionDescription: String, val isPublished: Boolean, val createdBy: String, val publishedBy: String?, val indicators: List<DbVersionDate>)
 
-data class DbVersionDate(val isLatest: Boolean = true, val id: String, val indicatorName: String)
+data class DbVersionDate(val isLatest: Boolean, val id: String, val indicatorName: String)
 
 enum class DhisStatus {
     ACTIVE, COMPLETED, OVERDUE
