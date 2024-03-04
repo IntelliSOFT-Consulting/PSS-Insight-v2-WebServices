@@ -33,5 +33,5 @@ public class VersionEntity {
     private List<String> indicators;
     @Builder.Default
     @Column(name = "is_latest")
-    private boolean isLatest = true;
+    private Boolean isLatest = true;
 }

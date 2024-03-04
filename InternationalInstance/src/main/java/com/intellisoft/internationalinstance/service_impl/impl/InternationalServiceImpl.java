@@ -203,7 +203,7 @@ public class InternationalServiceImpl implements InternationalService {
                 indicators.add(indicator);
                 // Setting isLatest to true for the selected indicator:
                 versionEntity.setIndicators(indicators);
-                versionEntity.setLatest(true);
+                versionEntity.setIsLatest(true);
             }
         }
         versionEntity.setStatus(status);
