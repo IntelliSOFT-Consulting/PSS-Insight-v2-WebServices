@@ -133,7 +133,7 @@ public class InternationalServiceImpl implements InternationalService {
                         }
                     }
 
-                    DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(description, categoryId, categoryName, indicatorName, dbDataGroupingList, uuid);
+                    DbIndicatorDataValues dbIndicatorDataValues = new DbIndicatorDataValues(description, categoryId, categoryName, indicatorName, dbDataGroupingList, uuid, true);
                     dbIndicatorDataValuesList.add(dbIndicatorDataValues);
 
                 }
@@ -171,9 +171,9 @@ public class InternationalServiceImpl implements InternationalService {
         String versionDescription = dbVersionData.getVersionDescription();
         boolean isPublished = dbVersionData.isPublished();
         List<String> indicatorList = dbVersionData.getIndicators();
-
         String createdBy = dbVersionData.getCreatedBy();
         String publishedBy = dbVersionData.getPublishedBy();
+        List<Boolean> isLatestList = new ArrayList<>(); // List to store the values of "isLatest"
 
         String status = PublishStatus.DRAFT.name();
         if (isPublished) {
@@ -197,7 +197,15 @@ public class InternationalServiceImpl implements InternationalService {
         if (versionDescription != null) versionEntity.setVersionDescription(versionDescription);
         if (createdBy != null) versionEntity.setCreatedBy(createdBy);
         if (publishedBy != null) versionEntity.setPublishedBy(publishedBy);
-        if (!indicatorList.isEmpty()) versionEntity.setIndicators(indicatorList);
+        if (!indicatorList.isEmpty()) {
+            List<String> indicators = new ArrayList<>();
+            for (String indicator : indicatorList) {
+                indicators.add(indicator);
+                // Setting isLatest to true for the selected indicator:
+                versionEntity.setIndicators(indicators);
+                versionEntity.setLatest(true);
+            }
+        }
         versionEntity.setStatus(status);
         VersionEntity savedVersionEntity = versionRepos.save(versionEntity);
         if (isPublished) {
@@ -208,24 +216,7 @@ public class InternationalServiceImpl implements InternationalService {
                 String url = AppConstants.METADATA_JSON_ENDPOINT;
 
                 //Process in background
-                formatterClass.processBackgroundWork(
-                        this,
-                        url,
-                        versionDescription,
-                        savedVersionEntity,
-                        indicatorList);
-
-
-
-//                CompletableFuture<VersionEntity> future = startBackGroundTask(url, versionDescription, savedVersionEntity, this, indicatorList);
-//
-//                future.thenApplyAsync(updatedVersionEntity -> {
-//                    sendNotification(updatedVersionEntity);
-//                    return updatedVersionEntity;
-//                }).exceptionally(ex -> {
-//                    log.error("An error occurred while processing the publishing template");
-//                    return null;
-//                });
+                formatterClass.processBackgroundWork(this, url, versionDescription, savedVersionEntity, indicatorList);
 
             } catch (Exception e) {
                 log.error("An error occurred while processing the publishing template");
@@ -236,40 +227,22 @@ public class InternationalServiceImpl implements InternationalService {
         return new Results(200, new DbDetails("Version request is being processed."));
     }
 
-    // Background task re-factored to JAVA::
-//    public CompletableFuture<VersionEntity> startBackGroundTask(
-//            String url,
-//            String versionDescription,
-//            VersionEntity savedVersionEntity,
-//            InternationalServiceImpl internationalService,
-//            List<String> indicatorList) {
-//        CompletableFuture<VersionEntity> future = new CompletableFuture<>();
-//
-//        CompletableFuture.runAsync(() -> {
-//            VersionEntity updatedVersionEntity = doBackGroundTask(url, versionDescription, savedVersionEntity, internationalService, indicatorList);
-//            future.complete(updatedVersionEntity);
-//        });
-//
-//        return future;
-//    }
-
-
     public VersionEntity doBackGroundTask(
             String url,
             String versionDescription,
             VersionEntity savedVersionEntity,
             List<String> indicatorList) {
-
         List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
         List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
 
         for (DbIndicatorsValue dbIndicatorsValue : dbIndicatorsValueList) {
             List<DbIndicatorDataValues> dbIndicatorDataValuesList = new ArrayList<>();
             String categoryName = (String) dbIndicatorsValue.getCategoryName();
-
             List<DbIndicatorDataValues> indicatorDataValuesList = dbIndicatorsValue.getIndicators();
             for (DbIndicatorDataValues dbIndicatorDataValues : indicatorDataValuesList) {
                 String categoryId = (String) dbIndicatorDataValues.getCategoryId();
+                Boolean isLatest = indicatorList.contains(categoryId);
+                dbIndicatorDataValues.setLatest(isLatest);
                 if (indicatorList.contains(categoryId)) {
                     dbIndicatorDataValuesList.add(dbIndicatorDataValues);
                 }
