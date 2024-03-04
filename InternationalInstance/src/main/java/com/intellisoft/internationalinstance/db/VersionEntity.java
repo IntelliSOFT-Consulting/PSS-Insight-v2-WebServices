@@ -31,4 +31,7 @@ public class VersionEntity {
     private Date updatedAt;
     @ElementCollection
     private List<String> indicators;
+    @Builder.Default
+    @Column(name = "is_latest")
+    private boolean isLatest = true;
 }
