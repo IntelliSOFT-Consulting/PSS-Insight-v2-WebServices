@@ -60,6 +60,25 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         try {
 
             DbPublishedVersionDetails publishedVersionValues = getPublishedDetails();
+            List<DbIndicators> details = publishedVersionValues.getDetails();
+
+            // Merge DbIndicators with the same categoryName
+            Map<Object, DbIndicators> mergedMap = new LinkedHashMap<>();
+            for (DbIndicators dbIndicators : details) {
+                Object categoryName = dbIndicators.getCategoryName();
+                if (!mergedMap.containsKey(categoryName)) {
+                    mergedMap.put(categoryName, dbIndicators);
+                } else {
+                    DbIndicators existingDbIndicators = mergedMap.get(categoryName);
+                    List<DbIndicatorValues> mergedIndicatorValues = new ArrayList<>(existingDbIndicators.getIndicators());
+                    mergedIndicatorValues.addAll(dbIndicators.getIndicators());
+                    mergedMap.put(categoryName, new DbIndicators(categoryName, mergedIndicatorValues));
+                }
+            }
+            // Resulting list after merging
+            List<DbIndicators> mergedList = new ArrayList<>(mergedMap.values());
+            publishedVersionValues.setDetails(mergedList);
+
             return new Results(200, publishedVersionValues);
 
         } catch (Exception syntaxException) {
