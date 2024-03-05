@@ -62,7 +62,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             DbPublishedVersionDetails publishedVersionValues = getPublishedDetails();
             List<DbIndicators> details = publishedVersionValues.getDetails();
 
-            // Merge DbIndicators with the same categoryName
+            // Merge DbIndicators with the same categoryName. Use LinkedHashMap
             Map<Object, DbIndicators> mergedMap = new LinkedHashMap<>();
             for (DbIndicators dbIndicators : details) {
                 Object categoryName = dbIndicators.getCategoryName();
