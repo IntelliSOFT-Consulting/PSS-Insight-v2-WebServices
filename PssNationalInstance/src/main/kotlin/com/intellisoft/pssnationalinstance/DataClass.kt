@@ -93,6 +93,7 @@ data class DbIndicators(
 
 data class DbIndicatorValues(
         @JsonProperty("description") var description: Any?,
+        @JsonProperty("versionNumber") var versionNumber: Any? = null,
         @JsonProperty("categoryId") var categoryId: Any?,
         @JsonProperty("categoryName") var categoryName: Any?,
         @JsonProperty("isLatest") var isLatest: Boolean?,

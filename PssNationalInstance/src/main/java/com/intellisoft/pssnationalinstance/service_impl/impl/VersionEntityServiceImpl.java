@@ -51,6 +51,12 @@ public class VersionEntityServiceImpl implements VersionEntityService {
     @Override
     public Results addVersion(DbVersions dbVersions) {
 
+        /**
+         * isLatest = true means the user has selected the particular id to be considered with the latest indicator
+         * isLatest = false means the user has selected the particular id to be considered with the NOT latest indicator
+         * Can be interepreted with should we publish the latest or the latest -1
+         */
+
         String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
 
         String versionDescription = dbVersions.getVersionDescription();
@@ -64,11 +70,13 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         for (DbVersionDate dbVersionDate : dbVersionsIndicators) {
             String id = dbVersionDate.getId();
             indicatorList.add(id);
+
             boolean isLatest = dbVersionDate.isLatest();
             isLatestList.add(isLatest);
-            indicatorList.add(String.valueOf(isLatest));
-            String indicatorName = dbVersionDate.getIndicatorName();
-            indicatorList.add(indicatorName);
+
+//            indicatorList.add(String.valueOf(isLatest));
+//            String indicatorName = dbVersionDate.getIndicatorName();
+//            indicatorList.add(indicatorName);
         }
 
         String status = PublishStatus.DRAFT.name();
@@ -78,11 +86,13 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
         VersionEntity versionEntity = new VersionEntity();
         versionEntity.setVersionDescription(versionDescription);
-        versionEntity.setIndicators(indicatorList);
         versionEntity.setCreatedBy(createdBy);
         versionEntity.setStatus(status);
         versionEntity.setPublishedBy(publishedBy);
+
+        versionEntity.setIndicators(indicatorList);
         versionEntity.setVersion(isLatestList);
+
         VersionEntity savedVersionEntity = versionEntityRepository.save(versionEntity);
 
         if (isPublished) {
@@ -136,7 +146,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             String status = versionEntityList.get(i).getStatus();
             String createdAt = String.valueOf(versionEntityList.get(i).getCreatedAt());
             List<String> indicatorList = versionEntityList.get(i).getIndicators();
-            List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList);
+            List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList, "");
             DbVersionDetails dbVersionDetails = new DbVersionDetails(id, versionName, versionDescription, createdBy, status, publishedBy, createdAt, selectedIndicators);
             dbVersionDetailsList.add(dbVersionDetails);
 

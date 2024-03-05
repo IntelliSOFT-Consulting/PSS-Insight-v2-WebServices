@@ -237,7 +237,7 @@ public class SurveysServiceImpl implements SurveysService {
 
             if (dbPublishedVersion != null) {
                 List<DbIndicators> dbIndicatorsList = dbPublishedVersion.getDetails();
-                List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicators);
+                List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicators, "");
 
                 List<DbSurveyRespondentDataDerails> dbSurveyRespondentDataDerailsList = new ArrayList<>();
                 if (isRespondents) {
