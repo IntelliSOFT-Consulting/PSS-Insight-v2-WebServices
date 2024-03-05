@@ -12,7 +12,8 @@ public interface NationalTemplateService {
     void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList);
     DbPublishedVersion nationalPublishedIndicators();
     List<DbIndicators> getSelectedIndicators(List<DbIndicators> details,
-                                             List<String> selectedIndicators);
+                                             List<String> selectedIndicators,
+                                             String versionNumber);
     DbMetadataJson getPublishedMetadataJson();
     Results getOrgUnits(int pageNo);
 

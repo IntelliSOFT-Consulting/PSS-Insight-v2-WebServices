@@ -555,7 +555,16 @@ public class DataEntryServiceImpl implements DataEntryService {
                             }
 
                             if (!dbIndicatorDataValuesList.isEmpty()) {
-                                DbIndicatorValues indicatorValues = new DbIndicatorValues(dbIndicatorValues.getDescription(), dbIndicatorValues.getCategoryId(), dbIndicatorValues.getCategoryName(), null, dbIndicatorValues.getIndicatorName(), null, null, dbIndicatorDataValuesList);
+                                DbIndicatorValues indicatorValues = new DbIndicatorValues(
+                                        dbIndicatorValues.getDescription(),
+                                        null,
+                                        dbIndicatorValues.getCategoryId(),
+                                        dbIndicatorValues.getCategoryName(),
+                                        null,
+                                        dbIndicatorValues.getIndicatorName(),
+                                        null,
+                                        null,
+                                        dbIndicatorDataValuesList);
                                 dbIndicatorValuesList.add(indicatorValues);
                             }
                         }

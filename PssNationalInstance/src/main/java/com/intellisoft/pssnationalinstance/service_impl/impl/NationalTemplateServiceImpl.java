@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Log4j2
@@ -298,6 +295,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             String versionNumberLatest = "1";
             String versionNumberPast = "1";
+
             int nationalLatestVersion = 1;
             try {
                 int versionNo = internationalTemplateService.getVersions(interNationalPublishedUrl);
@@ -317,6 +315,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             List<String> latestIndicators = new ArrayList<>();
             List<String> pastIndicators = new ArrayList<>();
+
             for (DbVersionDate dbVersionDate : indicatorList) {
 
                 boolean isLatest = dbVersionDate.isLatest();
@@ -329,16 +328,20 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
 
             /**
-             * Get past metadata from the version number
+             * Get past metadata from the version number ** Previous
              */
             DbPublishedVersion pastInternationalIndicators = getThePreviousIndicators(versionNumberPast);
+
             if (pastInternationalIndicators != null) {
-                List<DbIndicators> indicatorValuesList = getSelectedIndicators(pastInternationalIndicators.getDetails(), pastIndicators);
+
+                List<DbIndicators> indicatorValuesList = getSelectedIndicators(
+                        pastInternationalIndicators.getDetails(),
+                        pastIndicators,versionNumberPast );
                 if (!indicatorValuesList.isEmpty()) {
                     indicatorsList.addAll(indicatorValuesList);
                 }
-
             }
+
 
             /**
              * Get international Latest metadata
@@ -347,13 +350,17 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             DbMetadataJson dbMetadataJson = getMetadata(internationalPublishedUrl);
             String versionNo = String.valueOf(nationalLatestVersion + 1);
 
+            int vers = Integer.parseInt(versionNumberPast);
+            int currentVersionNumber = vers + 1;
+
             if (dbMetadataJson != null) {
 
                 DbPrograms dbPrograms = dbMetadataJson.getMetadata();
                 if (dbPrograms != null) {
                     DbPublishedVersion publishedVersionValues = dbPrograms.getPublishedVersion();
                     if (publishedVersionValues != null) {
-                        List<DbIndicators> indicatorValuesList = getSelectedIndicators(publishedVersionValues.getDetails(), latestIndicators);
+                        List<DbIndicators> indicatorValuesList = getSelectedIndicators(
+                                publishedVersionValues.getDetails(), latestIndicators, String.valueOf(currentVersionNumber));
                         if (!indicatorValuesList.isEmpty()) {
                             indicatorsList.addAll(indicatorValuesList);
                         }
@@ -361,6 +368,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                     }
 
                 }
+
 
                 //Get updates from db and include them
                 List<IndicatorEdits> indicatorEditsList = indicatorEditsService.getIndicatorEditsCreator(createdBy);
@@ -395,7 +403,6 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
                 //Set new values
                 DbPublishedVersion dbPublishedVersion = new DbPublishedVersion(
-
                         indicatorsList.size(), indicatorsList);
 
                 assert dbPrograms != null;
@@ -405,7 +412,10 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 dbMetadataJson.setVersion(versionNo);
 
             }
-            var response = GenericWebclient.postForSingleObjResponse(nationalPublishedUrl + versionNo, dbMetadataJson, DbMetadataJson.class, DbPublishVersionResponse.class);
+            var response = GenericWebclient.postForSingleObjResponse(nationalPublishedUrl + versionNo,
+                    dbMetadataJson,
+                    DbMetadataJson.class,
+                    DbPublishVersionResponse.class);
 
             if (response.getHttpStatusCode() == 201) {
                 Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
@@ -423,17 +433,24 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         }
     }
 
-    public List<DbIndicators> getSelectedIndicators(List<DbIndicators> details, List<String> selectedIndicators) {
+    public List<DbIndicators> getSelectedIndicators(List<DbIndicators> details, List<String> selectedIndicators, String versionNumber) {
         List<DbIndicators> dbIndicatorsList = new ArrayList<>();
         for (DbIndicators dbIndicators : details) {
             String categoryName = (String) dbIndicators.getCategoryName();
 
             List<DbIndicatorValues> newIndicators = new ArrayList<>();
+
             List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
             for (DbIndicatorValues indicatorValues : indicatorValuesList) {
-                boolean isIndicatorSelected = selectedIndicators.stream().anyMatch(indicatorValues.getCategoryId().toString()::contains);
-                indicatorValues.setLatest(isIndicatorSelected);
-                newIndicators.add(indicatorValues);
+
+                if (indicatorValues.getCategoryId() != null){
+                    String categoryId = String.valueOf(indicatorValues.getCategoryId());
+                    if (selectedIndicators.contains(categoryId)){
+                        indicatorValues.setVersionNumber(versionNumber);
+                        newIndicators.add(indicatorValues);
+                    }
+                }
+
             }
             DbIndicators dbNewIndicators = new DbIndicators(categoryName, newIndicators);
             dbIndicatorsList.add(dbNewIndicators);
