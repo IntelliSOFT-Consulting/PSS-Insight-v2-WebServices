@@ -474,7 +474,8 @@ data class DbNotificationSub(
     val firstName: String?,
     val lastName: String?,
     val email:String,
-    val phoneNumber:String?
+    val phoneNumber:String?,
+    val orgId:String?
 )
 data class DbSendNotification(
     val sendAll:Boolean?,

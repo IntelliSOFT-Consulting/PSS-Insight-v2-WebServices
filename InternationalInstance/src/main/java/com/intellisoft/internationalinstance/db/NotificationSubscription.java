@@ -22,4 +22,5 @@ public class NotificationSubscription {
     private String phone;
     private Boolean isActive = Boolean.TRUE;
     private String userId;
+    private String orgId;
 }

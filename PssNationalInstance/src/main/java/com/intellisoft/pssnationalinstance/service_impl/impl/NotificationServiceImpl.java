@@ -11,12 +11,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
+
 @Log4j2
 @RequiredArgsConstructor
 @Service
 public class NotificationServiceImpl implements NotificationService {
     @Autowired
     WebClient webClient;
+
+    private FormatterClass formatterClass = new FormatterClass();
+
+    @Override
+    public Results addSubscribe(DbSubscribers dbSubscribers) {
+
+        ArrayList<DbNotificationSub> subscribeList = dbSubscribers.getSubscribers();
+        formatterClass.addSubcribers(subscribeList, this);
+
+        return new Results(200, "Please wait as we process your request.");
+
+    }
 
     @Override
     public Results subscribe(DbNotificationSub notificationSubscription) {

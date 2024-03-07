@@ -1,5 +1,9 @@
 package com.intellisoft.pssnationalinstance
 
+import com.intellisoft.pssnationalinstance.service_impl.impl.NotificationServiceImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.springframework.http.ResponseEntity
 import java.time.*
 import java.time.format.DateTimeFormatter
@@ -9,7 +13,20 @@ import java.util.*
 
 class FormatterClass {
 
-    fun getValue(): String {
+    fun addSubcribers(
+        subscribeList: ArrayList<DbNotificationSub>,
+        notificationService: NotificationServiceImpl,  ){
+
+        CoroutineScope(Dispatchers.IO).launch {
+            for (dbNotificationSub in subscribeList) {
+                notificationService.subscribe(dbNotificationSub)
+            }
+        }
+
+    }
+
+    fun getValue()
+    : String {
         val props = Properties()
         val inputStream = javaClass.classLoader
             .getResourceAsStream("application.properties")

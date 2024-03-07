@@ -1,6 +1,7 @@
 package com.intellisoft.pssnationalinstance.controller;
 
 import com.intellisoft.pssnationalinstance.DbNotificationSub;
+import com.intellisoft.pssnationalinstance.DbSubscribers;
 import com.intellisoft.pssnationalinstance.FormatterClass;
 import com.intellisoft.pssnationalinstance.Results;
 import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
@@ -19,6 +20,12 @@ public class NotificationController {
     private final JavaMailSenderService javaMailSenderService;
     FormatterClass formatterClass = new FormatterClass();
 
+    @PostMapping("add-subscribers")
+    public ResponseEntity<?> addSubscribe(@RequestBody DbSubscribers dbSubscribers)  {
+
+        Results results = notificationService.addSubscribe(dbSubscribers);
+        return formatterClass.getResponse(results);
+    }
     @PostMapping("subscribe")
     public ResponseEntity<?> subscribe(@RequestBody DbNotificationSub notificationSubscription)  {
 

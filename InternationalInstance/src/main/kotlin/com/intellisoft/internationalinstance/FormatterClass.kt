@@ -13,7 +13,6 @@ import com.itextpdf.text.pdf.PdfWriter
 import kotlinx.coroutines.*
 import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.http.ResponseEntity
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -22,6 +21,7 @@ import java.util.regex.Pattern
 
 
 class FormatterClass {
+
 
     fun getValue(): DbApplicationValues {
         val props = Properties()

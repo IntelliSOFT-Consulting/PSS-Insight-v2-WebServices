@@ -2,9 +2,11 @@ package com.intellisoft.pssnationalinstance.service_impl.service;
 
 
 import com.intellisoft.pssnationalinstance.DbNotificationSub;
+import com.intellisoft.pssnationalinstance.DbSubscribers;
 import com.intellisoft.pssnationalinstance.Results;
 
 public interface NotificationService {
+     Results addSubscribe(DbSubscribers dbSubscribers);
      Results subscribe(DbNotificationSub notificationSubscription);
      Results unsubscribe(DbNotificationSub notificationSubscription);
 

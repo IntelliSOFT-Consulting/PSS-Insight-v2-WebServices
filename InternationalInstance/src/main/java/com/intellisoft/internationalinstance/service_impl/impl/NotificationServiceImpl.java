@@ -45,6 +45,9 @@ public class NotificationServiceImpl implements NotificationService {
                 subscription.setPhone(notificationSubscription.getPhoneNumber());
             if (notificationSubscription.getFirstName() != null)
                 subscription.setFirstName(notificationSubscription.getFirstName());
+            if (notificationSubscription.getOrgId() != null){
+                subscription.setOrgId(notificationSubscription.getOrgId());
+            }
 
             subscription.setEmail(notificationSubscription.getEmail());
 
