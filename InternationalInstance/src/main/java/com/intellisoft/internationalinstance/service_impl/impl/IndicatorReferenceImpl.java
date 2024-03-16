@@ -13,6 +13,7 @@ import com.intellisoft.internationalinstance.util.AppConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -28,6 +29,9 @@ import java.util.*;
 @RequiredArgsConstructor
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
+
+    @Value("${dhis.international}")
+    private String dhisInternationalUrl;
 
     private final FormatterClass formatterClass = new FormatterClass();
 
@@ -373,7 +377,8 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private List<DbIndicatorDetails> getIndicatorList() {
         try {
-            String url = AppConstants.INDICATOR_DESCRIPTIONS;
+            String url = dhisInternationalUrl;
+            log.info("url {}", url);
             //Get metadata json
             Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(url, DbIndicatorDetails.class);
             List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
