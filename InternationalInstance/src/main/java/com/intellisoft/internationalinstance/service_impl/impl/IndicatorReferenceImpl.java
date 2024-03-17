@@ -14,6 +14,7 @@ import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -30,10 +31,13 @@ import java.util.*;
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
+    private final FormatterClass formatterClass = new FormatterClass();
     @Value("${dhis.international}")
     private String dhisInternationalUrl;
-
-    private final FormatterClass formatterClass = new FormatterClass();
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
 
     public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
         try {
@@ -377,12 +381,16 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private List<DbIndicatorDetails> getIndicatorList() {
         try {
-            String url = dhisInternationalUrl;
-            log.info("url {}", url);
-            //Get metadata json
-            Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(url, DbIndicatorDetails.class);
-            List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
 
+            String url = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/Indicator_description/V1";
+
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+            //Get metadata json
+            Flux<DbIndicatorDetails> responseFlux = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToFlux(DbIndicatorDetails.class);
+            List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
 
             if (responseList != null) {
 
@@ -402,7 +410,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
 
         } catch (Exception e) {
-            log.error("An error occurred while fetching indicator list");
+            log.error("An error occurred while fetching indicator list {}", e.getMessage());
         }
         return Collections.emptyList();
 
