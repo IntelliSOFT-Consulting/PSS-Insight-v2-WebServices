@@ -26,11 +26,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import javax.transaction.Transactional;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 @Log4j2
 @Service
@@ -45,6 +48,12 @@ public class InternationalServiceImpl implements InternationalService {
     private String username;
     @Value("${dhis.password}")
     private String password;
+
+    @Value("${dhis.international}")
+    private String dhisInternationalUrl;
+
+    @Value("${dhis.program}")
+    private String dhisProgram;
 
     public static String fetchIndicatorName(List<DbDataElements> dbDataElementsList, String indicatorCode) {
         for (DbDataElements dataElement : dbDataElementsList) {
@@ -73,14 +82,23 @@ public class InternationalServiceImpl implements InternationalService {
         try {
             List<DbIndicatorsValue> dbIndicatorsValueList = new ArrayList<>();
 
-            String url = AppConstants.METADATA_JSON_ENDPOINT;
-            List<DbDataElements> dbDataElementsList = getDataElements(url);
+            String url = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/") + "programs/" + dhisProgram + "/metadata.json";
 
-            String groupUrl = AppConstants.METADATA_GROUPINGS;
-            DbGroupsData dbGroupsData = GenericWebclient.getForSingleObjResponse(groupUrl, DbGroupsData.class);
+            //Auth-headers:
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
 
-            String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
-            String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+            List<DbDataElements> dbDataElementsList = getDataElements(url, authHeader);
+
+            String groupUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/") + "dataElementGroups.json?fields=id,name,dataElements[id,name,code]";
+
+            DbGroupsData dbGroupsData = WebClient.builder().baseUrl(groupUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(DbGroupsData.class).block();
+
+            String indicatorDescriptionUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/Indicator_description/V1";
+
+            String indicatorDescription = WebClient.builder().baseUrl(indicatorDescriptionUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(String.class).block();
+
             JSONArray jsonArray = new JSONArray(indicatorDescription);
 
             if (dbGroupsData != null) {
@@ -227,11 +245,7 @@ public class InternationalServiceImpl implements InternationalService {
         return new Results(200, new DbDetails("Version request is being processed."));
     }
 
-    public VersionEntity doBackGroundTask(
-            String url,
-            String versionDescription,
-            VersionEntity savedVersionEntity,
-            List<String> indicatorList) {
+    public VersionEntity doBackGroundTask(String url, String versionDescription, VersionEntity savedVersionEntity, List<String> indicatorList) {
         List<DbIndicatorsValue> dbIndicatorsValueList = getIndicatorsValues();
         List<DbIndicatorsValue> dbIndicatorsValueListNew = new ArrayList<>();
 
@@ -275,7 +289,7 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
     public void sendNotification(VersionEntity savedVersionEntity) {
-       String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " + savedVersionEntity.getVersionName() + "\n\n" + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
+        String message = "A new template has been published by " + savedVersionEntity.getPublishedBy() + " from the international instance. " + "The new template has the following details: " + "Version Number: " + savedVersionEntity.getVersionName() + "\n\n" + "Version description: " + savedVersionEntity.getVersionDescription() + "\n\n" + "Number of indicators: " + savedVersionEntity.getIndicators().size();
 
 
         List<String> dbEmailList = new ArrayList<>();
@@ -582,11 +596,13 @@ public class InternationalServiceImpl implements InternationalService {
     }
 
 
-    private List<DbDataElements> getDataElements(String url) {
-
+    private List<DbDataElements> getDataElements(String url, String authHeader) {
         try {
+            WebClient webClient = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build();
 
-            DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(url, DbMetadataJsonData.class);
+            Mono<DbMetadataJsonData> responseMono = webClient.get().retrieve().bodyToMono(DbMetadataJsonData.class);
+            DbMetadataJsonData dbMetadataJsonData = responseMono.block();
+
             if (dbMetadataJsonData != null) {
                 return dbMetadataJsonData.getDataElements();
             }
@@ -596,4 +612,5 @@ public class InternationalServiceImpl implements InternationalService {
         }
         return Collections.emptyList();
     }
+
 }
