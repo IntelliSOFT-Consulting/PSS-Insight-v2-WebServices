@@ -1,12 +1,12 @@
 package com.intellisoft.pssnationalinstance.util;
 
 import com.intellisoft.pssnationalinstance.FormatterClass;
-
+import com.intellisoft.pssnationalinstance.configs.UrlConfigs;
 public class AppConstants {
 
     public static final String APP_NAME = "International Instance";
-    public static final String INTERNATIONAL_BASE_API="https://global.pssinsight.org/api/v1/";
-    public static final String INTERNATIONAL_BASE_URL="https://global.pssinsight.org/api/";
+    public static final String INTERNATIONAL_BASE_API= UrlConfigs.getInternationalBaseUrl()+"/api/v1/";
+    public static final String INTERNATIONAL_BASE_URL= UrlConfigs.getInternationalBaseUrl();
     public static final String INTERNATIONAL_PUBLISHED_VERSIONS = INTERNATIONAL_BASE_URL+"dataStore/master_indicator_templates/";
     public static final String INTERNATIONAL_DOCS_ENDPOINT =INTERNATIONAL_BASE_URL+"documents/";
     public static final String INTERNATIONAL_NOTIFICATION=INTERNATIONAL_BASE_API+"notification/";
