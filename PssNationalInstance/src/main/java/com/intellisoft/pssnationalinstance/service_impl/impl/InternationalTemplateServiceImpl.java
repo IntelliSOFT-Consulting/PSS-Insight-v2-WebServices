@@ -9,6 +9,7 @@ import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -23,6 +24,9 @@ import java.util.Optional;
 @Log4j2
 @RequiredArgsConstructor
 public class InternationalTemplateServiceImpl implements InternationalTemplateService {
+
+    @Value("${dhis.international}")
+    private String dhisInternationalUrl;
 
     private final FormatterClass formatterClass = new FormatterClass();
     private final BenchmarksRepository benchmarksRepository;

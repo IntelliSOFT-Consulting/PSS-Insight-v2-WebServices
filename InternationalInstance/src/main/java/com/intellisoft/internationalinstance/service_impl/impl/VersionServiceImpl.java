@@ -12,14 +12,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -29,6 +34,15 @@ public class VersionServiceImpl implements VersionService {
     private final VersionRepos versionRepos;
     private final InternationalService internationalService;
 
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
+    @Value("${dhis.international}")
+    private String dhisInternationalUrl;
+
+    @Value("${dhis.template}")
+    private String dhisTemplate;
 
     @Override
     public Results getTemplates(int page, int size, String status) {
@@ -102,7 +116,7 @@ public class VersionServiceImpl implements VersionService {
             }
 
             String versionName = versionEntity.getVersionName();
-            String url = AppConstants.DATA_STORE_ENDPOINT + versionName;
+            String url = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/") + "dataStore/"+dhisTemplate+"/" + versionName;
             DbMetadataJson dbMetadataJson = getIndicators(url);
             String referenceSheet = "";
             if (dbMetadataJson != null) referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
@@ -123,10 +137,17 @@ public class VersionServiceImpl implements VersionService {
 
         try {
 
-            //Get the dataStore values from the international
-            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(url, DbMetadataJson.class);
+            //Auth-headers:
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
 
-            dbMetadataJson.getMetadata();
+            DbMetadataJson dbMetadataJson = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024))
+                    .build()).build().get().retrieve().bodyToMono(DbMetadataJson.class).block();
+
+            if (dbMetadataJson != null) {
+                dbMetadataJson.getMetadata();
+            }
             return dbMetadataJson;
         } catch (Exception e) {
             log.error("Error occurred while fetching indicators");
