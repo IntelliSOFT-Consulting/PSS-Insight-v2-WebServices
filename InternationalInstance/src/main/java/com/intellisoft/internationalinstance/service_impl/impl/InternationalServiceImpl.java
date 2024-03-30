@@ -55,6 +55,9 @@ public class InternationalServiceImpl implements InternationalService {
     @Value("${dhis.program}")
     private String dhisProgram;
 
+    @Value("${dhis.template}")
+    private String dhisTemplate;
+
     public static String fetchIndicatorName(List<DbDataElements> dbDataElementsList, String indicatorCode) {
         for (DbDataElements dataElement : dbDataElementsList) {
             if (dataElement.getCode() != null && dataElement.getCode().equals(indicatorCode)) {
@@ -231,7 +234,7 @@ public class InternationalServiceImpl implements InternationalService {
                 savedVersionEntity.setStatus(PublishStatus.AWAITING_PUBLISHING.name());
                 versionRepos.save(savedVersionEntity);
 
-                String url = AppConstants.METADATA_JSON_ENDPOINT;
+                String url = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/") + "programs/" + dhisProgram + "/metadata.json";
 
                 //Process in background
                 formatterClass.processBackgroundWork(this, url, versionDescription, savedVersionEntity, indicatorList);
@@ -271,7 +274,13 @@ public class InternationalServiceImpl implements InternationalService {
         DbResults dbResults = new DbResults(dbIndicatorsValueListNew.size(), dbIndicatorsValueListNew);
 
         try {
-            DbMetadataJsonData dbMetadataJsonData = GenericWebclient.getForSingleObjResponse(url, DbMetadataJsonData.class);
+
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+            DbMetadataJsonData dbMetadataJsonData = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbMetadataJsonData.class).block();
+
 
             dbMetadataJsonData.setPublishedVersion(dbResults);
             String versionNo = String.valueOf(Integer.parseInt(String.valueOf(this.getInternationalVersions())) + 1);
@@ -318,24 +327,33 @@ public class InternationalServiceImpl implements InternationalService {
 
     @Transactional
     public void pushMetadata(DbMetadataValue dbMetadataJsonData, VersionEntity savedVersionEntity) {
-        String groupUrl = AppConstants.METADATA_GROUPINGS;
-        String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
+
+        String auth = username + ":" + password;
+        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+        String authHeader = "Basic " + new String(encodedAuth);
+
+
+        String groupUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/") + "dataElementGroups.json?fields=id,name,dataElements[id,name,code]";
+
+        String indicatorDescriptionUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/Indicator_description/V1";
+
+        String dataStoreEndpointUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/" + dhisTemplate + "/";
 
         try {
 
             ObjectMapper objectMapper = new ObjectMapper();
 
-            var indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+            var indicatorDescription = WebClient.builder().baseUrl(indicatorDescriptionUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(String.class).block();
 
             List<DbIndicatorDescription> indicatorDescriptionList = objectMapper.readValue(indicatorDescription, List.class);
 
-            DbGroupsData groupings = GenericWebclient.getForSingleObjResponse(groupUrl, DbGroupsData.class);
+            DbGroupsData groupings = WebClient.builder().baseUrl(groupUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbGroupsData.class).block();
 
             dbMetadataJsonData.getMetadata().setGroups(groupings);
             dbMetadataJsonData.getMetadata().setIndicatorDescriptions(indicatorDescriptionList);
             String versionNumber = dbMetadataJsonData.getVersion();
 
-            var response = GenericWebclient.postForSingleObjResponse(AppConstants.DATA_STORE_ENDPOINT + Integer.parseInt(versionNumber), dbMetadataJsonData, DbMetadataValue.class, Response.class);
+            var response = GenericWebclient.postForSingleObjResponseWithAuth(dataStoreEndpointUrl + Integer.parseInt(versionNumber), dbMetadataJsonData, DbMetadataValue.class, Response.class, authHeader);
 
             if (response.getHttpStatusCode() < 200) {
 //                throw new CustomException("Unable to create/update record on data store"+response);
@@ -353,7 +371,7 @@ public class InternationalServiceImpl implements InternationalService {
 
 
         } catch (Exception e) {
-            log.error("An error occurred while pushing metadata");
+            log.error("An error occurred while pushing metadata {}", e.getMessage());
         }
 
     }
@@ -469,18 +487,24 @@ public class InternationalServiceImpl implements InternationalService {
 
         try {
 
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+
             DbPdfData dbPdfData = getPdfData(dbMetadataValue);
             if (dbPdfData != null) {
                 File file = formatterClass.generatePdfFile(dbPdfData);
                 String id = createFileResource(file);
-                String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+                String publishedBaseUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/" + dhisTemplate + "/";
+
 
                 String publishedVersionNo = dbMetadataValue.getVersion();
                 //Get metadata json
-                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents/" + id + "/data";
+                String fileUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/" + "documents/" + id + "/data";
                 dbMetadataValue.getMetadata().setReferenceSheet(id);
 
-                var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class);
+                var response = GenericWebclient.putForSingleObjResponsewithAuth(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class, authHeader);
             }
 
         } catch (Exception e) {
@@ -505,7 +529,7 @@ public class InternationalServiceImpl implements InternationalService {
 
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-            ResponseEntity<DbFileResources> responseEntity = restTemplate.postForEntity(AppConstants.FILES_RESOURCES_ENDPOINT, requestEntity, DbFileResources.class);
+            ResponseEntity<DbFileResources> responseEntity = restTemplate.postForEntity(dhisInternationalUrl + "/api/" + "fileResources", requestEntity, DbFileResources.class);
             int code = responseEntity.getStatusCodeValue();
             if (code == 202) {
                 if (responseEntity.getBody() != null) {
@@ -513,11 +537,11 @@ public class InternationalServiceImpl implements InternationalService {
                         if (responseEntity.getBody().getResponse().getFileResource() != null) {
                             String id = responseEntity.getBody().getResponse().getFileResource().getId();
                             if (id != null) {
-                                String fileUrl = AppConstants.INTERNATIONAL_BASE_URL + "documents";
+                                String fileUrl = dhisInternationalUrl + "/api/" + "documents";
 
                                 DbFileData dbFileData = new DbFileData(id, "UPLOAD_FILE", true, false, id);
 
-                                var response = GenericWebclient.postForSingleObjResponse(fileUrl, dbFileData, DbFileData.class, DbFileResponse.class);
+                                var response = GenericWebclient.postForSingleObjResponseWithAuth(fileUrl, dbFileData, DbFileData.class, DbFileResponse.class, authHeader);
                                 if (response.getHttpStatusCode() == 201) {
                                     if (response.getResponse() != null) {
                                         return response.getResponse().getUid();
@@ -532,7 +556,7 @@ public class InternationalServiceImpl implements InternationalService {
 
 
         } catch (Exception e) {
-            log.error("An error occurred while creating file resource for upload");
+            log.error("An error occurred while creating file resource for upload {}", e.getMessage());
         }
         return "";
     }
@@ -555,7 +579,15 @@ public class InternationalServiceImpl implements InternationalService {
     public int getInternationalVersions() {
 
         try {
-            var response = GenericWebclient.getForSingleObjResponse(AppConstants.DATA_STORE_ENDPOINT, List.class);
+
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+            String dataStoreEndpointUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/" + dhisTemplate + "/";
+
+            var response = WebClient.builder().baseUrl(dataStoreEndpointUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(List.class).block();
+
 
             if (!response.isEmpty()) {
                 return formatterClass.getNextVersion(response);

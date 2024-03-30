@@ -11,6 +11,7 @@ import com.intellisoft.internationalinstance.service_impl.service.JavaMailSender
 import com.intellisoft.internationalinstance.service_impl.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
+
+    @Value("${dhis.international}")
+    private String dhisInternationalUrl;
+
     private final NotificationSubscriptionRepo notificationSubscriptionRepo;
     private final NotificationEntityRepo notificationEntityRepo;
 
@@ -137,7 +142,8 @@ public class NotificationServiceImpl implements NotificationService {
             List<String> emailList = notification.getEmailList();
 
             if (!emailList.isEmpty()) {
-                String baseUrl = getHostUrl();
+
+                String baseUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/");
 
                 DbNotificationData dbNotificationData = new DbNotificationData(emailList, String.valueOf(notification.getCreatedAt()), notification.getTitle(), notification.getMessage());
                 formatterClass.sendEmailBackground(baseUrl, javaMailSenderService, dbNotificationData);
@@ -187,7 +193,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationEntity.setSender(sender);
                 notificationEntityRepo.save(notificationEntity);
 
-                String baseUrl = getHostUrl();
+                String baseUrl = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/");
 
                 //Send email address
                 DbNotificationData dbNotificationData = new DbNotificationData(dbEmailList, String.valueOf(notificationEntity.getCreatedAt()), notificationEntity.getTitle(), notificationEntity.getMessage());
