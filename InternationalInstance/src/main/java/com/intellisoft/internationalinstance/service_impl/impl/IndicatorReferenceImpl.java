@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.Gson;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.model.Response;
 import com.intellisoft.internationalinstance.service_impl.service.IndicatorReferenceService;
 import com.intellisoft.internationalinstance.util.AppConstants;
+import com.intellisoft.internationalinstance.util.EnvUrlConstants;
 import com.intellisoft.internationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -31,13 +31,14 @@ import java.util.*;
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
-    private final FormatterClass formatterClass = new FormatterClass();
-    @Value("${dhis.international}")
-    private String dhisInternationalUrl;
     @Value("${dhis.username}")
     private String username;
     @Value("${dhis.password}")
     private String password;
+
+    private final FormatterClass formatterClass = new FormatterClass();
+
+    private final EnvUrlConstants envUrlConstants;
 
     public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
         try {
@@ -52,8 +53,8 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             dbIndicatorDetails.setDate(date);
 
             // DHIS2 API urls:
-            String url = AppConstants.INDICATOR_DESCRIPTIONS;
-            String createDataElementUrl = AppConstants.CREATE_NEW_DATA_ELEMENT;
+            String url = envUrlConstants.getINDICATOR_DESCRIPTIONS();
+            String createDataElementUrl = envUrlConstants.getCREATE_NEW_DATA_ELEMENT();
 
             // Retrieve existing JSON collection of Indicator_References from the INDICATOR_DESCRIPTIONS API
             List<DbIndicatorDetails> responseList = fetchExistingIndicatorDetails(url);
@@ -77,7 +78,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                     for (DbAssessmentQuestion question : dbIndicatorDetails.getAssessmentQuestions()) {
                         // Fetch the optionSet
                         String optionSetId = question.getOptionSetId().toString();
-                        String fetchOptionSetUrl = AppConstants.FETCH_OPTION_SET_URL + optionSetId;
+                        String fetchOptionSetUrl = envUrlConstants.getFETCH_OPTION_SET_URL() + optionSetId;
 
                         OptionSet optionSet = fetchOptionSet(fetchOptionSetUrl);
 
@@ -131,7 +132,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                         for (JsonNode dataElement : dataElements) {
                             String name = URLEncoder.encode(dataElement.get("name").asText(), StandardCharsets.UTF_8);
                             String nameFilter = "name:like:" + name;
-                            String dataElementIdUrl = AppConstants.FETCH_DATA_ELEMENTS_ID + nameFilter;
+                            String dataElementIdUrl = envUrlConstants.getFETCH_DATA_ELEMENTS_ID() + nameFilter;
 
                             System.out.print("dataElementIdUrl" + dataElementIdUrl);
 
@@ -169,7 +170,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                         /**
                          * TODO: Check for right API for adding dataElements to Program
                          */
-                        String addToProgramUrl = AppConstants.ADD_DATA_ELEMENTS_TO_PROGRAM + programId + "/" + "dataElements";
+                        String addToProgramUrl = envUrlConstants.getADD_DATA_ELEMENTS_TO_PROGRAM() + programId + "/" + "dataElements";
 
                         System.out.println("addToProgramUrl " + addToProgramUrl);
 
@@ -182,7 +183,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                             for (JsonNode dataElement : dataElements) {
                                 String name = URLEncoder.encode(dataElement.get("name").asText(), StandardCharsets.UTF_8);
                                 String nameFilter = "name:like:" + name;
-                                String dataElementIdUrl = AppConstants.FETCH_DATA_ELEMENTS_ID + nameFilter;
+                                String dataElementIdUrl = envUrlConstants.getFETCH_DATA_ELEMENTS_ID() + nameFilter;
 
                                 // Make the API GET request to retrieve dataElements IDs
                                 String dataElementIdResponse = fetchDataElementId(dataElementIdUrl);
@@ -213,11 +214,11 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                             System.out.println("convertedPayload" + convertedPayload);
 
                             //make POST call to create a dataElementGroup:
-                            String createDataElementGroupUrl = AppConstants.CREATE_DATA_ELEMENT_GROUP;
+                            String createDataElementGroupUrl = envUrlConstants.getCREATE_DATA_ELEMENT_GROUP();
 
                             if (createDataElementGroup(createDataElementGroupUrl, convertedPayload)) {
                                 //fetch dataElementGroups:
-                                String fetchDataElementGroupUrl = AppConstants.FETCH_DATA_ELEMENTS_URL;
+                                String fetchDataElementGroupUrl = envUrlConstants.getFETCH_DATA_ELEMENTS_URL();
                                 DataElementGroupResponse responseMono = fetchDataElementGroups(fetchDataElementGroupUrl);
 
                                 // Access the parsed data
@@ -255,7 +256,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                                         for (String id : ids) {
                                             //Add the dataElements to the Group created
                                             //post URL construction:
-                                            String addDataElementsToGroupUrl = AppConstants.CREATE_DATA_ELEMENT_GROUP + "/" + id + "dataElements";
+                                            String addDataElementsToGroupUrl = envUrlConstants.getCREATE_DATA_ELEMENT_GROUP() + "/" + id + "dataElements";
 
                                             if (addDataElementsToGroup(addDataElementsToGroupUrl, addToGroupPayload)) {
                                                 return new Results(200, new DbDetails("The indicator values have been added."));
@@ -382,15 +383,17 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     private List<DbIndicatorDetails> getIndicatorList() {
         try {
 
-            String url = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl : "https://global.pssinsight.org") + "/api/dataStore/Indicator_description/V1";
-
+            //Auth-headers:
             String auth = username + ":" + password;
             byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
             String authHeader = "Basic " + new String(encodedAuth);
 
+            String url = envUrlConstants.getINDICATOR_DESCRIPTIONS();
+
             //Get metadata json
             Flux<DbIndicatorDetails> responseFlux = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToFlux(DbIndicatorDetails.class);
             List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
+
 
             if (responseList != null) {
 
@@ -410,7 +413,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
             }
 
         } catch (Exception e) {
-            log.error("An error occurred while fetching indicator list {}", e.getMessage());
+            log.error("An error occurred while fetching indicator list");
         }
         return Collections.emptyList();
 
@@ -494,8 +497,12 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                         indicatorDetails.setExpectedFrequencyDataDissemination(expectedFrequencyDataDissemination);
                     if (indicatorReference != null) indicatorDetails.setIndicatorReference(indicatorReference);
 
-                    String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+                    String publishedBaseUrl = envUrlConstants.getDATA_STORE_ENDPOINT();
                     int publishedVersionNo = getVersions(publishedBaseUrl);
+
+                    String auth = username + ":" + password;
+                    byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                    String authHeader = "Basic " + new String(encodedAuth);
 
                     //Get metadata json
                     DbMetadataValue dbMetadataValue = getMetadata(publishedBaseUrl + publishedVersionNo);
@@ -513,7 +520,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                     dbMetadataValue.setMetadata(dbMetadataJsonData);
 
-                    var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class);
+                    var response = GenericWebclient.putForSingleObjResponseWithAuth(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class, authHeader);
                     if (response.getHttpStatusCode() == 200) {
                         return new Results(200, new DbDetails("The indicators values have been updated."));
                     }
@@ -537,7 +544,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
         try {
 
-            String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+            String publishedBaseUrl = envUrlConstants.getDATA_STORE_ENDPOINT();
             int publishedVersionNo = getVersions(publishedBaseUrl);
 
             //Get metadata json
@@ -561,7 +568,11 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 dbMetadataValue.setMetadata(dbMetadataJsonData);
 
-                var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class);
+                String auth = username + ":" + password;
+                byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                String authHeader = "Basic " + new String(encodedAuth);
+
+                var response = GenericWebclient.putForSingleObjResponseWithAuth(publishedBaseUrl + publishedVersionNo, dbMetadataValue, DbMetadataValue.class, Response.class, authHeader);
                 if (response.getHttpStatusCode() == 200) {
                     return new Results(200, new DbDetails("The indicator has been deleted."));
                 }
@@ -596,7 +607,13 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     }
 
     private int getVersions(String url) throws URISyntaxException {
-        var response = GenericWebclient.getForSingleObjResponse(url, List.class);
+
+        String auth = username + ":" + password;
+        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+        String authHeader = "Basic " + new String(encodedAuth);
+
+        var response = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(List.class).block();
+
         if (!response.isEmpty()) {
             return formatterClass.getNextVersion(response);
         } else {
@@ -608,7 +625,12 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
         try {
 
-            DbMetadataValue dbMetadataValue = GenericWebclient.getForSingleObjResponse(publishedBaseUrl, DbMetadataValue.class);
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+            DbMetadataValue dbMetadataValue = WebClient.builder().baseUrl(publishedBaseUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(DbMetadataValue.class).block();
+
             if (dbMetadataValue != null) {
                 return dbMetadataValue;
             }

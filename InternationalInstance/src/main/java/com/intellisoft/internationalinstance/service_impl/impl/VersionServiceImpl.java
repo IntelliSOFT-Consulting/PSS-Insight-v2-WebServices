@@ -1,31 +1,28 @@
 package com.intellisoft.internationalinstance.service_impl.impl;
 
-import com.google.common.collect.Lists;
 import com.intellisoft.internationalinstance.*;
 import com.intellisoft.internationalinstance.db.VersionEntity;
 import com.intellisoft.internationalinstance.db.repso.VersionRepos;
 import com.intellisoft.internationalinstance.service_impl.service.InternationalService;
 import com.intellisoft.internationalinstance.service_impl.service.VersionService;
-import com.intellisoft.internationalinstance.util.AppConstants;
-import com.intellisoft.internationalinstance.util.GenericWebclient;
+import com.intellisoft.internationalinstance.util.EnvUrlConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Log4j2
@@ -33,16 +30,12 @@ import java.util.*;
 public class VersionServiceImpl implements VersionService {
     private final VersionRepos versionRepos;
     private final InternationalService internationalService;
+    private final EnvUrlConstants envUrlConstants;
 
     @Value("${dhis.username}")
     private String username;
     @Value("${dhis.password}")
     private String password;
-    @Value("${dhis.international}")
-    private String dhisInternationalUrl;
-
-    @Value("${dhis.template}")
-    private String dhisTemplate;
 
     @Override
     public Results getTemplates(int page, int size, String status) {
@@ -116,7 +109,7 @@ public class VersionServiceImpl implements VersionService {
             }
 
             String versionName = versionEntity.getVersionName();
-            String url = (dhisInternationalUrl != null && !dhisInternationalUrl.isEmpty() ? dhisInternationalUrl + "/api/" : "https://global.pssinsight.org/api/") + "dataStore/"+dhisTemplate+"/" + versionName;
+            String url = envUrlConstants.getDATA_STORE_ENDPOINT() + versionName;
             DbMetadataJson dbMetadataJson = getIndicators(url);
             String referenceSheet = "";
             if (dbMetadataJson != null) referenceSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();

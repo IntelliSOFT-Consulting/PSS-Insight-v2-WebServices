@@ -29,7 +29,7 @@ class FormatterClass {
         props.load(inputStream)
         val username = props.getProperty("dhis.username")
         val password = props.getProperty("dhis.password")
-        val internationalUrl = props.getProperty("dhis.international") ?: "https://global.pssinsight.org"
+        val internationalUrl = props.getProperty("dhis.international")
         val program = props.getProperty("dhis.program")
         val template = props.getProperty("dhis.template")
 

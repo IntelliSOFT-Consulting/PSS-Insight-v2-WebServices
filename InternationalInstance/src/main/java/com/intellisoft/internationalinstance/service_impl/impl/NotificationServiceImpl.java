@@ -32,6 +32,8 @@ public class NotificationServiceImpl implements NotificationService {
     private final JavaMailSenderService javaMailSenderService;
     private final FormatterClass formatterClass = new FormatterClass();
 
+    private final EnvConfig envConfig;
+
 
     @Override
     public Results subscribe(DbNotificationSub notificationSubscription) {
@@ -137,7 +139,7 @@ public class NotificationServiceImpl implements NotificationService {
             List<String> emailList = notification.getEmailList();
 
             if (!emailList.isEmpty()) {
-                String baseUrl = getHostUrl();
+                String baseUrl = envConfig.getValue().getInternationalUrl();
 
                 DbNotificationData dbNotificationData = new DbNotificationData(emailList, String.valueOf(notification.getCreatedAt()), notification.getTitle(), notification.getMessage());
                 formatterClass.sendEmailBackground(baseUrl, javaMailSenderService, dbNotificationData);
