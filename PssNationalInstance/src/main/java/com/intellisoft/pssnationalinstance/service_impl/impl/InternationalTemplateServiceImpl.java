@@ -1,20 +1,23 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.EnvConfig;
 import com.intellisoft.pssnationalinstance.db.Benchmarks;
 import com.intellisoft.pssnationalinstance.repository.BenchmarksRepository;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
-import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,16 +28,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class InternationalTemplateServiceImpl implements InternationalTemplateService {
 
+    private final FormatterClass formatterClass = new FormatterClass();
+    private final BenchmarksRepository benchmarksRepository;
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
+
     @Value("${dhis.international}")
     private String dhisInternationalUrl;
 
-    private final FormatterClass formatterClass = new FormatterClass();
-    private final BenchmarksRepository benchmarksRepository;
-
-
-    private static List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() throws URISyntaxException {
-        String url = AppConstants.FETCH_BENCHMARKS_API;
-        Flux<IndicatorBenchmark> responseFlux = GenericWebclient.getForCollectionResponse(url, IndicatorBenchmark.class);
+    private List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() {
+        String url = envUrlConstants.getFETCH_BENCHMARKS_API();
+        Flux<IndicatorBenchmark> responseFlux = WebClient.builder().baseUrl(url).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).build().get().retrieve().bodyToFlux(IndicatorBenchmark.class);
         List<IndicatorBenchmark> benchmarkList = responseFlux.collectList().block();
 
         if (benchmarkList != null) {
@@ -49,10 +53,24 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         return Collections.emptyList();
     }
 
+    private HttpEntity<String> getHeaders() {
+
+        String username = envConfig.getValue().getUsername();
+        String password = envConfig.getValue().getPassword();
+
+        String auth = username + ":" + password;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
+
+        return new HttpEntity<>(headers);
+
+    }
+
     public Results getInternationalIndicators() {
         try {
             List<DbTemplateDetails> dbTemplateDetailsList = new ArrayList<>();
-            String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+            String publishedBaseUrl = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS();
 
             DbPublishedVersion interNationalPublishedIndicators = interNationalPublishedIndicators();
             if (interNationalPublishedIndicators != null) {
@@ -108,32 +126,27 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
     }
 
 
-    public DbPublishedVersionDetails getInterNationalPublishedIndicators(){
-        String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+    public DbPublishedVersionDetails getInterNationalPublishedIndicators() {
+        String publishedBaseUrl = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS();
         DbMetadataJson dbMetadataJson = getPublishedData(publishedBaseUrl);
-        if (dbMetadataJson != null){
+        if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-            if (dbPrograms != null){
+            if (dbPrograms != null) {
                 String url = (String) dbPrograms.getReferenceSheet();
 
 
-                return new DbPublishedVersionDetails(
-                        null, null,
-                        url,
-                        dbPrograms.getPublishedVersion().getCount(),
-                        dbPrograms.getPublishedVersion().getDetails()
-                );
+                return new DbPublishedVersionDetails(null, null, url, dbPrograms.getPublishedVersion().getCount(), dbPrograms.getPublishedVersion().getDetails());
             }
         }
         return null;
     }
 
-    public DbPublishedVersion interNationalPublishedIndicators(){
-        String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+    public DbPublishedVersion interNationalPublishedIndicators() {
+        String publishedBaseUrl = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS();
         DbMetadataJson dbMetadataJson = getPublishedData(publishedBaseUrl);
-        if (dbMetadataJson != null){
+        if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
-            if (dbPrograms != null){
+            if (dbPrograms != null) {
 
                 return dbPrograms.getPublishedVersion();
             }
@@ -141,44 +154,37 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         return null;
     }
 
-    public int getVersions(String url) throws URISyntaxException {
-        var response = GenericWebclient.getForSingleObjResponse(
-                url,
-                List.class);
-        if (!response.isEmpty()){
+    public int getVersions(String url) {
+        var response = WebClient.builder().baseUrl(url).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).build().get().retrieve().bodyToMono(List.class).block();
+
+        if (!response.isEmpty()) {
             return formatterClass.getNextVersion(response);
-        }else {
+        } else {
             return 1;
         }
     }
 
-    private DbTemplateDetails getRecentPublishedData(String url){
+    private DbTemplateDetails getRecentPublishedData(String url) {
         try {
             //Get latest international version
             int publishedVersionNo = getVersions(url);
-            if (publishedVersionNo > 1){
+            if (publishedVersionNo > 1) {
                 //Get the dataStore values from the international
                 int recentVersionNo = publishedVersionNo - 1;
 
-                DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
-                        url+recentVersionNo, DbMetadataJson.class);
-                if (dbMetadataJson.getMetadata() != null){
+                DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(url + recentVersionNo, DbMetadataJson.class);
+
+                if (dbMetadataJson.getMetadata() != null) {
 
                     DbPublishedVersion indicators = dbMetadataJson.getMetadata().getPublishedVersion();
                     String refSheet = (String) dbMetadataJson.getMetadata().getReferenceSheet();
 
-                    DbPublishedVersionDetails dbPublishedVersionDetails = new DbPublishedVersionDetails(
-                            null, null,
-                            refSheet,
-                            indicators.getCount(),
-                            indicators.getDetails());
-                    return new DbTemplateDetails(
-                            recentVersionNo,
-                            dbPublishedVersionDetails);
+                    DbPublishedVersionDetails dbPublishedVersionDetails = new DbPublishedVersionDetails(null, null, refSheet, indicators.getCount(), indicators.getDetails());
+                    return new DbTemplateDetails(recentVersionNo, dbPublishedVersionDetails);
                 }
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("An error occurred when fetching published template");
         }
         return null;
@@ -191,18 +197,18 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
             int publishedVersionNo = getVersions(url);
 
             //Get the dataStore values from the international
-            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
-                    url+publishedVersionNo, DbMetadataJson.class);
+            DbMetadataJson dbMetadataJson = WebClient.builder().baseUrl(url + publishedVersionNo).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbMetadataJson.class).block();
 
-            if (dbMetadataJson.getMetadata() != null){
+            if (dbMetadataJson.getMetadata() != null) {
                 return dbMetadataJson;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("An error occurred while fetching metadata");
         }
         return null;
 
     }
+
     public DbMetadataJsonNational getPublishedDataNational(String url) {
 
         try {
@@ -210,13 +216,12 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
             int publishedVersionNo = getVersions(url);
 
             //Get the dataStore values from the international
-            DbMetadataJsonNational dbMetadataJson = GenericWebclient.getForSingleObjResponse(
-                    url+publishedVersionNo, DbMetadataJsonNational.class);
+            DbMetadataJsonNational dbMetadataJson = WebClient.builder().baseUrl(url + publishedVersionNo).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbMetadataJsonNational.class).block();
 
-            if (dbMetadataJson.getMetadata() != null){
+            if (dbMetadataJson.getMetadata() != null) {
                 return dbMetadataJson;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("An error occurred while fetching metadata");
         }
         return null;
@@ -228,13 +233,12 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
         try {
 
             //Get the dataStore values from the international
-            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
-                    url, DbMetadataJson.class);
+            DbMetadataJson dbMetadataJson = WebClient.builder().baseUrl(url).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbMetadataJson.class).block();
 
-            if (dbMetadataJson.getMetadata() != null){
+            if (dbMetadataJson.getMetadata() != null) {
                 return dbMetadataJson;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("An error occurred while fetching indicators");
         }
         return null;

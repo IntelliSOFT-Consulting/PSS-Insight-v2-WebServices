@@ -5,14 +5,19 @@ import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.model.Response;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorReferenceService;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
 
@@ -21,7 +26,12 @@ import java.util.*;
 @Service
 public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
+    private final EnvUrlConstants envUrlConstants;
     private final FormatterClass formatterClass = new FormatterClass();
+    @Value("${dhis.username}")
+    private String username;
+    @Value("${dhis.password}")
+    private String password;
 
     @Override
     public Results addIndicatorDictionary(DbIndicatorDetails dbIndicatorDetails) {
@@ -92,12 +102,16 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
     private List<DbIndicatorDetails> getIndicatorList() {
         try {
-            String url = AppConstants.INDICATOR_DESCRIPTIONS;
+            //Auth-headers:
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+            String url = envUrlConstants.getINDICATOR_DESCRIPTIONS();
+
             //Get metadata json
-            Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(
-                    url,
-                    DbIndicatorDetails.class
-            );
+            Flux<DbIndicatorDetails> responseFlux = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToFlux(DbIndicatorDetails.class);
+
             List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
 
 
@@ -203,12 +217,15 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
                         indicatorDetails.setExpectedFrequencyDataDissemination(expectedFrequencyDataDissemination);
                     if (indicatorReference != null) indicatorDetails.setIndicatorReference(indicatorReference);
 
-                    String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+                    String publishedBaseUrl = envUrlConstants.getDATA_STORE_ENDPOINT();
                     int publishedVersionNo = getVersions(publishedBaseUrl);
 
+                    String auth = username + ":" + password;
+                    byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                    String authHeader = "Basic " + new String(encodedAuth);
+
                     //Get metadata json
-                    DbMetadataJson dbMetadataJson = getMetadata(
-                            publishedBaseUrl + publishedVersionNo);
+                    DbMetadataJson dbMetadataJson = getMetadata(publishedBaseUrl + publishedVersionNo);
                     if (dbMetadataJson == null) {
                         return new Results(400, "There was an issue getting the published version.");
                     }
@@ -223,11 +240,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                     dbMetadataJson.setMetadata(dbPrograms);
 
-                    var response = GenericWebclient.putForSingleObjResponse(
-                            publishedBaseUrl + publishedVersionNo,
-                            dbMetadataJson,
-                            DbMetadataJson.class,
-                            Response.class);
+                    var response = GenericWebclient.putForSingleObjResponse(publishedBaseUrl + publishedVersionNo, dbMetadataJson, DbMetadataJson.class, Response.class);
                     if (response.getHttpStatusCode() == 200) {
                         return new Results(200, new DbDetails("The indicators values have been updated."));
                     }
@@ -251,7 +264,7 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
         try {
 
-            String publishedBaseUrl = AppConstants.DATA_STORE_ENDPOINT;
+            String publishedBaseUrl = envUrlConstants.getDATA_STORE_ENDPOINT();
             int publishedVersionNo = getVersions(publishedBaseUrl);
 
             //Get metadata json
@@ -275,11 +288,12 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
                 dbMetadataJson.setMetadata(dbPrograms);
 
-                var response = GenericWebclient.putForSingleObjResponse(
-                        publishedBaseUrl + publishedVersionNo,
-                        dbMetadataJson,
-                        DbMetadataJson.class,
-                        Response.class);
+                String auth = username + ":" + password;
+                byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                String authHeader = "Basic " + new String(encodedAuth);
+
+                var response = GenericWebclient.putForSingleObjResponseWithAuth(publishedBaseUrl + publishedVersionNo, dbMetadataJson, DbMetadataJson.class, Response.class, authHeader);
+
                 if (response.getHttpStatusCode() == 200) {
                     return new Results(200, new DbDetails("The indicator has been deleted."));
                 }
@@ -300,34 +314,11 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
     @Override
     public Results getTopics() {
 
-        String[] myTopics = {
-                "Selection",
-                "Procurement",
-                "Distribution",
-                "Use",
-                "Coordination and leadership",
-                "Pharmaceutical Laws and Regulations",
-                "Ethics, Transparency, and Accountability",
-                "Inspection and Enforcement",
-                "Product Assessment and Registration",
-                "Quality and Safety Surveillance",
-                "Innovation, Research & Development",
-                "Intellectual Property & Trade",
-                "Costing & Pricing",
-                "Financial Risk Protection",
-                "Expenditure Tracking & Monitoring",
-                "Human Resource Development ",
-                "Human Resource Management",
-                "Information Policy and Data Standardization"
-        };
+        String[] myTopics = {"Selection", "Procurement", "Distribution", "Use", "Coordination and leadership", "Pharmaceutical Laws and Regulations", "Ethics, Transparency, and Accountability", "Inspection and Enforcement", "Product Assessment and Registration", "Quality and Safety Surveillance", "Innovation, Research & Development", "Intellectual Property & Trade", "Costing & Pricing", "Financial Risk Protection", "Expenditure Tracking & Monitoring", "Human Resource Development ", "Human Resource Management", "Information Policy and Data Standardization"};
         List<String> topicList = new ArrayList<>(Arrays.asList(myTopics));
         DbResults dbResults1 = new DbResults(topicList.size(), topicList);
 
-        String[] dropDowns = {
-                IndicatorDropDowns.TEXT.name(),
-                IndicatorDropDowns.SELECTION.name(),
-                IndicatorDropDowns.NUMBER.name(),
-        };
+        String[] dropDowns = {IndicatorDropDowns.TEXT.name(), IndicatorDropDowns.SELECTION.name(), IndicatorDropDowns.NUMBER.name(),};
         List<String> dropList = new ArrayList<>(Arrays.asList(dropDowns));
         DbResults dbResults2 = new DbResults(dropList.size(), dropList);
 
@@ -336,10 +327,12 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
         return new Results(200, dbIndicatorTypes);
     }
 
-    private int getVersions(String url) throws URISyntaxException {
-        var response = GenericWebclient.getForSingleObjResponse(
-                url,
-                List.class);
+    private int getVersions(String url) {
+        String auth = username + ":" + password;
+        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+        String authHeader = "Basic " + new String(encodedAuth);
+
+        var response = WebClient.builder().baseUrl(url).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(List.class).block();
         if (!response.isEmpty()) {
             return formatterClass.getNextVersion(response);
         } else {
@@ -351,8 +344,12 @@ public class IndicatorReferenceImpl implements IndicatorReferenceService {
 
         try {
 
-            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(
-                    publishedBaseUrl, DbMetadataJson.class);
+            String auth = username + ":" + password;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+            String authHeader = "Basic " + new String(encodedAuth);
+
+            DbMetadataJson dbMetadataJson = WebClient.builder().baseUrl(publishedBaseUrl).defaultHeader(HttpHeaders.AUTHORIZATION, authHeader).build().get().retrieve().bodyToMono(DbMetadataJson.class).block();
+
             if (dbMetadataJson != null) {
                 return dbMetadataJson;
             }

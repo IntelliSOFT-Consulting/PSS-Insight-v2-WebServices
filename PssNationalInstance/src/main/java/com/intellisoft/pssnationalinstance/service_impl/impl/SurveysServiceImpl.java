@@ -9,11 +9,15 @@ import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveysService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
-import com.intellisoft.pssnationalinstance.util.GenericWebclient;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +34,22 @@ public class SurveysServiceImpl implements SurveysService {
     private final FormatterClass formatterClass = new FormatterClass();
     private final NationalTemplateService nationalTemplateService;
     private final RespondentAnswersRepository respondentAnswersRepository;
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
+
+    private HttpEntity<String> getHeaders() {
+
+        String username = envConfig.getValue().getUsername();
+        String password = envConfig.getValue().getPassword();
+
+        String auth = username + ":" + password;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
+
+        return new HttpEntity<>(headers);
+
+    }
 
     @Override
     public Results addSurvey(DbSurvey dbSurvey) {
@@ -43,7 +63,7 @@ public class SurveysServiceImpl implements SurveysService {
 //        if (isSaved)
 //            status = SurveyStatus.SENT.name();
 
-        String versionNumber = String.valueOf(nationalTemplateService.getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS));
+        String versionNumber = String.valueOf(nationalTemplateService.getCurrentVersion(envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS()));
 
 
         Surveys surveys = new Surveys();
@@ -232,7 +252,7 @@ public class SurveysServiceImpl implements SurveysService {
             Surveys surveys = optionalSurvey.get();
             String versionNumber = surveys.getVersionNumber();
 
-            DbPublishedVersion dbPublishedVersion = getPublishedData(AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber);
+            DbPublishedVersion dbPublishedVersion = getPublishedData(envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS() + versionNumber);
             List<String> indicators = surveys.getIndicators();
 
             if (dbPublishedVersion != null) {
@@ -309,7 +329,8 @@ public class SurveysServiceImpl implements SurveysService {
     public DbPublishedVersion getPublishedData(String url) {
 
         try {
-            DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(url, DbMetadataJson.class);
+            DbMetadataJson dbMetadataJson = WebClient.builder().baseUrl(url).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbMetadataJson.class).block();
+
             if (dbMetadataJson != null) {
                 DbPrograms dbPrograms = dbMetadataJson.getMetadata();
                 if (dbPrograms != null) {

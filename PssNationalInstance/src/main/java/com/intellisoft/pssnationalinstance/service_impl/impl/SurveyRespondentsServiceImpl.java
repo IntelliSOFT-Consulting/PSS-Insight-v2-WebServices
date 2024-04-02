@@ -13,13 +13,17 @@ import com.intellisoft.pssnationalinstance.service_impl.service.DataEntryService
 import com.intellisoft.pssnationalinstance.service_impl.service.JavaMailSenderService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.SurveyRespondentsService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
-import com.intellisoft.pssnationalinstance.util.GenericWebclient;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -44,6 +48,22 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
     private final JavaMailSenderService javaMailSenderService;
     private final ResendIndicatorsRepository repository;
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
+
+    private HttpEntity<String> getHeaders() {
+
+        String username = envConfig.getValue().getUsername();
+        String password = envConfig.getValue().getPassword();
+
+        String auth = username + ":" + password;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
+
+        return new HttpEntity<>(headers);
+
+    }
 
     @Override
     public Results addSurveyRespondent(DbSurveyRespondent dbSurveyRespondent) {
@@ -554,7 +574,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
         }
     }
 
-    private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId) throws URISyntaxException {
+    private DbResponseDetails getRespondentsQuestions(String surveyId, String respondentId) {
 
         List<String> indicatorList = new ArrayList<>();
         Optional<Surveys> optionalSurvey = surveysRepo.findById(Long.valueOf(surveyId));
@@ -565,8 +585,9 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
         DbPublishedVersion dbPublishedVersion = nationalTemplateService.nationalPublishedIndicators();
 
-        String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
-        String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+        String indicatorDescriptionUrl = envUrlConstants.getINDICATOR_DESCRIPTIONS();
+        String indicatorDescription = WebClient.builder().baseUrl(indicatorDescriptionUrl).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(String.class).block();
+
         JSONArray jsonArray = new JSONArray(indicatorDescription);
 
         if (dbPublishedVersion != null) {

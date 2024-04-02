@@ -344,6 +344,15 @@ data class DbApplicationValues(
         val masterTemplate: String?,
 )
 
+data class EnvConfigurableValues(
+        val internationalUrl: String?,
+        val username: String?,
+        val password: String?,
+        val program: String?,
+        val masterTemplate: String?,
+        val serverUrl: String?,
+)
+
 enum class IndicatorDropDowns {
     SELECTION, TEXT, NUMBER,
 }

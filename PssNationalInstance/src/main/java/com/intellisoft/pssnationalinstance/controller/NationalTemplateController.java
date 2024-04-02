@@ -4,6 +4,7 @@ package com.intellisoft.pssnationalinstance.controller;
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.*;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.sendgrid.*;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Email;
@@ -34,6 +35,7 @@ public class NationalTemplateController {
     private final IndicatorEditsService indicatorEditsService;
     private final VersionEntityService versionEntityService;
     private final PeriodConfigurationService periodConfigurationService;
+    private final EnvUrlConstants envUrlConstants;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${dhis.username}")
@@ -141,7 +143,7 @@ public class NationalTemplateController {
     @GetMapping("/view-file/{filename}")
     public ResponseEntity<byte[]> getDocument(@PathVariable String filename) {
 
-        String url = AppConstants.INTERNATIONAL_DOCS_ENDPOINT + filename + "/data";
+        String url = envUrlConstants.getINTERNATIONAL_DOCS_ENDPOINT()+ filename + "/data";
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(username, password);
         HttpEntity<String> entity = new HttpEntity<>(headers);

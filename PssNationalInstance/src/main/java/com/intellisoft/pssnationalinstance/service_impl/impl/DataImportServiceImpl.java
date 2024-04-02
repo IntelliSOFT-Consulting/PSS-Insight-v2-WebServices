@@ -1,25 +1,31 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.EnvConfig;
 import com.intellisoft.pssnationalinstance.service_impl.service.DataImportService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.net.URISyntaxException;
+import java.util.Base64;
 import java.util.List;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class DataImportServiceImpl implements DataImportService {
+
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
+
     @Override
-    public Results postDataImport(DbDataImport dbDataImport) throws JsonProcessingException, URISyntaxException {
+    public Results postDataImport(DbDataImport dbDataImport) throws URISyntaxException {
 
         String program = dbDataImport.getProgram();
         String orgUnit = dbDataImport.getOrgUnit();
@@ -31,7 +37,12 @@ public class DataImportServiceImpl implements DataImportService {
         // Create the request object for the external API
         DbDataImport dataImport = new DbDataImport(program, orgUnit, eventDate, status, storedBy, dataValues);
 
-        DbEvents response = GenericWebclient.postForSingleObjResponse(AppConstants.EVENTS_ENDPOINT, dataImport, DbDataImport.class, DbEvents.class);
+        String authHeader = "Basic " + Base64.getEncoder().encodeToString((envConfig.getValue().getUsername() + ":" + envConfig.getValue().getPassword()).getBytes());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.add("Authorization", authHeader);
+
+        DbEvents response = GenericWebclient.postForSingleObjResponseWithAuth(envUrlConstants.getEVENTS_ENDPOINT(), dataImport, DbDataImport.class, DbEvents.class, authHeader);
 
         if (response.getHttpStatusCode() == 200) {
             return new Results(200, "Import was successful.");
