@@ -11,7 +11,7 @@ data class DbResultsApi(@JsonProperty("code") val code: Int, @JsonProperty("deta
 
 data class UnsubscribeResponse(@JsonProperty("code") val code: Int, @JsonProperty("details") val details: NotificationSubscription)
 
-data class NotificationSubscription(@JsonProperty("id") val id: Long?, @JsonProperty("firstName") val firstName: String?, @JsonProperty("lastName") val lastName: String?, @JsonProperty("email") val email: String, @JsonProperty("phone") val phone: String?, @JsonProperty("isActive") val isActive: Boolean = true, @JsonProperty("userId") val userId: String?)
+data class NotificationSubscription(@JsonProperty("id") val id: Long?, @JsonProperty("firstName") val firstName: String?, @JsonProperty("lastName") val lastName: String?, @JsonProperty("email") val email: String?, @JsonProperty("phone") val phone: String?, @JsonProperty("isActive") val isActive: Boolean = true, @JsonProperty("userId") val userId: String?)
 
 data class DbResults(val count: Int, val details: Any?)
 
