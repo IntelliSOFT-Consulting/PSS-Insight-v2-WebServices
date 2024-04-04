@@ -16,15 +16,9 @@ import java.io.IOException;
 
 @Log4j2
 @SpringBootApplication
-@PropertySources({@PropertySource("classpath:.env"), @PropertySource("classpath:application.properties")})
 public class InternationalInstanceApplication {
     public static void main(String[] args) {
         SpringApplication.run(InternationalInstanceApplication.class, args);
-    }
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        return new PropertySourcesPlaceholderConfigurer();
     }
 
     @Bean

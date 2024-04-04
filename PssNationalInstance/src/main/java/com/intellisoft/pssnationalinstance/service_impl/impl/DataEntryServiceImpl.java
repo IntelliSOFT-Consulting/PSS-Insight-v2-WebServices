@@ -2,12 +2,16 @@ package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellisoft.pssnationalinstance.*;
-import com.intellisoft.pssnationalinstance.db.*;
+import com.intellisoft.pssnationalinstance.EnvConfig;
+import com.intellisoft.pssnationalinstance.db.DataEntry;
+import com.intellisoft.pssnationalinstance.db.DataEntryResponses;
+import com.intellisoft.pssnationalinstance.db.PeriodConfiguration;
+import com.intellisoft.pssnationalinstance.db.Surveys;
 import com.intellisoft.pssnationalinstance.repository.DataEntryRepository;
 import com.intellisoft.pssnationalinstance.repository.DataEntryResponsesRepository;
 import com.intellisoft.pssnationalinstance.repository.SurveysRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.*;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -17,12 +21,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.transaction.Transactional;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +52,22 @@ public class DataEntryServiceImpl implements DataEntryService {
     private final InternationalTemplateService internationalTemplateService;
     private final SurveysRepo surveysRepo;
     private final JavaMailSenderService javaMailSenderService;
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
+
+    private HttpEntity<String> getHeaders() {
+
+        String username = envConfig.getValue().getUsername();
+        String password = envConfig.getValue().getPassword();
+
+        String auth = username + ":" + password;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
+
+        return new HttpEntity<>(headers);
+
+    }
 
 
     @Override
@@ -104,7 +131,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
     private String getCurrentVersion() {
-        int versionNumber = nationalTemplateService.getCurrentVersion(AppConstants.NATIONAL_PUBLISHED_VERSIONS);
+        int versionNumber = nationalTemplateService.getCurrentVersion(envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS());
         return String.valueOf(versionNumber);
     }
 
@@ -195,8 +222,8 @@ public class DataEntryServiceImpl implements DataEntryService {
             }
 
             try {
+                DbProgramsData dbProgramsData = WebClient.builder().baseUrl(envUrlConstants.getNATIONAL_BASE_PROGRAMS()).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbProgramsData.class).block();
 
-                DbProgramsData dbProgramsData = GenericWebclient.getForSingleObjResponse(AppConstants.NATIONAL_BASE_PROGRAMS, DbProgramsData.class);
 
                 if (dbProgramsData != null) {
                     String id = "";
@@ -209,7 +236,13 @@ public class DataEntryServiceImpl implements DataEntryService {
                     ObjectMapper objectMapper = new ObjectMapper();
                     String json = objectMapper.writeValueAsString(dataEntry);
 
-                    DbEvents response = GenericWebclient.postForSingleObjResponse(AppConstants.EVENTS_ENDPOINT, dataEntry, DbDataEntry.class, DbEvents.class);
+                    String authHeader = "Basic " + Base64.getEncoder().encodeToString((envConfig.getValue().getUsername() + ":" + envConfig.getValue().getPassword()).getBytes());
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                    headers.add("Authorization", authHeader);
+
+                    DbEvents response = GenericWebclient.postForSingleObjResponseWithAuth(envUrlConstants.getEVENTS_ENDPOINT(), dataEntry, DbDataEntry.class, DbEvents.class, authHeader);
+
                     if (response.getHttpStatusCode() == 200) {
                         String surveyId = dbDataEntryData.getSurveyId();
                         if (surveyId != null) {
@@ -250,7 +283,7 @@ public class DataEntryServiceImpl implements DataEntryService {
             List<DataEntryResponses> dataEntryResponseList = dataEntryResponsesRepository.findByDataEntry(dataEntry);
 
 
-            String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+            String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
             DbMetadataJson dbMetadataJson = internationalTemplateService.getPublishedData(publishedBaseUrl);
 
             if (dbMetadataJson != null) {
@@ -264,8 +297,10 @@ public class DataEntryServiceImpl implements DataEntryService {
                     String versionNumber = dataEntry.getVersionNumber();
                     if (versionNumber != null) {
 
-                        String indicatorDescriptionUrl = AppConstants.INDICATOR_DESCRIPTIONS;
-                        String indicatorDescription = GenericWebclient.getForSingleObjResponse(indicatorDescriptionUrl, String.class);
+                        String indicatorDescriptionUrl = envUrlConstants.getINDICATOR_DESCRIPTIONS();
+                        String indicatorDescription = WebClient.builder().baseUrl(indicatorDescriptionUrl).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(String.class).block();
+
+
                         JSONArray jsonArray = new JSONArray(indicatorDescription);
 
                         DbPublishedVersion dbPublishedVersion = getThePreviousIndicators(versionNumber);
@@ -320,7 +355,7 @@ public class DataEntryServiceImpl implements DataEntryService {
     }
 
     private DbPublishedVersion getThePreviousIndicators(String versionNumber) {
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
+        String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS() + versionNumber;
         DbMetadataJson dbMetadataJson = internationalTemplateService.getIndicators(publishedBaseUrl);
         if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
@@ -330,7 +365,6 @@ public class DataEntryServiceImpl implements DataEntryService {
         }
         return null;
     }
-
 
     @Override
     public Results updateDataEntry(String id, DbDataEntryData dbDataEntryData) {
@@ -493,7 +527,7 @@ public class DataEntryServiceImpl implements DataEntryService {
             }
 
             String versionNumber = dataEntry.getVersionNumber();
-            String url = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
+            String url = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS() + versionNumber;
             DbMetadataJson dbMetadataJson = internationalTemplateService.getIndicators(url);
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
             List<DbIndicators> dbIndicatorsArrayList = new ArrayList<>();
@@ -555,16 +589,7 @@ public class DataEntryServiceImpl implements DataEntryService {
                             }
 
                             if (!dbIndicatorDataValuesList.isEmpty()) {
-                                DbIndicatorValues indicatorValues = new DbIndicatorValues(
-                                        dbIndicatorValues.getDescription(),
-                                        null,
-                                        dbIndicatorValues.getCategoryId(),
-                                        dbIndicatorValues.getCategoryName(),
-                                        null,
-                                        dbIndicatorValues.getIndicatorName(),
-                                        null,
-                                        null,
-                                        dbIndicatorDataValuesList);
+                                DbIndicatorValues indicatorValues = new DbIndicatorValues(dbIndicatorValues.getDescription(), null, dbIndicatorValues.getCategoryId(), dbIndicatorValues.getCategoryName(), null, dbIndicatorValues.getIndicatorName(), null, null, dbIndicatorDataValuesList);
                                 dbIndicatorValuesList.add(indicatorValues);
                             }
                         }

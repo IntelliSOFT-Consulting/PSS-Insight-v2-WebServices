@@ -2,7 +2,7 @@ package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
 import com.intellisoft.pssnationalinstance.service_impl.service.NotificationService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -18,10 +18,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     WebClient webClient;
 
+    private final EnvUrlConstants envUrlConstants;
+
     @Override
     public Results subscribe(DbNotificationSub notificationSubscription) {
 
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "subscribe";
+        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "subscribe";
         return getPostResults(notificationSubscription, internationalBaseApi);
 
     }
@@ -50,7 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results unsubscribe(DbNotificationSub notificationSubscription) {
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "unsubscribe-email";
+        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "unsubscribe-email";
         return getPostResults(notificationSubscription, internationalBaseApi);
     }
 
@@ -76,12 +78,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results getNotifications(int no, int size, String emailAddress) {
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "list?email=" + emailAddress;
+        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "list?email=" + emailAddress;
         return getIntResults(internationalBaseApi);
     }
 
     public Results getSubscriptionDetails(String userId) {
-        String apiUrl = AppConstants.INTERNATIONAL_NOTIFICATION + "subscription-details";
+        String apiUrl = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "subscription-details";
 
         try {
             NotificationSubscription notificationSubscription = webClient.get().uri(apiUrl + "?userId={userId}", userId).retrieve().bodyToMono(NotificationSubscription.class).block();
@@ -97,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
-        String internationalBaseApi = AppConstants.INTERNATIONAL_NOTIFICATION + "update-subscription";
+        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "update-subscription";
 
         try {
             WebClient webClient = WebClient.create();

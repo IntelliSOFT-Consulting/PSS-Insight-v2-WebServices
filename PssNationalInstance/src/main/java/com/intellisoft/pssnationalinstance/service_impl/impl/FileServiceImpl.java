@@ -1,8 +1,9 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.EnvConfig;
 import com.intellisoft.pssnationalinstance.service_impl.service.FileService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -28,6 +29,9 @@ public class FileServiceImpl implements FileService {
     @Value("${dhis.password}")
     private String password;
 
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
+
 
     @Override
     public Results createFileResource(MultipartFile file) {
@@ -51,7 +55,7 @@ public class FileServiceImpl implements FileService {
                     new HttpEntity<>(body, headers);
             ResponseEntity<DbFileResources> responseEntity =
                     restTemplate.postForEntity(
-                            AppConstants.FILES_RESOURCES_ENDPOINT,
+                            envUrlConstants.getFILES_RESOURCES_ENDPOINT(),
                             requestEntity, DbFileResources.class);
             int code = responseEntity.getStatusCodeValue();
             if (code == 202){
@@ -61,7 +65,7 @@ public class FileServiceImpl implements FileService {
                             String id = responseEntity.getBody().getResponse().getFileResource().getId();
                             if (id != null){
                                 String documentId = getDocumentDetails(id);
-                                String documentUrl = AppConstants.DOCUMENT_RESOURCES_ENDPOINT + documentId + "/data";
+                                String documentUrl = envUrlConstants.getDOCUMENT_RESOURCES_ENDPOINT() + documentId + "/data";
                                 return new Results(200, new DbResFileRes(documentUrl));
                             }
 
@@ -90,11 +94,16 @@ public class FileServiceImpl implements FileService {
                     fileId
             );
 
-            DbDocumentFile dbDocumentFile = GenericWebclient.postForSingleObjResponse(
-                    AppConstants.NATIONAL_BASE_DOCUMENT,
+            String authHeader = "Basic " + Base64.getEncoder().encodeToString((envConfig.getValue().getUsername() + ":" + envConfig.getValue().getPassword()).getBytes());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.add("Authorization", authHeader);
+
+            DbDocumentFile dbDocumentFile = GenericWebclient.postForSingleObjResponseWithAuth(
+                    envUrlConstants.getNATIONAL_BASE_DOCUMENT(),
                     dbDocuments,
                     DbDocuments.class,
-                    DbDocumentFile.class);
+                    DbDocumentFile.class, authHeader);
 
             if (dbDocumentFile != null){
 
@@ -129,7 +138,7 @@ public class FileServiceImpl implements FileService {
             headers.add("Authorization", authHeader);
             HttpEntity<String> entity = new HttpEntity<>(null, headers);
             ResponseEntity<Resource> response = restTemplate.exchange(
-                    AppConstants.NATIONAL_BASE_DOCUMENT + "/" + id + "/data",
+                    envUrlConstants.getNATIONAL_BASE_DOCUMENT() + "/" + id + "/data",
                     HttpMethod.GET, entity, Resource.class);
 
 

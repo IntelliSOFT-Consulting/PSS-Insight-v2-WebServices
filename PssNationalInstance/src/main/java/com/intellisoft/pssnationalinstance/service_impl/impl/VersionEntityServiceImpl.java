@@ -9,14 +9,17 @@ import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTem
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.VersionEntityService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,8 @@ public class VersionEntityServiceImpl implements VersionEntityService {
     private final InternationalTemplateService internationalTemplateService;
     private final NationalTemplateService nationalTemplateService;
     private final IndicatorEditsRepository indicatorEditsRepository;
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
 
     public static DbPublishedVersion filterDbPublishedVersionByCategoryId(List<String> categoryIds, DbPublishedVersion version) {
         List<DbIndicators> filteredDetails = new ArrayList<>();
@@ -104,7 +109,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
     @Override
     public Results listVersions(int page, int size, boolean isLatest) {
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+        String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
         List<DbVersionDetails> dbVersionDetailsList = new ArrayList<>();
 
         if (isLatest) {
@@ -288,7 +293,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
     }
 
     private DbPublishedVersion getThePreviousIndicators(String versionNumber) {
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS + versionNumber;
+        String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS() + versionNumber;
         DbMetadataJson dbMetadataJson = internationalTemplateService.getIndicators(publishedBaseUrl);
 
         if (dbMetadataJson != null) {

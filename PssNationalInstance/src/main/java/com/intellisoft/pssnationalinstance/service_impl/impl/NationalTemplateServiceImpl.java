@@ -1,6 +1,7 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.EnvConfig;
 import com.intellisoft.pssnationalinstance.db.AboutUs;
 import com.intellisoft.pssnationalinstance.db.Benchmarks;
 import com.intellisoft.pssnationalinstance.db.IndicatorEdits;
@@ -12,15 +13,20 @@ import com.intellisoft.pssnationalinstance.service_impl.service.AboutUsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.IndicatorEditsService;
 import com.intellisoft.pssnationalinstance.service_impl.service.InternationalTemplateService;
 import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplateService;
-import com.intellisoft.pssnationalinstance.util.AppConstants;
+import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-import java.net.URISyntaxException;
 import java.util.*;
 
 @Service
@@ -36,10 +42,27 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     private final AboutUsService aboutUsService;
     private final AboutUsRepository aboutUsRepository;
     private final BenchmarksRepository benchmarksRepository;
+    private final EnvUrlConstants envUrlConstants;
+    private final EnvConfig envConfig;
 
-    private static List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() throws URISyntaxException {
-        String url = AppConstants.FETCH_BENCHMARKS_API;
-        Flux<IndicatorBenchmark> responseFlux = GenericWebclient.getForCollectionResponse(url, IndicatorBenchmark.class);
+    private HttpEntity<String> getHeaders() {
+
+        String username = envConfig.getValue().getUsername();
+        String password = envConfig.getValue().getPassword();
+
+        String auth = username + ":" + password;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic " + Base64Utils.encodeToString(auth.getBytes()));
+
+        return new HttpEntity<>(headers);
+
+    }
+
+    private List<IndicatorBenchmark> getIndicatorCodesFromBenchmarksAPI() {
+        String url = envUrlConstants.getFETCH_BENCHMARKS_API();
+        Flux<IndicatorBenchmark> responseFlux = WebClient.builder().baseUrl(url).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).build().get().retrieve().bodyToFlux(IndicatorBenchmark.class);
+
         List<IndicatorBenchmark> benchmarkList = responseFlux.collectList().block();
 
         if (benchmarkList != null) {
@@ -136,7 +159,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     }
 
     public DbPublishedVersion getThePreviousIndicators(String versionNumber) {
-        String publishedBaseUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS + versionNumber;
+        String publishedBaseUrl = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS() + versionNumber;
         DbMetadataJson dbMetadataJson = internationalTemplateService.getIndicators(publishedBaseUrl);
         if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
@@ -148,7 +171,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     }
 
     public DbPublishedVersion nationalPublishedIndicators() {
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+        String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
         DbMetadataJson dbMetadataJson = internationalTemplateService.getPublishedData(publishedBaseUrl);
         if (dbMetadataJson != null) {
             DbPrograms dbPrograms = dbMetadataJson.getMetadata();
@@ -159,13 +182,15 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
         return null;
     }
 
-    private DbPublishedVersionDetails getPublishedDetails() throws URISyntaxException {
+    private DbPublishedVersionDetails getPublishedDetails() {
         DbPublishedVersionDetails details = new DbPublishedVersionDetails(null, null, null, null, Collections.emptyList());
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
-        String dataDictionaryUrl = AppConstants.INDICATOR_DESCRIPTIONS;
+        String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
+        String dataDictionaryUrl = envUrlConstants.getINDICATOR_DESCRIPTIONS();
 
         //Get metadata json
-        Flux<DbIndicatorDetails> responseFlux = GenericWebclient.getForCollectionResponse(dataDictionaryUrl, DbIndicatorDetails.class);
+        Flux<DbIndicatorDetails> responseFlux = WebClient.builder().baseUrl(dataDictionaryUrl).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).build().get().retrieve().bodyToFlux(DbIndicatorDetails.class);
+
+
         List<DbIndicatorDetails> responseList = responseFlux.collectList().block();
 
         DbMetadataJson dbMetadataJson = internationalTemplateService.getPublishedData(publishedBaseUrl);
@@ -242,7 +267,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
         String description = "Indicator Description";
         try {
-            String publishedBaseUrlNational = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+            String publishedBaseUrlNational = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
             DbMetadataJsonNational dbMetadataJsonNational = getMetadataNational(publishedBaseUrlNational);
 
             if (dbMetadataJsonNational != null) {
@@ -254,7 +279,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             } else {
                 //Check from the international indicator description
-                String publishedBaseUrlInternational = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+                String publishedBaseUrlInternational = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS();
                 DbMetadataJson dbMetadataJsonInternational = getMetadata(publishedBaseUrlInternational);
                 if (dbMetadataJsonInternational != null) {
                     DbPrograms dbPrograms = dbMetadataJsonInternational.getMetadata();
@@ -309,8 +334,8 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     public void savePublishedVersion(String createdBy, String versionId, List<DbVersionDate> indicatorList) {
         try {
 
-            String nationalPublishedUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
-            String interNationalPublishedUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+            String nationalPublishedUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
+            String interNationalPublishedUrl = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS();
 
             String versionNumberLatest = "1";
             String versionNumberPast = "1";
@@ -353,9 +378,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
             if (pastInternationalIndicators != null) {
 
-                List<DbIndicators> indicatorValuesList = getSelectedIndicators(
-                        pastInternationalIndicators.getDetails(),
-                        pastIndicators,versionNumberPast );
+                List<DbIndicators> indicatorValuesList = getSelectedIndicators(pastInternationalIndicators.getDetails(), pastIndicators, versionNumberPast);
                 if (!indicatorValuesList.isEmpty()) {
                     indicatorsList.addAll(indicatorValuesList);
                 }
@@ -365,7 +388,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             /**
              * Get international Latest metadata
              */
-            String internationalPublishedUrl = AppConstants.INTERNATIONAL_PUBLISHED_VERSIONS;
+            String internationalPublishedUrl = envUrlConstants.getINTERNATIONAL_PUBLISHED_VERSIONS();
             DbMetadataJson dbMetadataJson = getMetadata(internationalPublishedUrl);
             String versionNo = String.valueOf(nationalLatestVersion + 1);
 
@@ -378,8 +401,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 if (dbPrograms != null) {
                     DbPublishedVersion publishedVersionValues = dbPrograms.getPublishedVersion();
                     if (publishedVersionValues != null) {
-                        List<DbIndicators> indicatorValuesList = getSelectedIndicators(
-                                publishedVersionValues.getDetails(), latestIndicators, String.valueOf(currentVersionNumber));
+                        List<DbIndicators> indicatorValuesList = getSelectedIndicators(publishedVersionValues.getDetails(), latestIndicators, String.valueOf(currentVersionNumber));
                         if (!indicatorValuesList.isEmpty()) {
                             indicatorsList.addAll(indicatorValuesList);
                         }
@@ -421,8 +443,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 indicatorEditsService.deleteEditByCategoryId(createdBy);
 
                 //Set new values
-                DbPublishedVersion dbPublishedVersion = new DbPublishedVersion(
-                        indicatorsList.size(), indicatorsList);
+                DbPublishedVersion dbPublishedVersion = new DbPublishedVersion(indicatorsList.size(), indicatorsList);
 
                 assert dbPrograms != null;
                 dbPrograms.setPublishedVersion(dbPublishedVersion);
@@ -431,10 +452,13 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
                 dbMetadataJson.setVersion(versionNo);
 
             }
-            var response = GenericWebclient.postForSingleObjResponse(nationalPublishedUrl + versionNo,
-                    dbMetadataJson,
-                    DbMetadataJson.class,
-                    DbPublishVersionResponse.class);
+
+            String authHeader = "Basic " + Base64.getEncoder().encodeToString((envConfig.getValue().getUsername() + ":" + envConfig.getValue().getPassword()).getBytes());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.add("Authorization", authHeader);
+
+            var response = GenericWebclient.postForSingleObjResponseWithAuth(nationalPublishedUrl + versionNo, dbMetadataJson, DbMetadataJson.class, DbPublishVersionResponse.class, authHeader);
 
             if (response.getHttpStatusCode() == 201) {
                 Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(Long.valueOf(versionId));
@@ -462,9 +486,9 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             List<DbIndicatorValues> indicatorValuesList = dbIndicators.getIndicators();
             for (DbIndicatorValues indicatorValues : indicatorValuesList) {
 
-                if (indicatorValues.getCategoryId() != null){
+                if (indicatorValues.getCategoryId() != null) {
                     String categoryId = String.valueOf(indicatorValues.getCategoryId());
-                    if (selectedIndicators.contains(categoryId)){
+                    if (selectedIndicators.contains(categoryId)) {
                         indicatorValues.setVersionNumber(versionNumber);
                         newIndicators.add(indicatorValues);
                     }
@@ -480,7 +504,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
 
     @Override
     public DbMetadataJson getPublishedMetadataJson() {
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+        String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
         return internationalTemplateService.getPublishedData(publishedBaseUrl);
     }
 
@@ -488,8 +512,9 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     public Results getOrgUnits(int pageNo) {
 
         try {
+            DbOrganisationUnit dbOrganisationUnit = WebClient.builder().baseUrl(envUrlConstants.getNATIONAL_BASE_ORG_UNIT() + pageNo).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbOrganisationUnit.class).block();
 
-            DbOrganisationUnit dbOrganisationUnit = GenericWebclient.getForSingleObjResponse(AppConstants.NATIONAL_BASE_ORG_UNIT + pageNo, DbOrganisationUnit.class);
+
             if (dbOrganisationUnit != null) {
 
                 List<DbProgramsValue> dbProgramsValueList = dbOrganisationUnit.getOrganisationUnits();
@@ -510,7 +535,7 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
     public int getCurrentVersion(String url) {
 
         try {
-            var response = GenericWebclient.getForSingleObjResponse(url, List.class);
+            var response = WebClient.builder().baseUrl(url).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).build().get().retrieve().bodyToMono(List.class).block();
             if (!response.isEmpty()) {
                 return formatterClass.getNextVersion(response);
             } else {

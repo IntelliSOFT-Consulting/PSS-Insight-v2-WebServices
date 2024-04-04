@@ -7,6 +7,7 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import kotlin.Triple;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -187,6 +188,62 @@ public class GenericWebclient {
 
 
 
+    }
+
+    public static <T, V, E extends Exception> V postForSingleObjResponseWithAuth(
+            String url,
+            T request,
+            Class<T> requestClass,
+            Class<V> responseClass,
+            String authHeader,
+            E... exceptions) throws URISyntaxException {
+        log.info("REQUEST: {},{}", url, "request");
+        return WebClient.builder()
+                .defaultHeader(HttpHeaders.AUTHORIZATION, authHeader)
+                .build()
+                .post()
+                .uri(new URI(url))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(request), requestClass)
+                .retrieve()
+                .onStatus(HttpStatus::is5xxServerError, error -> Mono.error(exceptions.length >= 1 ? exceptions[0] : new RuntimeException("Internal server error occurred.")))
+                .onStatus(HttpStatus::is4xxClientError, error -> Mono.error(exceptions.length >= 2 ? exceptions[1] : new CustomException("Bad Request Error: " + error.bodyToMono(String.class))))
+                .bodyToMono(responseClass)
+                .onErrorResume(Mono::error)
+                .retryWhen(Retry.backoff(3, Duration.of(2, ChronoUnit.SECONDS)).onRetryExhaustedThrow(((retryBackoffSpec, retrySignal) -> new Throwable(retrySignal.failure()))))
+                .block();
+    }
+
+
+    @SafeVarargs
+    public static <T, V, E extends Exception> V putForSingleObjResponseWithAuth(
+            String url,
+            T request,
+            Class<T> requestClass,
+            Class<V> responseClass,
+            String authHeader,
+            E... exceptions) throws URISyntaxException {
+        log.info("REQUEST: {},{}", url, "request");
+        return WebClient.builder()
+                .defaultHeader(HttpHeaders.AUTHORIZATION, authHeader)
+                .build()
+                .put()
+                .uri(new URI(url))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(request), requestClass)
+                .retrieve()
+                .onStatus(HttpStatus::is5xxServerError, error -> Mono.error(exceptions.length >= 1 ? exceptions[0] : new RuntimeException("Internal server error occurred.")))
+                .onStatus(HttpStatus::is4xxClientError, error -> {
+                    return error.bodyToMono(String.class)
+                            .flatMap(errorMessage -> {
+                                log.error("4xx Client Error: {}", errorMessage);
+                                return Mono.error(exceptions.length >= 2 ? exceptions[1] : new CustomException("Bad Request Error: " + errorMessage));
+                            });
+                })
+                .bodyToMono(responseClass)
+                .onErrorResume(Mono::error)
+                .retryWhen(Retry.backoff(3, Duration.of(2, ChronoUnit.SECONDS)).onRetryExhaustedThrow(((retryBackoffSpec, retrySignal) -> new Throwable(retrySignal.failure()))))
+                .block();
     }
 
 
