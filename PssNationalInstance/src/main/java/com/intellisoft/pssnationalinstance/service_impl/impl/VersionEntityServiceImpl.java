@@ -62,7 +62,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
          * Can be interepreted with should we publish the latest or the latest -1
          */
 
-        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
+//        String publishedBaseUrl = AppConstants.NATIONAL_PUBLISHED_VERSIONS;
 
         String versionDescription = dbVersions.getVersionDescription();
         boolean isPublished = dbVersions.isPublished();
