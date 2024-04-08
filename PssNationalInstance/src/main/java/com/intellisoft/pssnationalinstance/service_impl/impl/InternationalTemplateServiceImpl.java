@@ -172,7 +172,8 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
                 //Get the dataStore values from the international
                 int recentVersionNo = publishedVersionNo - 1;
 
-                DbMetadataJson dbMetadataJson = GenericWebclient.getForSingleObjResponse(url + recentVersionNo, DbMetadataJson.class);
+                DbMetadataJson dbMetadataJson = WebClient.builder().baseUrl(url + recentVersionNo).defaultHeaders(headers -> headers.addAll(getHeaders().getHeaders())).exchangeStrategies(ExchangeStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)).build()).build().get().retrieve().bodyToMono(DbMetadataJson.class).block();
+
 
                 if (dbMetadataJson.getMetadata() != null) {
 
