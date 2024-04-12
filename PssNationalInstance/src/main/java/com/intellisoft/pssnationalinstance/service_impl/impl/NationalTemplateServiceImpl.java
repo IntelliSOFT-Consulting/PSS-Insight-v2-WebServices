@@ -100,7 +100,14 @@ public class NationalTemplateServiceImpl implements NationalTemplateService {
             }
             // Resulting list after merging
             List<DbIndicators> mergedList = new ArrayList<>(mergedMap.values());
+
+            //Remove categories that do not have a list
+            mergedList.removeIf(dbIndicators -> {dbIndicators.getIndicators();
+                return dbIndicators.getIndicators().isEmpty();});
+
             publishedVersionValues.setDetails(mergedList);
+
+
 
             return new Results(200, publishedVersionValues);
 

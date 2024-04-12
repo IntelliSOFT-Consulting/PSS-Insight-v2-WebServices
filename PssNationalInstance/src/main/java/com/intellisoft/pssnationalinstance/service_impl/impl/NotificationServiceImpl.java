@@ -1,6 +1,8 @@
 package com.intellisoft.pssnationalinstance.service_impl.impl;
 
 import com.intellisoft.pssnationalinstance.*;
+import com.intellisoft.pssnationalinstance.db.NotificationDbSubscription;
+import com.intellisoft.pssnationalinstance.repository.NotificationDbSubscriptionRepo;
 import com.intellisoft.pssnationalinstance.service_impl.service.NotificationService;
 import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
 import com.intellisoft.pssnationalinstance.util.GenericWebclient;
@@ -11,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
+import java.util.Optional;
+
 @Log4j2
 @RequiredArgsConstructor
 @Service
@@ -20,8 +25,38 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final EnvUrlConstants envUrlConstants;
 
+    private final NotificationDbSubscriptionRepo notificationDbSubscriptionRepo;
+
     @Override
     public Results subscribe(DbNotificationSub notificationSubscription) {
+
+        /**
+         * Subscribe to the international instance
+         * Save the subscriber into the local instance
+         *
+         * 1. Check if user exists in the local instance
+         * 2. Save user in local instance
+         * 3. Push data to international instance
+         */
+        String email = notificationSubscription.getEmail();
+        Optional<NotificationDbSubscription> isEmailExists = notificationDbSubscriptionRepo.findByEmail(email);
+        if (isEmailExists.isPresent()){
+            return new Results(400, "Email already exists. Cannot be added.");
+        }
+
+        NotificationDbSubscription subscription = new NotificationDbSubscription();
+//        if (notificationSubscription.getId() != null) subscription.setUserId(notificationSubscription.getId());
+        if (notificationSubscription.getLastName() != null)
+            subscription.setLastName(notificationSubscription.getLastName());
+        if (notificationSubscription.getPhoneNumber() != null)
+            subscription.setPhone(notificationSubscription.getPhoneNumber());
+        if (notificationSubscription.getFirstName() != null)
+            subscription.setFirstName(notificationSubscription.getFirstName());
+        if (notificationSubscription.getOrganisationId() != null)
+            subscription.setOrganisationId(notificationSubscription.getOrganisationId());
+
+        subscription.setEmail(notificationSubscription.getEmail());
+        notificationDbSubscriptionRepo.save(subscription);
 
         String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "subscribe";
         return getPostResults(notificationSubscription, internationalBaseApi);
@@ -52,8 +87,27 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Results unsubscribe(DbNotificationSub notificationSubscription) {
+
+        /**
+         * Update this deactivation too on the local instance too
+         */
+        String email = notificationSubscription.getEmail();
+        Optional<NotificationDbSubscription> optionalNotificationDbSubscription = notificationDbSubscriptionRepo.findByEmail(email);
+        if (optionalNotificationDbSubscription.isEmpty()){
+            return new Results(400, "Email does not already exist.");
+        }
+        NotificationDbSubscription savedSubscription = optionalNotificationDbSubscription.get();
+
         String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "unsubscribe-email";
-        return getPostResults(notificationSubscription, internationalBaseApi);
+        Results results = getPostResults(notificationSubscription, internationalBaseApi);
+//        int code = results.getCode();
+//        if (code != 200)
+//            return results;
+
+        savedSubscription.setIsActive(false);
+        NotificationDbSubscription saved = notificationDbSubscriptionRepo.save(savedSubscription);
+
+        return results;
     }
 
     @NotNull
@@ -80,6 +134,13 @@ public class NotificationServiceImpl implements NotificationService {
     public Results getNotifications(int no, int size, String emailAddress) {
         String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "list?email=" + emailAddress;
         return getIntResults(internationalBaseApi);
+    }
+
+    @Override
+    public Results getNationalSubscribers(int no, int size) {
+
+        List<NotificationDbSubscription> notificationList = notificationDbSubscriptionRepo.findAll();
+        return new Results(200, new DbResults(notificationList.size(), notificationList));
     }
 
     public Results getSubscriptionDetails(String userId) {
@@ -110,6 +171,20 @@ public class NotificationServiceImpl implements NotificationService {
             if (response != null && response.getCode() == 200 && response.getDetails() != null) {
                 NotificationSubscription details = response.getDetails();
                 NotificationSubscription notificationSubscription = new NotificationSubscription(details.getId(), details.getFirstName(), details.getLastName(), details.getEmail(), details.getPhone(), details.isActive(), details.getUserId());
+
+                //Update the user info
+                Long id = notificationSubscription.getId();
+                assert id != null;
+                Optional<NotificationDbSubscription> optionalNotificationSubscription = notificationDbSubscriptionRepo.findById(id);
+                if (optionalNotificationSubscription.isPresent()){
+                    NotificationDbSubscription savedSubscription = getSavedSubscription(dbNotificationSub, optionalNotificationSubscription, notificationSubscription);
+
+                    notificationDbSubscriptionRepo.save(savedSubscription);
+
+                }
+
+
+
                 return new Results(200, notificationSubscription);
             } else {
                 return new Results(400, "Resource not found, update not successful");
@@ -118,6 +193,22 @@ public class NotificationServiceImpl implements NotificationService {
             log.error("An error occurred while updating subscription details");
             return new Results(400, "An error occurred while processing the request");
         }
+    }
+
+    @NotNull
+    private static NotificationDbSubscription getSavedSubscription(DbNotificationSub dbNotificationSub, Optional<NotificationDbSubscription> optionalNotificationSubscription, NotificationSubscription notificationSubscription) {
+        NotificationDbSubscription savedSubscription = optionalNotificationSubscription.get();
+
+        if (notificationSubscription.getId() != null) savedSubscription.setUserId(dbNotificationSub.getId());
+        if (notificationSubscription.getLastName() != null)
+            savedSubscription.setLastName(dbNotificationSub.getLastName());
+        if (notificationSubscription.getPhone() != null)
+            savedSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+        if (notificationSubscription.getFirstName() != null)
+            savedSubscription.setFirstName(dbNotificationSub.getFirstName());
+        if (dbNotificationSub.getOrganisationId() != null)
+            savedSubscription.setOrganisationId(dbNotificationSub.getOrganisationId());
+        return savedSubscription;
     }
 
 
