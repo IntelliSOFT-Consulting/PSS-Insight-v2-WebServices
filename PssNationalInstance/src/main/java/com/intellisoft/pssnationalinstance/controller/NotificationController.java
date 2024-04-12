@@ -52,6 +52,24 @@ public class NotificationController {
         return formatterClass.getResponse(results);
     }
 
+    @GetMapping("/list-national-subscribers")
+    public ResponseEntity<?> getNationalSubscribers(
+            @RequestParam(value = "limit", required = false) String limit,
+            @RequestParam(value = "pageNo", required = false) String pageNo
+    ) {
+
+        int limitNo = 10;
+        if (limit != null && !limit.equals("")){
+            limitNo = Integer.parseInt(limit);
+        }
+        int pageNumber = 1;
+        if (pageNo != null && !pageNo.equals("")){
+            pageNumber = Integer.parseInt(pageNo);
+        }
+        Results results = notificationService.getNationalSubscribers(limitNo, pageNumber);
+        return formatterClass.getResponse(results);
+    }
+
     @GetMapping("/subscription-details")
     public ResponseEntity<?> getSubscriptionDetails(@RequestParam("userId") String userId) {
         Results results = notificationService.getSubscriptionDetails(userId);

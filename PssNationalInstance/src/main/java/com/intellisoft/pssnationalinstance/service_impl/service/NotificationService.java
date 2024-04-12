@@ -9,6 +9,7 @@ public interface NotificationService {
      Results unsubscribe(DbNotificationSub notificationSubscription);
 
      Results getNotifications(int no, int size, String emailAddress);
+     Results getNationalSubscribers(int no, int size);
 
 
      Results getSubscriptionDetails(String userId);

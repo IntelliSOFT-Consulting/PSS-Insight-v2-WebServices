@@ -293,7 +293,7 @@ data class DbSurveyRespondentDataDerails(val id: Long, val emailAddress: String,
 
 )
 
-data class DbNotificationSub(val id: String?, val firstName: String?, val lastName: String?, val email: String, val phoneNumber: String?)
+data class DbNotificationSub(val id: String?, val firstName: String?, val lastName: String?, val email: String, val phoneNumber: String?, val organisationId:String? = null)
 
 data class DbEmailConfiguration(val serverType: String, val serverName: String, val ports: String, val username: String, val from: String, val password: String)
 
