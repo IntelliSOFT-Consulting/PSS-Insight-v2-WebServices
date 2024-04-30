@@ -120,7 +120,7 @@ public class InternationalTemplateServiceImpl implements InternationalTemplateSe
             }
             return new Results(200, dbTemplateDetailsList);
         } catch (Exception syntaxException) {
-            log.error("An error occurred while fetching international indicators");
+            log.error("An error occurred while fetching international indicators {}", syntaxException.getMessage());
         }
         return new Results(400, "The international indicators could not be found.");
     }
