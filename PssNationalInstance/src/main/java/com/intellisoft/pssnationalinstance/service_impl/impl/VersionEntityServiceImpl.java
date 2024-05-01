@@ -152,10 +152,22 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             String createdAt = String.valueOf(versionEntityList.get(i).getCreatedAt());
             List<String> indicatorList = versionEntityList.get(i).getIndicators();
             List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList, "");
-            DbVersionDetails dbVersionDetails = new DbVersionDetails(id, versionName, versionDescription, createdBy, status, publishedBy, createdAt, selectedIndicators);
+
+            List<DbIndicators> newSelectedIndicators = new ArrayList<DbIndicators>();
+
+            for (DbIndicators dbIndicators : selectedIndicators) {
+                List<DbIndicatorValues> indicatorValueList = dbIndicators.getIndicators();
+                if (!indicatorValueList.isEmpty()){
+                    newSelectedIndicators.add(dbIndicators);
+                }
+            }
+
+            DbVersionDetails dbVersionDetails = new DbVersionDetails(id, versionName, versionDescription, createdBy, status, publishedBy, createdAt, newSelectedIndicators);
             dbVersionDetailsList.add(dbVersionDetails);
 
         }
+        //Remove indicators that are empty
+
 
         DbResultsData dbResultsData = new DbResultsData(dbVersionDetailsList.size(), dbVersionDetailsList);
         return new Results(200, dbResultsData);
