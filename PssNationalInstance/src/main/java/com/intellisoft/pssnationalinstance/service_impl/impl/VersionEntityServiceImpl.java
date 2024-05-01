@@ -10,6 +10,7 @@ import com.intellisoft.pssnationalinstance.service_impl.service.NationalTemplate
 import com.intellisoft.pssnationalinstance.service_impl.service.VersionEntityService;
 import com.intellisoft.pssnationalinstance.util.AppConstants;
 import com.intellisoft.pssnationalinstance.util.EnvUrlConstants;
+import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
@@ -112,6 +113,8 @@ public class VersionEntityServiceImpl implements VersionEntityService {
         String publishedBaseUrl = envUrlConstants.getNATIONAL_PUBLISHED_VERSIONS();
         List<DbVersionDetails> dbVersionDetailsList = new ArrayList<>();
 
+
+
         if (isLatest) {
             Optional<VersionEntity> versionEntityOptional = versionEntityRepository.findFirstByStatusOrderByCreatedAtDesc(PublishStatus.PUBLISHED.name());
             if (versionEntityOptional.isPresent()) {
@@ -152,14 +155,117 @@ public class VersionEntityServiceImpl implements VersionEntityService {
             String createdAt = String.valueOf(versionEntityList.get(i).getCreatedAt());
             List<String> indicatorList = versionEntityList.get(i).getIndicators();
             List<DbIndicators> selectedIndicators = nationalTemplateService.getSelectedIndicators(dbIndicatorsList, indicatorList, "");
-            DbVersionDetails dbVersionDetails = new DbVersionDetails(id, versionName, versionDescription, createdBy, status, publishedBy, createdAt, selectedIndicators);
+
+            List<DbIndicators> newSelectedIndicators = new ArrayList<DbIndicators>();
+
+            for (DbIndicators dbIndicators : selectedIndicators) {
+
+                Object categoryName = dbIndicators.getCategoryName();
+
+                List<DbIndicatorValues> indicatorValueList = dbIndicators.getIndicators();
+                List<DbIndicatorValues> newIndicatorValueList = new ArrayList<DbIndicatorValues>();
+                //Remove indicators that are empty
+                if (!indicatorValueList.isEmpty()){
+                    //Update the latest value
+
+                    for (int j = 0; j < indicatorValueList.size(); j++) {
+
+                        Pair<List<String>, List<Boolean>> pairData = getSavedIndicators(id);
+                        assert pairData != null;
+                        List<String> savedIndicators = pairData.component1();
+                        List<Boolean> savedLatestList = pairData.component2();
+
+                        String categoryId = (String) indicatorValueList.get(j).getCategoryId();
+
+                        // Check if categoryId is present in savedIndicators
+                        int index = savedIndicators.indexOf(categoryId);
+                        if (index != -1) {
+                            // categoryId is present in savedIndicators
+                            boolean savedLatest = savedLatestList.get(index);
+                            newIndicatorValueList.add(
+                                    new DbIndicatorValues(
+                                            indicatorValueList.get(j).getDescription(),
+                                            indicatorValueList.get(j).getVersionNumber(),
+                                            indicatorValueList.get(j).getCategoryId(),
+                                            indicatorValueList.get(j).getCategoryName(),
+                                            savedLatest,
+                                            indicatorValueList.get(j).getIndicatorName(),
+                                            indicatorValueList.get(j).getBenchmark(),
+                                            indicatorValueList.get(j).getInternationalBenchmark(),
+                                            indicatorValueList.get(j).getIndicatorDataValue())
+                            );
+
+                        }
+
+                    }
+
+                    DbIndicators dbIndicatorsNew = new DbIndicators(
+                            categoryName,
+                            newIndicatorValueList
+                    );
+
+                    newSelectedIndicators.add(dbIndicatorsNew);
+                }
+            }
+
+            DbVersionDetails dbVersionDetails = new DbVersionDetails(id, versionName, versionDescription, createdBy, status, publishedBy, createdAt, newSelectedIndicators);
             dbVersionDetailsList.add(dbVersionDetails);
 
         }
 
+        //From dbVersionDetailsList get the ids
+
+//        for (DbVersionDetails dbVersionDetails : dbVersionDetailsList) {
+//            Long id = dbVersionDetails.getId();
+//
+//            List<DbIndicators> pulledIndicators = (List<DbIndicators>) dbVersionDetails.getIndicators();
+//            for (int i = 0; i < Objects.requireNonNull(pulledIndicators).size(); i++){
+//                List<DbIndicatorValues> pulledIndicatorList = pulledIndicators.get(i).getIndicators();
+//                for (int j = 0; j < pulledIndicatorList.size(); j++){
+//
+//                    String categoryId = (String) pulledIndicatorList.get(j).getCategoryId();
+//
+//                    Pair<List<String>, List<Boolean>> pairData = getSavedIndicators(id);
+//                    assert pairData != null;
+//                    List<String> savedIndicators = pairData.component1();
+//                    List<Boolean> savedLatestList = pairData.component2();
+//
+//
+//                    // Check if categoryId is present in savedIndicators
+//                    int index = savedIndicators.indexOf(categoryId);
+//                    if (index != -1) {
+//                        // categoryId is present in savedIndicators
+//                        boolean savedLatest = savedLatestList.get(index);
+//                        // Now you have the boolean value corresponding to the categoryId
+//                        System.out.println("Boolean value for categoryId " + categoryId + ": " + savedLatest);
+//                    }
+//                }
+//            }
+//
+//        }
+
+
+
+
         DbResultsData dbResultsData = new DbResultsData(dbVersionDetailsList.size(), dbVersionDetailsList);
         return new Results(200, dbResultsData);
     }
+    
+    private Pair<List<String>, List<Boolean>> getSavedIndicators(Long id){
+        assert id != null;
+        Optional<VersionEntity> optionalVersionEntity = versionEntityRepository.findById(id);
+        if (optionalVersionEntity.isPresent()){
+
+            VersionEntity savedVersionEntity = optionalVersionEntity.get();
+            List<String> savedIndicators = savedVersionEntity.getIndicators();
+            List<Boolean> savedLatestList = savedVersionEntity.getVersion();
+            
+            return new Pair<>(savedIndicators, savedLatestList);
+
+        }
+        return null;
+    }
+    
 
     @Override
     public Results updateVersion(String id, DbVersions dbVersions) {
