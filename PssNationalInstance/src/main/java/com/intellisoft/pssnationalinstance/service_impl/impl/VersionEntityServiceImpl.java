@@ -384,11 +384,55 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
                 List<String> indicators = versionEntity.getIndicators();
 
+                Pair<List<String>, List<Boolean>> pairData = getSavedIndicators(dbVersionDataDetails.getId());
+                assert pairData != null;
+                List<String> savedIndicators = pairData.component1();
+                List<Boolean> savedLatestList = pairData.component2();
+
+                List<DbIndicators> newSelectedIndicators = new ArrayList<DbIndicators>();
+
+
                 DbPublishedVersion publishedVersion = filterDbPublishedVersionByCategoryId(indicators, dbPublishedVersion);
                 publishedVersion.getDetails().forEach(dbIndicators -> {
-                    dbIndicators.getIndicators().forEach(indicatorValue -> indicatorValue.setLatest(versionEntity.isLatest()));
+                    List<DbIndicatorValues> newIndicatorValueList = new ArrayList<DbIndicatorValues>();
+
+                    List<DbIndicatorValues> indicatorList = dbIndicators.getIndicators();
+                    indicatorList.forEach(indicatorValue -> {
+
+                        String categoryId = String.valueOf(indicatorValue.getCategoryId());
+                        // Check if categoryId is present in savedIndicators
+                        int index = savedIndicators.indexOf(categoryId);
+
+                        if (index != -1) {
+                            // categoryId is present in savedIndicators
+                            boolean savedLatest = savedLatestList.get(index);
+                            newIndicatorValueList.add(
+                                    new DbIndicatorValues(
+                                            indicatorValue.getDescription(),
+                                            indicatorValue.getVersionNumber(),
+                                            indicatorValue.getCategoryId(),
+                                            indicatorValue.getCategoryName(),
+                                            savedLatest,
+                                            indicatorValue.getIndicatorName(),
+                                            indicatorValue.getBenchmark(),
+                                            indicatorValue.getInternationalBenchmark(),
+                                            indicatorValue.getIndicatorDataValue())
+                            );
+
+                        }
+
+                    });
+                    DbIndicators dbIndicatorsNew = new DbIndicators(
+                            dbIndicators.getCategoryName(),
+                            newIndicatorValueList
+                    );
+
+                    newSelectedIndicators.add(dbIndicatorsNew);
+
+//                    dbIndicators.getIndicators().forEach(indicatorValue -> indicatorValue.setLatest(versionEntity.isLatest()));
                 });
-                dbVersionDataDetails.setIndicators(publishedVersion);
+
+                dbVersionDataDetails.setIndicators(newSelectedIndicators);
                 return new Results(200, dbVersionDataDetails);
             }
         } catch (Exception e) {
