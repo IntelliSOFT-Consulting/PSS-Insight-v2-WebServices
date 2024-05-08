@@ -63,7 +63,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
                     periodConfigurationService.getMailConfiguration();
 
             if (mailConfiguration != null && mailSender != null){
-                String subject = "PSS Survey";
+                String subject = dbNotificationData.getTitle();
 
                 String from = mailConfiguration.getFromEmail();
 

@@ -304,7 +304,7 @@ public class InternationalServiceImpl implements InternationalService {
         }
 
         NotificationEntity notification = new NotificationEntity();
-        notification.setTitle("New Version Published.");
+        notification.setTitle("New Template");
         notification.setSender(savedVersionEntity.getPublishedBy());
         notification.setMessage(message);
         notification.setEmailList(dbEmailList);
