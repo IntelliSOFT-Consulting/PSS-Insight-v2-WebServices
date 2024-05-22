@@ -168,7 +168,7 @@ public class SurveyRespondentsServiceImpl implements SurveyRespondentsService {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error occurred while sending email");
         }
 
 
