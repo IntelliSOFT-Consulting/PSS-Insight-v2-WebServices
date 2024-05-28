@@ -102,7 +102,6 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
 
         }catch (Exception e){
-            e.printStackTrace();
             log.error("An error occurred while processing the send email background task");
         }
 
