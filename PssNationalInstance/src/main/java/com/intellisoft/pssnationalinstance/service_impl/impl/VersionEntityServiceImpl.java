@@ -179,7 +179,7 @@ public class VersionEntityServiceImpl implements VersionEntityService {
 
                         // Check if categoryId is present in savedIndicators
                         int index = savedIndicators.indexOf(categoryId);
-                        if (index != -1) {
+                        if (index != -1 && index < savedLatestList.size()) {
                             // categoryId is present in savedIndicators
                             boolean savedLatest = savedLatestList.get(index);
                             newIndicatorValueList.add(
