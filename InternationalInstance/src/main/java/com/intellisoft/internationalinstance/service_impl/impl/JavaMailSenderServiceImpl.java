@@ -63,7 +63,7 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
                     periodConfigurationService.getMailConfiguration();
 
             if (mailConfiguration != null && mailSender != null){
-                String subject = "PSS Survey";
+                String subject = dbNotificationData.getTitle();
 
                 String from = mailConfiguration.getFromEmail();
 
@@ -102,7 +102,6 @@ public class JavaMailSenderServiceImpl implements JavaMailSenderService {
 
 
         }catch (Exception e){
-            e.printStackTrace();
             log.error("An error occurred while processing the send email background task");
         }
 

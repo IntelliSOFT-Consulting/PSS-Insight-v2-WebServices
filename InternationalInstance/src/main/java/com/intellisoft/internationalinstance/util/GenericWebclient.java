@@ -62,7 +62,6 @@ public class GenericWebclient {
             Class<T> requestClass,
             Class<V> responseClass,
             E... exceptions) throws URISyntaxException {
-    log.info("REQUEST: {},{}", url,"request");
         return myWebClient().post()
                 .uri(new URI(url))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -85,7 +84,6 @@ public class GenericWebclient {
             Class<T> requestClass,
             Class<V> responseClass,
             E... exceptions) throws URISyntaxException {
-        log.info("REQUEST: {},{}", url,"request");
         return myWebClient().put()
                 .uri(new URI(url))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +110,6 @@ public class GenericWebclient {
             Class<V> responseClass,
             String authHeader,
             E... exceptions) throws URISyntaxException {
-        log.info("REQUEST: {},{}", url, "request");
         return WebClient.builder()
                 .defaultHeader(HttpHeaders.AUTHORIZATION, authHeader)
                 .build()
@@ -125,7 +122,6 @@ public class GenericWebclient {
                 .onStatus(HttpStatus::is4xxClientError, error -> {
                     return error.bodyToMono(String.class)
                             .flatMap(errorMessage -> {
-                                log.error("4xx Client Error: {}", errorMessage);
                                 return Mono.error(exceptions.length >= 2 ? exceptions[1] : new CustomException("Bad Request Error: " + errorMessage));
                             });
                 })
@@ -149,7 +145,6 @@ public class GenericWebclient {
      */
     @SafeVarargs
     public  static<T,V, E extends Exception> Flux<V> postForCollectionResponse(String url, T request, Class<T> requestClass, Class<V> responseClass, E... exceptions) throws URISyntaxException {
-        log.info("REQUEST: {}", request);
 
         return myWebClient().post()
                 .uri(new URI(url))
@@ -235,7 +230,6 @@ public class GenericWebclient {
             Class<V> responseClass,
             String authHeader,
             E... exceptions) throws URISyntaxException {
-        log.info("REQUEST: {},{}", url, "request");
         return WebClient.builder()
                 .defaultHeader(HttpHeaders.AUTHORIZATION, authHeader)
                 .build()
