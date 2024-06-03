@@ -1,0 +1,27 @@
+2024-06-03 16:19:31.116 [main] INFO  c.i.i.InternationalInstanceApplication - Starting InternationalInstanceApplication using Java 11.0.22 on Davids-MacBook-Pro.local with PID 95865 (/Users/davidnjau/Documents/ICL/Development/Backend/Pss/InternationalInstance/target/classes started by davidnjau in /Users/davidnjau/Documents/ICL/Development/Backend/Pss)
+2024-06-03 16:19:31.118 [main] INFO  c.i.i.InternationalInstanceApplication - The following 1 profile is active: "globaldev"
+2024-06-03 16:19:31.637 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-06-03 16:19:31.670 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 30 ms. Found 6 JPA repository interfaces.
+2024-06-03 16:19:31.911 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 7009 (http)
+2024-06-03 16:19:31.914 [main] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-7009"]
+2024-06-03 16:19:31.914 [main] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2024-06-03 16:19:31.914 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.60]
+2024-06-03 16:19:31.969 [main] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2024-06-03 16:19:31.969 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 818 ms
+2024-06-03 16:19:32.052 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-06-03 16:19:32.072 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.7.Final
+2024-06-03 16:19:32.135 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2024-06-03 16:19:32.174 [main] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-06-03 16:19:37.127 [main] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-06-03 16:19:37.143 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.PostgreSQLDialect
+2024-06-03 16:19:43.614 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2024-06-03 16:19:43.632 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-06-03 16:19:44.466 [main] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BOOLEAN] - [true]
+2024-06-03 16:19:45.129 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2024-06-03 16:19:45.707 [main] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-7009"]
+2024-06-03 16:19:45.718 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 7009 (http) with context path ''
+2024-06-03 16:19:45.724 [main] INFO  c.i.i.InternationalInstanceApplication - Started InternationalInstanceApplication in 14.759 seconds (JVM running for 15.393)
+2024-06-03 16:21:18.921 [http-nio-7009-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2024-06-03 16:21:18.922 [http-nio-7009-exec-1] INFO  o.s.w.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2024-06-03 16:21:18.929 [http-nio-7009-exec-1] INFO  o.s.w.servlet.DispatcherServlet - Completed initialization in 6 ms
+2024-06-03 16:21:19.481 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BIGINT] - [1]

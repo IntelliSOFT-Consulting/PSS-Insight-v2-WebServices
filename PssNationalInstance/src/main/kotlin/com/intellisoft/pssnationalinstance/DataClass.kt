@@ -11,7 +11,15 @@ data class DbResultsApi(@JsonProperty("code") val code: Int, @JsonProperty("deta
 
 data class UnsubscribeResponse(@JsonProperty("code") val code: Int, @JsonProperty("details") val details: NotificationSubscription)
 
-data class NotificationSubscription(@JsonProperty("id") val id: Long?, @JsonProperty("firstName") val firstName: String?, @JsonProperty("lastName") val lastName: String?, @JsonProperty("email") val email: String?, @JsonProperty("phone") val phone: String?, @JsonProperty("isActive") val isActive: Boolean = true, @JsonProperty("userId") val userId: String?)
+data class NotificationSubscription(
+        @JsonProperty("id") val id: Long?,
+        @JsonProperty("firstName") val firstName: String?,
+        @JsonProperty("lastName") val lastName: String?,
+        @JsonProperty("email") val email: String?,
+        @JsonProperty("phone") val phone: String?,
+        @JsonProperty("isActive") val isActive: Boolean = true,
+        @JsonProperty("userId") val userId: String?
+)
 
 data class DbResults(val count: Int, val details: Any?)
 
@@ -293,7 +301,14 @@ data class DbSurveyRespondentDataDerails(val id: Long, val emailAddress: String,
 
 )
 
-data class DbNotificationSub(val id: String?, val firstName: String?, val lastName: String?, val email: String, val phoneNumber: String?, val organisationId:String? = null)
+data class DbNotificationSub(
+        val id: String?,
+        val firstName: String?,
+        val lastName: String?,
+        val email: String,
+        val phoneNumber: String?,
+        val organisationId:String? = null,
+        val userId: String? = null)
 
 data class DbEmailConfiguration(val serverType: String, val serverName: String, val ports: String, val username: String, val from: String, val password: String)
 

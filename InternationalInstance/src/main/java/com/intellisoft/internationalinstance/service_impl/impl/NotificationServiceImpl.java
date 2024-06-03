@@ -218,7 +218,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findById(Long.valueOf(dbNotificationSub.getId()));
+        Optional<NotificationSubscription> optionalNotificationSubscription =
+                notificationSubscriptionRepo.findById(
+                        Long.valueOf(dbNotificationSub.getId()
+                        )
+                );
 
         if (optionalNotificationSubscription.isPresent()) {
             NotificationSubscription notificationSubscription = optionalNotificationSubscription.get();
