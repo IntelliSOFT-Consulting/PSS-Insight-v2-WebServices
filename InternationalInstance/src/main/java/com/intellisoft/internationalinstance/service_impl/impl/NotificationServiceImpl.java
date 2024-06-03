@@ -223,22 +223,31 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription =
-                notificationSubscriptionRepo.findById(
-                        Long.valueOf(dbNotificationSub.getId()
-                        )
+        /**
+         * Check if the email address exists for that organisation
+         *
+         */
+
+        Optional<NotificationSubscription> optionalEmailUserId =
+                notificationSubscriptionRepo.findByEmailAndAndUserId(
+                        dbNotificationSub.getEmail(), dbNotificationSub.getUserId()
                 );
 
-        if (optionalNotificationSubscription.isPresent()) {
-            NotificationSubscription notificationSubscription = optionalNotificationSubscription.get();
+        if (optionalEmailUserId.isPresent()) {
+            NotificationSubscription notificationSubscription = optionalEmailUserId.get();
 
             // Update the email address
             notificationSubscription.setEmail(dbNotificationSub.getEmail());
 
             //updating other fields::
-            notificationSubscription.setFirstName(dbNotificationSub.getFirstName());
-            notificationSubscription.setLastName(dbNotificationSub.getLastName());
-            notificationSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+            if (dbNotificationSub.getFirstName() != null)
+                notificationSubscription.setFirstName(dbNotificationSub.getFirstName());
+            if (dbNotificationSub.getLastName() != null)
+                notificationSubscription.setLastName(dbNotificationSub.getLastName());
+            if (dbNotificationSub.getPhoneNumber() != null)
+                notificationSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+            if (dbNotificationSub.getUserId() != null)
+                notificationSubscription.setUserId(dbNotificationSub.getUserId());
 
             // Save the record
             notificationSubscriptionRepo.save(notificationSubscription);

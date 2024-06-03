@@ -162,17 +162,23 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
-        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "update-subscription";
+//        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "update-subscription";
+        String internationalBaseApi = "http://0.0.0.0:7009/api/v1/notification/" + "update-subscription";
 
         try {
             WebClient webClient = WebClient.create();
 
             // Send the update request with the provided DbNotificationSub object
-            UnsubscribeResponse response = webClient.put().uri(internationalBaseApi).bodyValue(dbNotificationSub).retrieve().bodyToMono(UnsubscribeResponse.class).block();
+            UnsubscribeResponse response = webClient.put().
+                    uri(internationalBaseApi).bodyValue(dbNotificationSub)
+                    .retrieve().bodyToMono(UnsubscribeResponse.class).block();
 
             if (response != null && response.getCode() == 200 && response.getDetails() != null) {
 
-                NotificationSubscription details = response.getDetails();
+                NotificationSubscription details = (NotificationSubscription) response.getDetails();
+
+                System.out.println("------> "+ details);
+
                 NotificationSubscription notificationSubscription = new NotificationSubscription(
                         details.getId(),
                         details.getFirstName(),
@@ -185,9 +191,16 @@ public class NotificationServiceImpl implements NotificationService {
                 //Update the user info
                 Long id = notificationSubscription.getId();
                 assert id != null;
-                Optional<NotificationDbSubscription> optionalNotificationSubscription = notificationDbSubscriptionRepo.findById(id);
+                Optional<NotificationDbSubscription> optionalNotificationSubscription =
+                        notificationDbSubscriptionRepo.findById(id);
+
                 if (optionalNotificationSubscription.isPresent()){
-                    NotificationDbSubscription savedSubscription = getSavedSubscription(dbNotificationSub, optionalNotificationSubscription, notificationSubscription);
+                    NotificationDbSubscription savedSubscription =
+                            getSavedSubscription(
+                                    dbNotificationSub,
+                                    optionalNotificationSubscription,
+                                    notificationSubscription
+                            );
                     notificationDbSubscriptionRepo.save(savedSubscription);
                 }
 

@@ -9,7 +9,9 @@ import java.util.*
 data class Results(val code: Int, val details: Any?)
 data class DbResultsApi(@JsonProperty("code") val code: Int, @JsonProperty("details") val details: Any?)
 
-data class UnsubscribeResponse(@JsonProperty("code") val code: Int, @JsonProperty("details") val details: NotificationSubscription)
+data class UnsubscribeResponse(
+        @JsonProperty("code") val code: Int,
+        @JsonProperty("details") val details: Any)
 
 data class NotificationSubscription(
         @JsonProperty("id") val id: Long?,

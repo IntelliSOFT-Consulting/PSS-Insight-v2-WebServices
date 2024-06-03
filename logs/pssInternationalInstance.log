@@ -199,3 +199,55 @@
 2024-06-03 17:45:01.174 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [4] as [VARCHAR] - [Rama]
 2024-06-03 17:45:01.175 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [5] as [VARCHAR] - [0716543215]
 2024-06-03 17:45:01.175 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [6] as [VARCHAR] - [M5zQapPyTZI]
+2024-06-03 18:15:58.916 [http-nio-7009-exec-3] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BIGINT] - [1]
+2024-06-03 18:17:57.320 [http-nio-7009-exec-6] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BIGINT] - [1]
+2024-06-03 18:20:03.759 [http-nio-7009-exec-7] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BIGINT] - [1]
+2024-06-03 18:23:23.649 [http-nio-7009-exec-9] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BIGINT] - [1]
+2024-06-03 18:23:29.442 [http-nio-7009-exec-10] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BIGINT] - [1]
+2024-06-03 18:31:00.661 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-06-03 18:31:00.709 [SpringApplicationShutdownHook] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2024-06-03 18:31:00.714 [SpringApplicationShutdownHook] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2024-06-03 18:31:04.335 [main] INFO  c.i.i.InternationalInstanceApplication - Starting InternationalInstanceApplication using Java 11.0.22 on Davids-MacBook-Pro.local with PID 5274 (/Users/davidnjau/Documents/ICL/Development/Backend/Pss/InternationalInstance/target/classes started by davidnjau in /Users/davidnjau/Documents/ICL/Development/Backend/Pss)
+2024-06-03 18:31:04.336 [main] INFO  c.i.i.InternationalInstanceApplication - The following 1 profile is active: "globaldev"
+2024-06-03 18:31:04.922 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-06-03 18:31:04.954 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 29 ms. Found 6 JPA repository interfaces.
+2024-06-03 18:31:05.221 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 7009 (http)
+2024-06-03 18:31:05.223 [main] INFO  o.a.c.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-7009"]
+2024-06-03 18:31:05.224 [main] INFO  o.a.c.core.StandardService - Starting service [Tomcat]
+2024-06-03 18:31:05.224 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.60]
+2024-06-03 18:31:05.277 [main] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2024-06-03 18:31:05.277 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 921 ms
+2024-06-03 18:31:05.366 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-06-03 18:31:05.385 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.7.Final
+2024-06-03 18:31:05.438 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2024-06-03 18:31:05.479 [main] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2024-06-03 18:31:10.000 [main] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2024-06-03 18:31:10.016 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.PostgreSQLDialect
+2024-06-03 18:31:16.221 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2024-06-03 18:31:16.237 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-06-03 18:31:17.045 [main] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [BOOLEAN] - [true]
+2024-06-03 18:31:17.579 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2024-06-03 18:31:18.231 [main] INFO  o.a.c.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-7009"]
+2024-06-03 18:31:18.240 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 7009 (http) with context path ''
+2024-06-03 18:31:18.246 [main] INFO  c.i.i.InternationalInstanceApplication - Started InternationalInstanceApplication in 14.063 seconds (JVM running for 14.618)
+2024-06-03 18:31:36.595 [http-nio-7009-exec-1] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2024-06-03 18:31:36.596 [http-nio-7009-exec-1] INFO  o.s.w.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2024-06-03 18:31:36.600 [http-nio-7009-exec-1] INFO  o.s.w.servlet.DispatcherServlet - Completed initialization in 4 ms
+2024-06-03 18:31:37.064 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [VARCHAR] - [nass@gmail.com]
+2024-06-03 18:31:37.065 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [2] as [VARCHAR] - [M5zQapPyTZI]
+2024-06-03 18:31:37.502 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [VARCHAR] - [nass@gmail.com]
+2024-06-03 18:31:37.502 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [2] as [VARCHAR] - [Nass Update]
+2024-06-03 18:31:37.503 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [3] as [BOOLEAN] - [true]
+2024-06-03 18:31:37.503 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [4] as [VARCHAR] - [Rama Update]
+2024-06-03 18:31:37.503 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [5] as [VARCHAR] - [0712345678]
+2024-06-03 18:31:37.503 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [6] as [VARCHAR] - [M5zQapPyTZI]
+2024-06-03 18:31:37.503 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [7] as [BIGINT] - [54]
+2024-06-03 18:32:17.573 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [VARCHAR] - [nass@gmail.com]
+2024-06-03 18:32:17.574 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [2] as [VARCHAR] - [M5zQapPyTZI]
+2024-06-03 18:32:17.987 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [1] as [VARCHAR] - [nass@gmail.com]
+2024-06-03 18:32:17.988 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [2] as [VARCHAR] - [Nass Update 1]
+2024-06-03 18:32:17.989 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [3] as [BOOLEAN] - [true]
+2024-06-03 18:32:17.990 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [4] as [VARCHAR] - [Rama Update 1]
+2024-06-03 18:32:17.990 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [5] as [VARCHAR] - [0712345678]
+2024-06-03 18:32:17.991 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [6] as [VARCHAR] - [M5zQapPyTZI]
+2024-06-03 18:32:17.991 [http-nio-7009-exec-2] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [7] as [BIGINT] - [54]
