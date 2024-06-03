@@ -47,17 +47,22 @@ public class NotificationServiceImpl implements NotificationService {
                 subscription.setPhone(notificationSubscription.getPhoneNumber());
             if (notificationSubscription.getFirstName() != null)
                 subscription.setFirstName(notificationSubscription.getFirstName());
+            if (notificationSubscription.getUserId() != null)
+                subscription.setUserId(notificationSubscription.getUserId());
 
             subscription.setEmail(notificationSubscription.getEmail());
 
+            var savedSubscription = notificationSubscriptionRepo.findByEmailAndAndUserId(
+                    notificationSubscription.getEmail(),
+                    notificationSubscription.getUserId());
 
-            var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
             if (savedSubscription.isEmpty()) {
                 // user does not exist, so the API can subscribe the user
                 notificationSubscriptionRepo.save(subscription);
             } else {
                 //their emails are similar, hence avoid double subscription::
-                return new Results(400, "You are already subscribed.");
+                return new Results(400,
+                        "A user with the same email and the same organisation already exists.");
             }
             return new Results(200, notificationSubscription);
         } catch (Exception e) {

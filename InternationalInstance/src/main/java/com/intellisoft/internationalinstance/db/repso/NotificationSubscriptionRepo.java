@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NotificationSubscriptionRepo extends JpaRepository<NotificationSubscription, Long> {
-    Optional<NotificationSubscription> findByEmail(String email);
     List<NotificationSubscription> findAllByIsActive(boolean isActive);
     List<NotificationSubscription> findAllByIsActive(boolean isActive, Pageable pageable);
     Optional<NotificationSubscription> findByUserId(String userId);
     Optional<NotificationSubscription> findFirstByUserId(String userId);
 
     Optional<NotificationSubscription> findFirstByUserIdAndIsActiveTrue(String userId);
+    Optional<NotificationSubscription> findByEmail(String email);
+    Optional<NotificationSubscription> findByEmailAndAndUserId(String email, String userId);
 
 }
