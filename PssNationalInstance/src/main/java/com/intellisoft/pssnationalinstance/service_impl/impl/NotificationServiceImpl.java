@@ -162,8 +162,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
-//        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "update-subscription";
-        String internationalBaseApi = "http://0.0.0.0:7009/api/v1/notification/" + "update-subscription";
+        String internationalBaseApi = envUrlConstants.getINTERNATIONAL_NOTIFICATION() + "update-subscription";
+//        String internationalBaseApi = "http://0.0.0.0:7009/api/v1/notification/" + "update-subscription";
 
         try {
             WebClient webClient = WebClient.create();
@@ -175,47 +175,50 @@ public class NotificationServiceImpl implements NotificationService {
 
             if (response != null && response.getCode() == 200 && response.getDetails() != null) {
 
-                NotificationSubscription details = (NotificationSubscription) response.getDetails();
-
-                System.out.println("------> "+ details);
-
-                NotificationSubscription notificationSubscription = new NotificationSubscription(
-                        details.getId(),
-                        details.getFirstName(),
-                        details.getLastName(),
-                        details.getEmail(),
-                        details.getPhone(),
-                        details.isActive(),
-                        details.getUserId());
-
-                //Update the user info
-                Long id = notificationSubscription.getId();
-                assert id != null;
                 Optional<NotificationDbSubscription> optionalNotificationSubscription =
-                        notificationDbSubscriptionRepo.findById(id);
+                        notificationDbSubscriptionRepo.findByEmail(dbNotificationSub.getEmail());
 
                 if (optionalNotificationSubscription.isPresent()){
-                    NotificationDbSubscription savedSubscription =
-                            getSavedSubscription(
-                                    dbNotificationSub,
-                                    optionalNotificationSubscription,
-                                    notificationSubscription
-                            );
+
+                    NotificationDbSubscription savedSubscription = optionalNotificationSubscription.get();
+
+                    if (dbNotificationSub.getId() != null)
+                        savedSubscription.setUserId(dbNotificationSub.getId());
+                    if (dbNotificationSub.getLastName() != null)
+                        savedSubscription.setLastName(dbNotificationSub.getLastName());
+                    if (dbNotificationSub.getPhoneNumber() != null)
+                        savedSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+                    if (dbNotificationSub.getFirstName() != null)
+                        savedSubscription.setFirstName(dbNotificationSub.getFirstName());
+                    if (dbNotificationSub.getOrganisationId() != null)
+                        savedSubscription.setOrganisationId(dbNotificationSub.getOrganisationId());
+
                     notificationDbSubscriptionRepo.save(savedSubscription);
+
+                    return new Results(200, savedSubscription);
+
+                }else {
+                    return new Results(400, "The resource could not be updated.");
+
                 }
 
-                return new Results(200, notificationSubscription);
+
             } else {
                 return new Results(400, "Resource not found, update not successful");
             }
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("An error occurred while updating subscription details");
             return new Results(400, "An error occurred while processing the request");
         }
     }
 
     @NotNull
-    private static NotificationDbSubscription getSavedSubscription(DbNotificationSub dbNotificationSub, Optional<NotificationDbSubscription> optionalNotificationSubscription, NotificationSubscription notificationSubscription) {
+    private static NotificationDbSubscription getSavedSubscription(
+            DbNotificationSub dbNotificationSub,
+            Optional<NotificationDbSubscription> optionalNotificationSubscription,
+            NotificationSubscription notificationSubscription) {
+
         NotificationDbSubscription savedSubscription = optionalNotificationSubscription.get();
 
         if (notificationSubscription.getId() != null) savedSubscription.setUserId(dbNotificationSub.getId());

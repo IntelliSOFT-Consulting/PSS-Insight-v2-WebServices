@@ -310,7 +310,9 @@ data class DbNotificationSub(
         val email: String,
         val phoneNumber: String?,
         val organisationId:String? = null,
-        val userId: String? = null)
+        val userId: String? = null,
+        val isActive: Boolean? = null,
+        )
 
 data class DbEmailConfiguration(val serverType: String, val serverName: String, val ports: String, val username: String, val from: String, val password: String)
 
