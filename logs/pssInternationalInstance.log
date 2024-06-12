@@ -266,3 +266,6 @@
 2024-06-03 18:52:27.891 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [5] as [VARCHAR] - [0712345678]
 2024-06-03 18:52:27.891 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [6] as [VARCHAR] - [M5zQapPyTZI]
 2024-06-03 18:52:27.892 [http-nio-7009-exec-1] TRACE o.h.t.descriptor.sql.BasicBinder - binding parameter [7] as [BIGINT] - [54]
+2024-06-03 19:06:02.668 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-06-03 19:06:02.689 [SpringApplicationShutdownHook] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2024-06-03 19:06:02.692 [SpringApplicationShutdownHook] INFO  c.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
