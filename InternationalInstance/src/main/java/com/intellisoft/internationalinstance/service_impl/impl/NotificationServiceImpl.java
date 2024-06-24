@@ -47,17 +47,22 @@ public class NotificationServiceImpl implements NotificationService {
                 subscription.setPhone(notificationSubscription.getPhoneNumber());
             if (notificationSubscription.getFirstName() != null)
                 subscription.setFirstName(notificationSubscription.getFirstName());
+            if (notificationSubscription.getUserId() != null)
+                subscription.setUserId(notificationSubscription.getUserId());
 
             subscription.setEmail(notificationSubscription.getEmail());
 
+            var savedSubscription = notificationSubscriptionRepo.findByEmailAndAndUserId(
+                    notificationSubscription.getEmail(),
+                    notificationSubscription.getUserId());
 
-            var savedSubscription = notificationSubscriptionRepo.findByEmail(notificationSubscription.getEmail());
             if (savedSubscription.isEmpty()) {
                 // user does not exist, so the API can subscribe the user
                 notificationSubscriptionRepo.save(subscription);
             } else {
                 //their emails are similar, hence avoid double subscription::
-                return new Results(400, "You are already subscribed.");
+                return new Results(400,
+                        "A user with the same email and the same organisation already exists.");
             }
             return new Results(200, notificationSubscription);
         } catch (Exception e) {
@@ -218,18 +223,31 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Results updateSubscription(DbNotificationSub dbNotificationSub) {
 
-        Optional<NotificationSubscription> optionalNotificationSubscription = notificationSubscriptionRepo.findById(Long.valueOf(dbNotificationSub.getId()));
+        /**
+         * Check if the email address exists for that organisation
+         *
+         */
 
-        if (optionalNotificationSubscription.isPresent()) {
-            NotificationSubscription notificationSubscription = optionalNotificationSubscription.get();
+        Optional<NotificationSubscription> optionalEmailUserId =
+                notificationSubscriptionRepo.findByEmailAndAndUserId(
+                        dbNotificationSub.getEmail(), dbNotificationSub.getUserId()
+                );
+
+        if (optionalEmailUserId.isPresent()) {
+            NotificationSubscription notificationSubscription = optionalEmailUserId.get();
 
             // Update the email address
             notificationSubscription.setEmail(dbNotificationSub.getEmail());
 
             //updating other fields::
-            notificationSubscription.setFirstName(dbNotificationSub.getFirstName());
-            notificationSubscription.setLastName(dbNotificationSub.getLastName());
-            notificationSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+            if (dbNotificationSub.getFirstName() != null)
+                notificationSubscription.setFirstName(dbNotificationSub.getFirstName());
+            if (dbNotificationSub.getLastName() != null)
+                notificationSubscription.setLastName(dbNotificationSub.getLastName());
+            if (dbNotificationSub.getPhoneNumber() != null)
+                notificationSubscription.setPhone(dbNotificationSub.getPhoneNumber());
+            if (dbNotificationSub.getUserId() != null)
+                notificationSubscription.setUserId(dbNotificationSub.getUserId());
 
             // Save the record
             notificationSubscriptionRepo.save(notificationSubscription);
